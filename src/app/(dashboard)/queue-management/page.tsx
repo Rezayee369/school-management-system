@@ -9,18 +9,26 @@ import { BellRing, Check, Clock, Loader2, Users } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useFirestore } from '@/firebase';
 import { doc, updateDoc, Timestamp, collection, query, where, orderBy, limit, getDocs } from 'firebase/firestore';
 
 function PatientCard({ patient }: { patient: any }) {
+  const [registeredAtText, setRegisteredAtText] = useState('');
+
+  useEffect(() => {
+    if (patient.createdAt?.toDate) {
+      setRegisteredAtText(formatDistanceToNow(patient.createdAt.toDate(), { addSuffix: true }));
+    }
+  }, [patient.createdAt]);
+
   return (
     <div className="p-4 bg-background rounded-lg border shadow-sm flex justify-between items-center">
       <div>
         <p className="font-semibold">{patient.patientName} <span className="font-normal text-muted-foreground">({patient.service})</span></p>
         <p className="text-sm text-muted-foreground">
-          Queue #{patient.queueNumber} - Registered {formatDistanceToNow(patient.createdAt.toDate(), { addSuffix: true })}
+          Queue #{patient.queueNumber} - Registered {registeredAtText}
         </p>
       </div>
     </div>
