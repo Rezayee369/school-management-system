@@ -1,9 +1,30 @@
+'use client';
+
+import { useEffect, useState } from 'react';
 import { collection, query, where, getDocs, Timestamp, getCountFromServer } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { StatCard } from '@/components/dashboard/stat-card';
 import { Users, Clock, CheckCircle, UserPlus, LineChart } from 'lucide-react';
+import { useAuth } from '@/hooks/use-auth';
+
+interface DashboardStats {
+  patientsToday: number;
+  patientsWaiting: number;
+  patientsCompleted: number;
+  avgWaitTime: number;
+  error: string | null;
+}
 
 async function getDashboardStats() {
+  if (!db) {
+    return {
+      patientsToday: 0,
+      patientsWaiting: 0,
+      patientsCompleted: 0,
+      avgWaitTime: 0,
+      error: "Connecting to database..."
+    }
+  }
   try {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -73,8 +94,25 @@ async function getDashboardStats() {
   }
 }
 
-export default async function DashboardPage() {
-  const stats = await getDashboardStats();
+export default function DashboardPage() {
+  const [stats, setStats] = useState<DashboardStats>({
+    patientsToday: 0,
+    patientsWaiting: 0,
+    patientsCompleted: 0,
+    avgWaitTime: 0,
+    error: null,
+  });
+  const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
+
+  useEffect(() => {
+    if (user) {
+      getDashboardStats().then(data => {
+        setStats(data);
+        setLoading(false);
+      });
+    }
+  }, [user]);
 
   return (
     <div className="space-y-4">
@@ -84,28 +122,28 @@ export default async function DashboardPage() {
           value={stats.patientsToday}
           icon={UserPlus}
           description="Total patients added to the system today."
-          loading={false}
+          loading={loading}
         />
         <StatCard
           title="Patients Currently Waiting"
           value={stats.patientsWaiting}
           icon={Clock}
           description="Number of patients in 'Waiting' status."
-          loading={false}
+          loading={loading}
         />
         <StatCard
           title="Patients Completed Today"
           value={stats.patientsCompleted}
           icon={CheckCircle}
           description="Patients who have completed their visit today."
-          loading={false}
+          loading={loading}
         />
         <StatCard
           title="Average Wait Time (Mins)"
           value={stats.avgWaitTime > 0 ? `~${stats.avgWaitTime}` : 'N/A'}
           icon={LineChart}
           description="Average time from registration to being called."
-          loading={false}
+          loading={loading}
         />
       </div>
       <div className="text-center text-muted-foreground pt-10">
