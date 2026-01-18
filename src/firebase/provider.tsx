@@ -46,17 +46,6 @@ type FirebaseProviderProps = {
   children: React.ReactNode;
 };
 
-function FirebaseLoadingScreen() {
-  return (
-    <div className="flex h-screen w-screen items-center justify-center">
-      <div className="flex flex-col items-center gap-4">
-          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary animate-spin"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
-          <p className="text-lg text-muted-foreground">Initializing Connection...</p>
-      </div>
-    </div>
-  );
-}
-
 export const FirebaseProvider = ({ children }: FirebaseProviderProps) => {
   const [firebase, setFirebase] = useState<Firebase | null>(null);
 
@@ -65,7 +54,7 @@ export const FirebaseProvider = ({ children }: FirebaseProviderProps) => {
   }, []);
 
   if (!firebase) {
-    return <FirebaseLoadingScreen />;
+    return null;
   }
 
   return (
