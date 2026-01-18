@@ -15,9 +15,7 @@ export default function DashboardLayout({
   const [isCollapsed, setIsCollapsed] = React.useState(false);
   const { userProfile } = useAuth();
 
-  if (!userProfile) {
-    return null; // AuthProvider handles redirects, this prevents flicker
-  }
+  // The AuthProvider now ensures this component only renders when the user is fully loaded.
   
   return (
     <div className="flex min-h-screen w-full">
@@ -70,7 +68,7 @@ export default function DashboardLayout({
             {isCollapsed ? <ChevronsRight className="h-5 w-5" /> : <ChevronsLeft className="h-5 w-5" />}
           </Button>
           <div className="w-full flex-1">
-            <h2 className="text-xl font-semibold">Welcome, {userProfile.name}! ({userProfile.role})</h2>
+            <h2 className="text-xl font-semibold">Welcome, {userProfile?.name}! ({userProfile?.role})</h2>
           </div>
           <UserNav />
         </header>

@@ -6,6 +6,7 @@ import { signOut, type User } from 'firebase/auth';
 import { useUser } from '@/firebase/auth/use-user';
 import { useAuth as useFirebaseAuth } from '@/firebase';
 import { type UserProfile } from '@/lib/types';
+import { Loader2 } from 'lucide-react';
 
 interface AuthContextType {
   user: User | null;
@@ -42,10 +43,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const value = { user, userProfile, loading, logout };
 
   const isAuthPage = pathname === '/login';
-  if (loading || (!user && !isAuthPage) || (user && isAuthPage)) {
+
+  // For protected routes, show a loader on both server and client
+  // until authentication state and user profile are resolved.
+  if (loading && !isAuthPage) {
+    return (
+      <div className="flex h-screen w-screen items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  // After loading, handle redirects. Returning null is fine here as it's a transient state
+  // before a redirect, which avoids rendering a page that will be immediately replaced.
+  if ((!user && !isAuthPage) || (user && isAuthPage)) {
     return null;
   }
 
+  // If loading is complete and no redirect is needed, render the provider and children.
   return (
     <AuthContext.Provider value={value}>
       {children}
