@@ -8,10 +8,11 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { BellRing, Check, Clock, Loader2, Users } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { useAuth } from '@/hooks/use-auth';
-import { callNextPatient, completePatient } from './actions';
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useFirestore } from '@/firebase';
+import { doc, updateDoc, Timestamp, collection, query, where, orderBy, limit, getDocs } from 'firebase/firestore';
 
 function PatientCard({ patient }: { patient: any }) {
   return (
@@ -55,32 +56,64 @@ function QueueColumn({ title, icon: Icon, patients, count, emptyMessage, childre
 export default function QueueManagementPage() {
   const { waiting, called, completed, loading, error } = useQueue();
   const { userProfile } = useAuth();
+  const firestore = useFirestore();
   const { toast } = useToast();
   const [isCalling, setIsCalling] = useState(false);
   const [isCompleting, setIsCompleting] = useState<string | null>(null);
 
   const handleCallNext = async () => {
+    if(!firestore) return;
     setIsCalling(true);
-    const result = await callNextPatient();
-    if (result.message) {
-      toast({
-        title: result.success ? 'Action Successful' : 'Action Failed',
-        description: result.message,
-        variant: result.success ? 'default' : 'destructive'
+    try {
+      // Check if there's already a 'Called' patient
+      const calledQuery = query(collection(firestore, 'queue'), where('status', '==', 'Called'), limit(1));
+      const calledSnapshot = await getDocs(calledQuery);
+      if (!calledSnapshot.empty) {
+        toast({ title: 'Action Failed', description: 'Another patient is already being attended to.', variant: 'destructive' });
+        setIsCalling(false);
+        return;
+      }
+
+      // Find the next patient in 'Waiting'
+      const q = query(collection(firestore, 'queue'), where('status', '==', 'Waiting'), orderBy('queueNumber'), limit(1));
+      const querySnapshot = await getDocs(q);
+
+      if (querySnapshot.empty) {
+        toast({ title: 'Action Failed', description: 'No patients are currently waiting.', variant: 'destructive' });
+        setIsCalling(false);
+        return;
+      }
+
+      const patientDoc = querySnapshot.docs[0];
+      const patientRef = doc(firestore, 'queue', patientDoc.id);
+
+      await updateDoc(patientRef, {
+        status: 'Called',
+        calledAt: Timestamp.now(),
       });
+      
+      toast({ title: 'Action Successful', description: `Patient #${patientDoc.data().queueNumber} has been called.` });
+    } catch (error) {
+      console.error('Error calling next patient:', error);
+      toast({ title: 'Action Failed', description: 'Failed to call the next patient.', variant: 'destructive' });
     }
     setIsCalling(false);
   };
 
   const handleComplete = async (queueId: string) => {
+    if(!firestore) return;
     setIsCompleting(queueId);
-    const result = await completePatient(queueId);
-    if (result.message) {
-        toast({
-            title: result.success ? 'Action Successful' : 'Action Failed',
-            description: result.message,
-            variant: result.success ? 'default' : 'destructive'
+    try {
+        const patientRef = doc(firestore, 'queue', queueId);
+        await updateDoc(patientRef, {
+            status: 'Completed',
+            completedAt: Timestamp.now(),
         });
+
+        toast({ title: 'Action Successful', description: 'Consultation completed.'});
+    } catch (error) {
+        console.error('Error completing patient consultation:', error);
+        toast({ title: 'Action Failed', description: 'Failed to complete consultation.', variant: 'destructive'});
     }
     setIsCompleting(null);
   };

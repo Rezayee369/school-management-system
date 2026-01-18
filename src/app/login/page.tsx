@@ -26,7 +26,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { auth } from '@/lib/firebase';
+import { useAuth } from '@/firebase';
 import { Loader2 } from 'lucide-react';
 
 const loginSchema = z.object({
@@ -40,6 +40,7 @@ export default function LoginPage() {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const loginBg = PlaceHolderImages.find(p => p.id === 'login-background');
+  const auth = useAuth();
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),

@@ -1,20 +1,28 @@
 'use client';
-import { useState, useEffect } from 'react';
-import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { useState, useEffect, useMemo } from 'react';
+import { collection, query, onSnapshot, orderBy } from 'firebase/firestore';
+import { useFirestore } from '@/firebase';
 import { type QueueItem } from '@/lib/types';
 
 export function useQueue() {
+  const firestore = useFirestore();
   const [waiting, setWaiting] = useState<QueueItem[]>([]);
   const [called, setCalled] = useState<QueueItem[]>([]);
   const [completed, setCompleted] = useState<QueueItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  
+  const q = useMemo(() => {
+    if (!firestore) return null;
+    return query(collection(firestore, 'queue'), orderBy('createdAt', 'desc'));
+  },[firestore]);
 
   useEffect(() => {
+    if (!q) {
+      if(firestore) setLoading(false);
+      return;
+    }
     setLoading(true);
-    const q = query(collection(db, 'queue'), orderBy('createdAt', 'desc'));
-
     const unsubscribe = onSnapshot(q, 
       (querySnapshot) => {
         const items: QueueItem[] = [];
@@ -45,7 +53,7 @@ export function useQueue() {
     );
 
     return () => unsubscribe();
-  }, []);
+  }, [q]);
 
   return { waiting, called, completed, loading, error };
 }

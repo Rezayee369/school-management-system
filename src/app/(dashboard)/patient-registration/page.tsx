@@ -1,8 +1,6 @@
 'use client';
 
-import { useFormState, useFormStatus } from 'react-dom';
-import { useEffect, useRef } from 'react';
-import { registerPatient } from './actions';
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -14,6 +12,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
+import { useFirestore } from '@/firebase';
+import { collection, query, orderBy, limit, getDocs, writeBatch, doc, Timestamp } from 'firebase/firestore';
 
 
 const PatientSchema = z.object({
@@ -24,26 +24,10 @@ const PatientSchema = z.object({
 
 type PatientFormValues = z.infer<typeof PatientSchema>;
 
-function SubmitButton() {  
-    const { pending } = useFormStatus();
-    return (
-        <Button type="submit" className="w-full" disabled={pending}>
-        {pending ? (
-            <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Registering...
-            </>
-        ) : (
-            'Register Patient'
-        )}
-        </Button>
-    );
-}
-
 export default function PatientRegistrationPage() {
-  const [state, formAction] = useFormState(registerPatient, { message: null, errors: {}, success: false });
   const { toast } = useToast();
-  const formRef = useRef<HTMLFormElement>(null);
+  const firestore = useFirestore();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<PatientFormValues>({
     resolver: zodResolver(PatientSchema),
@@ -54,18 +38,64 @@ export default function PatientRegistrationPage() {
     },
   });
 
-  useEffect(() => {
-    if (state.message) {
-      toast({
-        title: state.success ? 'Success' : 'Error',
-        description: state.message,
-        variant: state.success ? 'default' : 'destructive',
-      });
-      if (state.success) {
-        form.reset();
+  const onSubmit = async (data: PatientFormValues) => {
+    if (!firestore) return;
+    setIsSubmitting(true);
+
+    const { name, phone, service } = data;
+
+    try {
+      const batch = writeBatch(firestore);
+
+      // 1. Get the latest queue number
+      const q = query(collection(firestore, 'queue'), orderBy('queueNumber', 'desc'), limit(1));
+      const querySnapshot = await getDocs(q);
+      let newQueueNumber = 1;
+      if (!querySnapshot.empty) {
+        newQueueNumber = querySnapshot.docs[0].data().queueNumber + 1;
       }
+
+      // 2. Create new patient document
+      const patientRef = doc(collection(firestore, 'patients'));
+      const createdAt = Timestamp.now();
+      batch.set(patientRef, {
+        name,
+        phone,
+        service,
+        createdAt,
+      });
+
+      // 3. Create new queue document
+      const queueRef = doc(collection(firestore, 'queue'));
+      batch.set(queueRef, {
+        queueNumber: newQueueNumber,
+        patientId: patientRef.id,
+        patientName: name,
+        service,
+        status: 'Waiting',
+        createdAt,
+      });
+      
+      await batch.commit();
+      
+      toast({
+        title: 'Success',
+        description: `Successfully registered ${name} with queue number ${newQueueNumber}.`,
+      });
+      form.reset();
+
+    } catch (error) {
+      console.error('Error registering patient:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to register patient.',
+        variant: 'destructive',
+      });
+    } finally {
+        setIsSubmitting(false);
     }
-  }, [state, toast, form]);
+  }
+
 
   const serviceTypes = ['General Consultation', 'Follow-up', 'Dental', 'Pediatrics', 'Specialist Visit'];
 
@@ -79,9 +109,7 @@ export default function PatientRegistrationPage() {
         <CardContent>
           <Form {...form}>
             <form
-              ref={formRef}
-              action={formAction}
-              onSubmit={form.handleSubmit(() => formRef.current?.submit())}
+              onSubmit={form.handleSubmit(onSubmit)}
               className="space-y-6"
             >
               <FormField
@@ -137,7 +165,16 @@ export default function PatientRegistrationPage() {
                 )}
               />
 
-              <SubmitButton />
+            <Button type="submit" className="w-full" disabled={isSubmitting}>
+              {isSubmitting ? (
+                  <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Registering...
+                  </>
+              ) : (
+                  'Register Patient'
+              )}
+            </Button>
             </form>
           </Form>
         </CardContent>

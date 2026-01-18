@@ -1,146 +1,84 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { collection, query, where, getDocs, Timestamp, getCountFromServer } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { useMemo } from 'react';
+import { Timestamp } from 'firebase/firestore';
+import { useCollection } from '@/firebase';
 import { StatCard } from '@/components/dashboard/stat-card';
-import { Users, Clock, CheckCircle, UserPlus, LineChart } from 'lucide-react';
-import { useAuth } from '@/hooks/use-auth';
+import { UserPlus, Clock, CheckCircle, LineChart } from 'lucide-react';
+import { type QueueItem } from '@/lib/types';
 
-interface DashboardStats {
-  patientsToday: number;
-  patientsWaiting: number;
-  patientsCompleted: number;
-  avgWaitTime: number;
-  error: string | null;
-}
-
-async function getDashboardStats() {
-  if (!db) {
-    return {
-      patientsToday: 0,
-      patientsWaiting: 0,
-      patientsCompleted: 0,
-      avgWaitTime: 0,
-      error: "Connecting to database..."
-    }
-  }
-  try {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-
-    const todayStart = Timestamp.fromDate(today);
-    const todayEnd = Timestamp.fromDate(tomorrow);
-    
-    // Patients registered today
-    const patientsTodayQuery = query(
-      collection(db, 'patients'),
-      where('createdAt', '>=', todayStart),
-      where('createdAt', '<', todayEnd)
-    );
-    const patientsTodaySnapshot = await getCountFromServer(patientsTodayQuery);
-    const patientsTodayCount = patientsTodaySnapshot.data().count;
-
-    // Patients currently waiting
-    const waitingQuery = query(collection(db, 'queue'), where('status', '==', 'Waiting'));
-    const waitingSnapshot = await getCountFromServer(waitingQuery);
-    const waitingCount = waitingSnapshot.data().count;
-
-    // Patients completed today
-    const completedTodayQuery = query(
-      collection(db, 'queue'),
-      where('status', '==', 'Completed'),
-      where('completedAt', '>=', todayStart),
-      where('completedAt', '<', todayEnd)
-    );
-    const completedTodaySnapshot = await getCountFromServer(completedTodayQuery);
-    const completedTodayCount = completedTodaySnapshot.data().count;
-    
-    // Average wait time - this is a simplified calculation for this example
-    // A real implementation might use a cloud function to calculate this more accurately
-    let averageWaitTime = 0;
-    const completedDocs = await getDocs(completedTodayQuery);
-    if (!completedDocs.empty) {
-      let totalWaitSeconds = 0;
-      completedDocs.forEach(doc => {
-        const data = doc.data();
-        if (data.calledAt && data.createdAt) {
-          const wait = data.calledAt.seconds - data.createdAt.seconds;
-          totalWaitSeconds += wait;
-        }
-      });
-      averageWaitTime = Math.round(totalWaitSeconds / completedDocs.size / 60); // in minutes
-    }
-
-
-    return {
-      patientsToday: patientsTodayCount,
-      patientsWaiting: waitingCount,
-      patientsCompleted: completedTodayCount,
-      avgWaitTime: averageWaitTime,
-      error: null
-    };
-  } catch (error) {
-    console.error("Error fetching dashboard stats:", error);
-    return {
-      patientsToday: 0,
-      patientsWaiting: 0,
-      patientsCompleted: 0,
-      avgWaitTime: 0,
-      error: "Could not fetch dashboard data."
-    }
-  }
-}
 
 export default function DashboardPage() {
-  const [stats, setStats] = useState<DashboardStats>({
-    patientsToday: 0,
-    patientsWaiting: 0,
-    patientsCompleted: 0,
-    avgWaitTime: 0,
-    error: null,
-  });
-  const [loading, setLoading] = useState(true);
-  const { user } = useAuth();
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
 
-  useEffect(() => {
-    if (user) {
-      getDashboardStats().then(data => {
-        setStats(data);
-        setLoading(false);
-      });
+  const todayStart = Timestamp.fromDate(today);
+  const todayEnd = Timestamp.fromDate(tomorrow);
+
+  const { data: patientsToday, loading: loadingPatientsToday } = useCollection('patients', {
+    where: [
+        ['createdAt', '>=', todayStart],
+        ['createdAt', '<', todayEnd],
+    ]
+  });
+
+  const { data: waiting, loading: loadingWaiting } = useCollection('queue', {
+    where: [['status', '==', 'Waiting']]
+  });
+
+  const { data: completedToday, loading: loadingCompletedToday } = useCollection<QueueItem>('queue', {
+    where: [
+        ['status', '==', 'Completed'],
+        ['completedAt', '>=', todayStart],
+        ['completedAt', '<', todayEnd],
+    ]
+  });
+
+  const avgWaitTime = useMemo(() => {
+    if (!completedToday || completedToday.length === 0) {
+        return 0;
     }
-  }, [user]);
+    let totalWaitSeconds = 0;
+    completedToday.forEach(doc => {
+      if (doc.calledAt && doc.createdAt) {
+        const wait = doc.calledAt.seconds - doc.createdAt.seconds;
+        totalWaitSeconds += wait;
+      }
+    });
+    return Math.round(totalWaitSeconds / completedToday.length / 60); // in minutes
+  }, [completedToday]);
+
+  const loading = loadingPatientsToday || loadingWaiting || loadingCompletedToday;
 
   return (
     <div className="space-y-4">
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatCard
           title="Patients Registered Today"
-          value={stats.patientsToday}
+          value={patientsToday.length}
           icon={UserPlus}
           description="Total patients added to the system today."
           loading={loading}
         />
         <StatCard
           title="Patients Currently Waiting"
-          value={stats.patientsWaiting}
+          value={waiting.length}
           icon={Clock}
           description="Number of patients in 'Waiting' status."
           loading={loading}
         />
         <StatCard
           title="Patients Completed Today"
-          value={stats.patientsCompleted}
+          value={completedToday.length}
           icon={CheckCircle}
           description="Patients who have completed their visit today."
           loading={loading}
         />
         <StatCard
           title="Average Wait Time (Mins)"
-          value={stats.avgWaitTime > 0 ? `~${stats.avgWaitTime}` : 'N/A'}
+          value={avgWaitTime > 0 ? `~${avgWaitTime}` : 'N/A'}
           icon={LineChart}
           description="Average time from registration to being called."
           loading={loading}

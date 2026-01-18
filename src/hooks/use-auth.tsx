@@ -1,16 +1,11 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import {
-  onAuthStateChanged,
-  signOut,
-  type User,
-} from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
-import { auth, db } from '@/lib/firebase';
+import { signOut, type User } from 'firebase/auth';
+import { useUser } from '@/firebase/auth/use-user';
+import { useAuth as useFirebaseAuth } from '@/firebase';
 import { type UserProfile } from '@/lib/types';
-import { Skeleton } from '@/components/ui/skeleton';
 
 interface AuthContextType {
   user: User | null;
@@ -32,37 +27,12 @@ function AuthLoadingScreen() {
     );
 }
 
-
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { user, userProfile, loading } = useUser();
+  const auth = useFirebaseAuth();
   const router = useRouter();
   const pathname = usePathname();
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      setLoading(true);
-      if (user) {
-        setUser(user);
-        const userDocRef = doc(db, 'users', user.uid);
-        const userDoc = await getDoc(userDocRef);
-        if (userDoc.exists()) {
-          setUserProfile(userDoc.data() as UserProfile);
-        } else {
-          // Handle case where user exists in Auth but not in Firestore
-          setUserProfile(null);
-        }
-      } else {
-        setUser(null);
-        setUserProfile(null);
-      }
-      setLoading(false);
-    });
-
-    return () => unsubscribe();
-  }, []);
-  
   useEffect(() => {
     if (loading) return;
 
@@ -75,7 +45,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [user, loading, pathname, router]);
 
-
   const logout = async () => {
     await signOut(auth);
     router.push('/login');
@@ -87,7 +56,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return <AuthLoadingScreen />;
   }
 
-  // Prevent rendering of pages during redirection
   const isAuthPage = pathname === '/login';
   if (!loading && !user && !isAuthPage) {
     return <AuthLoadingScreen />;
