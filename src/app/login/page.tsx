@@ -76,7 +76,7 @@ export default function LoginPage() {
           <div className="mb-4 inline-flex items-center justify-center rounded-full bg-white/10 p-4">
             <School className="h-10 w-10 text-white" />
           </div>
-          <h1 className="text-4xl font-bold">School Management</h1>
+          <h1 className="text-4xl font-bold">School Management System</h1>
           <p className="mt-2 text-gray-300">Sign in to access your dashboard</p>
         </div>
         <form onSubmit={handleLogin} className="space-y-6">
