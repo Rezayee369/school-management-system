@@ -3,9 +3,11 @@
 import { useRouter } from 'next/navigation';
 import { signOut } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
+import { useAuthGuard } from '@/hooks/useAuthGuard';
 
 export default function AdminDashboard() {
   const router = useRouter();
+  const isLoading = useAuthGuard('admin');
 
   const handleLogout = async () => {
     try {
@@ -16,6 +18,10 @@ export default function AdminDashboard() {
       // You could add a user-facing error message here
     }
   };
+
+  if (isLoading) {
+    return null; // Or a loading spinner component
+  }
 
   return (
     <main className="flex min-h-screen flex-col items-center p-24 bg-gray-50">
@@ -30,7 +36,7 @@ export default function AdminDashboard() {
           </button>
         </div>
         <div className="p-8 bg-white rounded-xl shadow-lg">
-          <p className="text-lg text-gray-700">Welcome to the admin dashboard. Content will be added here.</p>
+          <p className="text-lg text-gray-700">Welcome to the admin dashboard. You have access.</p>
         </div>
       </div>
     </main>
