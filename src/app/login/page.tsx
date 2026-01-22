@@ -70,18 +70,19 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-gray-900 via-purple-900 to-indigo-900 p-4 text-white">
-      <div className="w-full max-w-sm animate-fade-in-slide-up space-y-6 rounded-2xl bg-white/10 p-8 shadow-2xl backdrop-blur-lg border border-white/20">
+    <main className="flex min-h-screen flex-col items-center justify-start pt-24 sm:pt-32 px-4 bg-gradient-to-b from-indigo-900 via-purple-900 to-gray-900 text-white">
+      <div className="w-full max-w-sm space-y-10 animate-fade-in-slide-up">
         <div className="text-center">
-          <div className="mb-4 inline-flex items-center justify-center rounded-full bg-white/10 p-4">
-            <School className="h-10 w-10 text-white" />
+          <div className="mb-6 inline-flex items-center justify-center rounded-2xl bg-white/10 p-4 shadow-lg">
+            <School className="h-12 w-12 text-white" />
           </div>
-          <h1 className="text-4xl font-bold">School Management System</h1>
-          <p className="mt-2 text-gray-300">Sign in to access your dashboard</p>
+          <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight">School Portal</h1>
+          <p className="mt-3 text-lg text-gray-300">Sign in to continue</p>
         </div>
+
         <form onSubmit={handleLogin} className="space-y-6">
           <div className="relative">
-            <Mail className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
+            <Mail className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
             <input
               id="email"
               name="email"
@@ -90,13 +91,13 @@ export default function LoginPage() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-lg border border-white/20 bg-black/20 px-4 py-3 pl-10 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              placeholder="you@example.com"
+              className="w-full rounded-full border-2 border-transparent bg-white/10 px-4 py-4 pl-12 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-white"
+              placeholder="Email address"
               disabled={isLoading}
             />
           </div>
           <div className="relative">
-            <Lock className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
+            <Lock className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
             <input
               id="password"
               name="password"
@@ -105,16 +106,18 @@ export default function LoginPage() {
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-lg border border-white/20 bg-black/20 px-4 py-3 pl-10 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              placeholder="••••••••"
+              className="w-full rounded-full border-2 border-transparent bg-white/10 px-4 py-4 pl-12 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-white"
+              placeholder="Password"
               disabled={isLoading}
             />
           </div>
+
           {error && <p className="text-sm text-red-400 text-center">{error}</p>}
+          
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full rounded-lg bg-indigo-600 py-3 font-bold text-white transition duration-300 ease-in-out hover:bg-indigo-500 disabled:opacity-50 transform hover:scale-105 disabled:transform-none"
+            className="w-full rounded-full bg-white py-4 font-bold text-indigo-700 transition duration-300 ease-in-out hover:bg-gray-200 disabled:opacity-50 transform hover:scale-105 disabled:transform-none"
           >
             {isLoading ? 'Signing In...' : 'Sign In'}
           </button>
