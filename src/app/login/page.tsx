@@ -108,20 +108,21 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-start pt-24 sm:pt-32 px-4 bg-gradient-to-b from-indigo-900 via-purple-900 to-gray-900 text-white">
-      <div className="w-full max-w-sm space-y-8 animate-fade-in-slide-up">
-        <div className="text-center">
-          <div className="mb-6 inline-flex items-center justify-center rounded-2xl bg-white/10 p-4 shadow-lg">
-            <School className="h-12 w-12 text-white" />
+    <main className="flex min-h-screen items-center justify-center bg-gray-100 p-4 dark:bg-gray-900">
+      <div className="w-full max-w-md animate-fade-in-slide-up">
+        <div className="rounded-2xl bg-gradient-to-br from-indigo-600 to-purple-700 p-8 text-white shadow-2xl">
+          
+          <div className="mb-8 text-center">
+            <div className="mb-4 inline-flex items-center justify-center rounded-full bg-white/20 p-3">
+              <School className="h-8 w-8 text-white" />
+            </div>
+            <h1 className="text-3xl font-bold">School Portal</h1>
+            <p className="text-indigo-200">Sign in to access your dashboard</p>
           </div>
-          <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight">School Portal</h1>
-          <p className="mt-3 text-lg text-gray-300">Sign in to continue</p>
-        </div>
 
-        <div className="space-y-6">
           <form onSubmit={handleEmailLogin} className="space-y-6">
             <div className="relative">
-              <Mail className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
+              <Mail className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-indigo-300" />
               <input
                 id="email"
                 name="email"
@@ -130,13 +131,13 @@ export default function LoginPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full rounded-full border-2 border-transparent bg-white/10 px-4 py-4 pl-12 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-white"
+                className="w-full rounded-lg border border-transparent bg-black/20 py-3 pl-12 pr-4 text-white placeholder-indigo-300 focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400"
                 placeholder="Email address"
                 disabled={isLoading}
               />
             </div>
             <div className="relative">
-              <Lock className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
+              <Lock className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-indigo-300" />
               <input
                 id="password"
                 name="password"
@@ -145,26 +146,26 @@ export default function LoginPage() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full rounded-full border-2 border-transparent bg-white/10 px-4 py-4 pl-12 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-white"
+                className="w-full rounded-lg border border-transparent bg-black/20 py-3 pl-12 pr-4 text-white placeholder-indigo-300 focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400"
                 placeholder="Password"
                 disabled={isLoading}
               />
             </div>
 
-            {error && <p className="text-sm text-red-400 text-center">{error}</p>}
+            {error && <p className="text-center text-sm text-red-300">{error}</p>}
             
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full rounded-full bg-white py-4 font-bold text-indigo-700 transition duration-300 ease-in-out hover:bg-gray-200 disabled:opacity-50 transform hover:scale-105 disabled:transform-none"
+              className="w-full rounded-lg bg-white py-3 font-bold text-indigo-600 transition duration-300 ease-in-out hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isLoading ? 'Signing In...' : 'Sign In'}
             </button>
           </form>
 
-          <div className="relative flex items-center py-2">
+          <div className="relative flex items-center py-4">
             <div className="flex-grow border-t border-white/20"></div>
-            <span className="mx-4 flex-shrink text-sm text-gray-400">Or continue with</span>
+            <span className="mx-4 flex-shrink text-sm text-indigo-200">Or continue with</span>
             <div className="flex-grow border-t border-white/20"></div>
           </div>
 
@@ -172,7 +173,7 @@ export default function LoginPage() {
             type="button"
             onClick={handleGoogleLogin}
             disabled={isLoading}
-            className="w-full flex items-center justify-center gap-3 rounded-full bg-white/10 py-3.5 font-semibold text-white transition duration-300 ease-in-out hover:bg-white/20 disabled:opacity-50"
+            className="w-full flex items-center justify-center gap-3 rounded-lg bg-black/20 py-3 font-semibold text-white transition duration-300 ease-in-out hover:bg-black/30 disabled:opacity-50"
           >
             <GoogleIcon />
             <span>Sign in with Google</span>
