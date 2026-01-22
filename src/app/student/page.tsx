@@ -21,7 +21,11 @@ export default function StudentDashboard() {
   };
 
   if (isLoading) {
-    return null; // Or a loading spinner component
+    return (
+      <main className="flex min-h-screen flex-col items-center justify-center p-24 bg-gray-50">
+        <p>Loading...</p>
+      </main>
+    );
   }
 
   return (

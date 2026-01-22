@@ -14,6 +14,8 @@ export function useAuthGuard(allowedRole: string) {
     const unsubscribe = onAuthStateChanged(auth, async (user: User | null) => {
       if (!user) {
         router.replace('/login');
+        // A redirect is in progress, but we set loading to false to prevent a stuck screen.
+        setIsLoading(false);
         return;
       }
 
@@ -21,22 +23,18 @@ export function useAuthGuard(allowedRole: string) {
         const userDocRef = doc(db, 'users', user.uid);
         const userDoc = await getDoc(userDocRef);
 
-        if (userDoc.exists()) {
-          const userData = userDoc.data();
-          if (userData.role === allowedRole) {
-            setIsLoading(false);
-          } else {
-            // Role mismatch, redirect
-            router.replace('/login');
-          }
+        if (userDoc.exists() && userDoc.data().role === allowedRole) {
+          // User is authorized, show the page content.
+          setIsLoading(false);
         } else {
-          // No user document found, redirect
-          console.error('No user document found in Firestore for UID:', user.uid);
+          // Role mismatch or no user document, redirect.
           router.replace('/login');
+          setIsLoading(false);
         }
       } catch (error) {
         console.error('Error fetching user role:', error);
         router.replace('/login');
+        setIsLoading(false);
       }
     });
 

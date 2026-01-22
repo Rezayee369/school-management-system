@@ -55,7 +55,11 @@ export default function AdminClassesPage() {
   };
 
   if (isLoading) {
-    return null; // Or a loading spinner
+    return (
+      <main className="flex min-h-screen flex-col items-center justify-center p-8 bg-gray-50">
+        <p>Loading...</p>
+      </main>
+    );
   }
 
   return (
