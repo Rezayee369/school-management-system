@@ -2,10 +2,11 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { signOut } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useAuthGuard } from '@/hooks/useAuthGuard';
-import { LogOut, User } from 'lucide-react';
+import { LogOut, User, BookOpen, Users, Megaphone, BarChart2 } from 'lucide-react';
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -22,7 +23,6 @@ export default function AdminDashboard() {
       router.push('/login');
     } catch (error) {
       console.error('Logout Error:', error);
-      // You could add a user-facing error message here
     }
   };
 
@@ -52,10 +52,10 @@ export default function AdminDashboard() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center p-24 bg-gray-50">
-      <div className="w-full max-w-4xl">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-800">Admin Dashboard</h1>
+    <main className="flex min-h-screen flex-col items-center p-8 sm:p-12 md:p-24 bg-gray-50">
+      <div className="w-full max-w-5xl">
+        <div className="flex justify-between items-center mb-10">
+          <h1 className="text-3xl md:text-4xl font-bold text-gray-800">Admin Dashboard</h1>
           
           <div className="relative">
             <button
@@ -100,8 +100,59 @@ export default function AdminDashboard() {
           </div>
 
         </div>
-        <div className="p-8 bg-white rounded-xl shadow-lg">
-          <p className="text-lg text-gray-700">Welcome to the admin dashboard. You have access.</p>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Manage Classes Card */}
+            <Link href="/admin/classes" className="group">
+              <div className="flex flex-col h-full p-6 bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 border border-gray-100 hover:border-indigo-300">
+                <div className="flex items-center gap-4 mb-3">
+                  <div className="p-3 bg-indigo-100 rounded-lg">
+                    <BookOpen className="w-6 h-6 text-indigo-600" />
+                  </div>
+                  <h2 className="text-xl font-semibold text-gray-800">Manage Classes</h2>
+                </div>
+                <p className="text-gray-600">Add, edit, or view school classes and schedules.</p>
+              </div>
+            </Link>
+
+            {/* Manage Users Card */}
+            <Link href="#" className="group">
+              <div className="flex flex-col h-full p-6 bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 border border-gray-100 hover:border-green-300">
+                <div className="flex items-center gap-4 mb-3">
+                  <div className="p-3 bg-green-100 rounded-lg">
+                    <Users className="w-6 h-6 text-green-600" />
+                  </div>
+                  <h2 className="text-xl font-semibold text-gray-800">Manage Users</h2>
+                </div>
+                <p className="text-gray-600">Administer student, teacher, and parent accounts.</p>
+              </div>
+            </Link>
+            
+            {/* Announcements Card */}
+            <Link href="#" className="group">
+              <div className="flex flex-col h-full p-6 bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 border border-gray-100 hover:border-yellow-300">
+                <div className="flex items-center gap-4 mb-3">
+                  <div className="p-3 bg-yellow-100 rounded-lg">
+                    <Megaphone className="w-6 h-6 text-yellow-600" />
+                  </div>
+                  <h2 className="text-xl font-semibold text-gray-800">Announcements</h2>
+                </div>
+                <p className="text-gray-600">Create and send announcements to all users.</p>
+              </div>
+            </Link>
+
+            {/* Reports Card */}
+            <Link href="#" className="group">
+              <div className="flex flex-col h-full p-6 bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 border border-gray-100 hover:border-red-300">
+                <div className="flex items-center gap-4 mb-3">
+                  <div className="p-3 bg-red-100 rounded-lg">
+                    <BarChart2 className="w-6 h-6 text-red-600" />
+                  </div>
+                  <h2 className="text-xl font-semibold text-gray-800">Analytics & Reports</h2>
+                </div>
+                <p className="text-gray-600">View school performance and user engagement data.</p>
+              </div>
+            </Link>
         </div>
       </div>
     </main>
