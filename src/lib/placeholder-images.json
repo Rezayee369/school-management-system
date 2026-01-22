@@ -1,0 +1,8 @@
+{
+  "login": {
+    "src": "https://picsum.photos/seed/login/800/1200",
+    "width": 800,
+    "height": 1200,
+    "hint": "school classroom"
+  }
+}
