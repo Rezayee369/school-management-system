@@ -5,9 +5,7 @@ import { useRouter } from 'next/navigation';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
-import Image from 'next/image';
-import { School } from 'lucide-react';
-import placeholderImages from '@/lib/placeholder-images.json';
+import { School, Mail, Lock } from 'lucide-react';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -72,81 +70,56 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="w-full lg:grid lg:min-h-screen lg:grid-cols-2">
-      <div className="flex items-center justify-center py-12">
-        <div className="mx-auto grid w-[350px] gap-6">
-          <div className="grid gap-2 text-center">
-             <div className="flex justify-center items-center gap-2">
-                <School className="h-8 w-8 text-primary" />
-                <h1 className="text-3xl font-bold">SchoolMS</h1>
-            </div>
-            <p className="text-balance text-muted-foreground">
-              Enter your email below to login to your account
-            </p>
+    <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-gray-900 via-purple-900 to-indigo-900 p-4 text-white">
+      <div className="w-full max-w-sm animate-fade-in-slide-up space-y-6 rounded-2xl bg-white/10 p-8 shadow-2xl backdrop-blur-lg border border-white/20">
+        <div className="text-center">
+          <div className="mb-4 inline-flex items-center justify-center rounded-full bg-white/10 p-4">
+            <School className="h-10 w-10 text-white" />
           </div>
-          <form onSubmit={handleLogin} className="grid gap-4">
-            <div className="grid gap-2">
-               <label
-                htmlFor="email"
-                className="block text-sm font-medium"
-              >
-                Email
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                placeholder="you@example.com"
-                disabled={isLoading}
-              />
-            </div>
-            <div className="grid gap-2">
-              <div className="flex items-center">
-                 <label
-                  htmlFor="password"
-                  className="block text-sm font-medium"
-                >
-                  Password
-                </label>
-              </div>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="current-password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                placeholder="••••••••"
-                disabled={isLoading}
-              />
-            </div>
-            {error && <p className="text-sm text-destructive">{error}</p>}
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 w-full"
-            >
-              {isLoading ? 'Signing In...' : 'Sign In'}
-            </button>
-          </form>
+          <h1 className="text-4xl font-bold">School Management</h1>
+          <p className="mt-2 text-gray-300">Sign in to access your dashboard</p>
         </div>
+        <form onSubmit={handleLogin} className="space-y-6">
+          <div className="relative">
+            <Mail className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
+            <input
+              id="email"
+              name="email"
+              type="email"
+              autoComplete="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full rounded-lg border border-white/20 bg-black/20 px-4 py-3 pl-10 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              placeholder="you@example.com"
+              disabled={isLoading}
+            />
+          </div>
+          <div className="relative">
+            <Lock className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
+            <input
+              id="password"
+              name="password"
+              type="password"
+              autoComplete="current-password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full rounded-lg border border-white/20 bg-black/20 px-4 py-3 pl-10 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              placeholder="••••••••"
+              disabled={isLoading}
+            />
+          </div>
+          {error && <p className="text-sm text-red-400 text-center">{error}</p>}
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="w-full rounded-lg bg-indigo-600 py-3 font-bold text-white transition duration-300 ease-in-out hover:bg-indigo-500 disabled:opacity-50 transform hover:scale-105 disabled:transform-none"
+          >
+            {isLoading ? 'Signing In...' : 'Sign In'}
+          </button>
+        </form>
       </div>
-      <div className="hidden bg-muted lg:block relative">
-        <Image
-          src={placeholderImages.login.src}
-          alt="A beautiful school or classroom"
-          fill
-          className="object-cover"
-          data-ai-hint={placeholderImages.login.hint}
-        />
-      </div>
-    </div>
+    </main>
   );
 }
