@@ -117,7 +117,7 @@ export default function LoginPage() {
         </div>
 
         <h1 className="text-center text-3xl font-bold text-white">
-          School Management
+          School Management System
         </h1>
         <p className="text-center text-sm text-indigo-200 mt-2 mb-8">
           Login to your dashboard
