@@ -10,7 +10,7 @@ import {
 } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
-import { School, Mail, Lock } from 'lucide-react';
+import { Mail, Lock, GraduationCap } from 'lucide-react';
 
 // Google Icon SVG
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -108,77 +108,79 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-gray-100 p-4 dark:bg-gray-900">
-      <div className="w-full max-w-md animate-fade-in-slide-up">
-        <div className="rounded-2xl bg-gradient-to-br from-indigo-600 to-purple-700 p-8 text-white shadow-2xl">
-          
-          <div className="mb-8 text-center">
-            <div className="mb-4 inline-flex items-center justify-center rounded-full bg-white/20 p-3">
-              <School className="h-8 w-8 text-white" />
-            </div>
-            <h1 className="text-3xl font-bold">School Portal</h1>
-            <p className="text-indigo-200">Sign in to access your dashboard</p>
+    <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#1e1b4b] via-[#312e81] to-[#020617] p-4">
+      <div className="w-full max-w-md rounded-2xl bg-white/10 backdrop-blur-lg border border-white/20 shadow-xl p-8 animate-fade-in-slide-up">
+        <div className="flex justify-center mb-6">
+          <div className="w-14 h-14 rounded-full bg-indigo-600 flex items-center justify-center">
+            <GraduationCap className="text-white w-7 h-7" />
+          </div>
+        </div>
+
+        <h1 className="text-center text-3xl font-bold text-white">
+          School Management
+        </h1>
+        <p className="text-center text-sm text-indigo-200 mt-2 mb-8">
+          Login to your dashboard
+        </p>
+
+        <form onSubmit={handleEmailLogin} className="space-y-5">
+          <div className="relative">
+            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-indigo-300 w-5 h-5" />
+            <input
+              id="email"
+              name="email"
+              type="email"
+              autoComplete="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Email"
+              disabled={isLoading}
+              className="w-full pl-10 py-3 rounded-xl bg-white/20 text-white placeholder-indigo-200 focus:ring-2 focus:ring-indigo-500 outline-none border-transparent"
+            />
           </div>
 
-          <form onSubmit={handleEmailLogin} className="space-y-6">
-            <div className="relative">
-              <Mail className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-indigo-300" />
-              <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full rounded-lg border border-transparent bg-black/20 py-3 pl-12 pr-4 text-white placeholder-indigo-300 focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400"
-                placeholder="Email address"
-                disabled={isLoading}
-              />
-            </div>
-            <div className="relative">
-              <Lock className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-indigo-300" />
-              <input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="current-password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full rounded-lg border border-transparent bg-black/20 py-3 pl-12 pr-4 text-white placeholder-indigo-300 focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400"
-                placeholder="Password"
-                disabled={isLoading}
-              />
-            </div>
-
-            {error && <p className="text-center text-sm text-red-300">{error}</p>}
-            
-            <button
-              type="submit"
+          <div className="relative">
+            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-indigo-300 w-5 h-5" />
+            <input
+              id="password"
+              name="password"
+              type="password"
+              autoComplete="current-password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Password"
               disabled={isLoading}
-              className="w-full rounded-lg bg-white py-3 font-bold text-indigo-600 transition duration-300 ease-in-out hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {isLoading ? 'Signing In...' : 'Sign In'}
-            </button>
-          </form>
+              className="w-full pl-10 py-3 rounded-xl bg-white/20 text-white placeholder-indigo-200 focus:ring-2 focus:ring-indigo-500 outline-none border-transparent"
+            />
+          </div>
 
-          <div className="relative flex items-center py-4">
+          {error && <p className="text-center text-sm text-red-400">{error}</p>}
+
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="w-full py-3 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition disabled:opacity-50 disabled:cursor-not-allowed">
+            {isLoading ? 'Signing In...' : 'Sign In'}
+          </button>
+        </form>
+
+        <div className="relative flex items-center py-6">
             <div className="flex-grow border-t border-white/20"></div>
             <span className="mx-4 flex-shrink text-sm text-indigo-200">Or continue with</span>
             <div className="flex-grow border-t border-white/20"></div>
-          </div>
+        </div>
 
-          <button
+        <button
             type="button"
             onClick={handleGoogleLogin}
             disabled={isLoading}
-            className="w-full flex items-center justify-center gap-3 rounded-lg bg-black/20 py-3 font-semibold text-white transition duration-300 ease-in-out hover:bg-black/30 disabled:opacity-50"
+            className="w-full flex items-center justify-center gap-3 rounded-xl bg-white/20 py-3 font-semibold text-white transition duration-300 ease-in-out hover:bg-white/30 disabled:opacity-50"
           >
             <GoogleIcon />
             <span>Sign in with Google</span>
-          </button>
-        </div>
+        </button>
       </div>
     </main>
   );
