@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { signOut, type User as FirebaseUser } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
-import { LogOut, User as UserIcon } from 'lucide-react';
+import { LogOut, User as UserIcon, Settings } from 'lucide-react';
 
 interface DashboardHeaderProps {
   userRole: string;
@@ -18,10 +18,8 @@ export default function DashboardHeader({ userRole }: DashboardHeaderProps) {
   const buttonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
-    // Set user from auth state when component mounts
     setUser(auth.currentUser);
 
-    // Handle clicks outside dropdown to close it
     const handleClickOutside = (event: MouseEvent) => {
       if (
         dropdownRef.current &&
@@ -89,6 +87,13 @@ export default function DashboardHeader({ userRole }: DashboardHeaderProps) {
               </div>
             )}
             <div className="p-1">
+               <button
+                className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-gray-400 hover:bg-gray-100 cursor-not-allowed"
+                disabled
+              >
+                <Settings className="h-4 w-4 text-gray-400" />
+                <span>Profile</span>
+              </button>
               <button
                 onClick={handleLogout}
                 className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
