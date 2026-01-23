@@ -98,18 +98,15 @@ export default function LoginPage() {
       const userDoc = await getDoc(userDocRef);
 
       if (userDoc.exists()) {
-        // Existing user, proceed to role-based redirect
         await handleSuccessfulLogin(user);
       } else {
-        // New user, create a document in Firestore
         await setDoc(userDocRef, {
           fullName: user.displayName,
           email: user.email,
-          role: 'student', // Default role for new Google sign-ups
+          role: 'student',
           createdAt: serverTimestamp(),
           photoURL: user.photoURL
         });
-        // Redirect the new student to their dashboard
         router.push('/student');
       }
     } catch (error: any) {
@@ -123,33 +120,32 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="relative min-h-screen w-full overflow-hidden bg-gray-900 md:bg-[#020413]">
-      {/* Background blobs */}
+    <main className="relative min-h-screen w-full overflow-hidden bg-background">
       <div className="absolute top-0 left-0 w-full h-full z-0">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-500/50 rounded-full filter blur-3xl animate-blob opacity-30"></div>
-        <div className="absolute top-1/2 right-1/4 w-96 h-96 bg-cyan-500/50 rounded-full filter blur-3xl animate-blob animation-delay-2000 opacity-30"></div>
-        <div className="absolute bottom-1/4 left-1/3 w-96 h-96 bg-pink-500/50 rounded-full filter blur-3xl animate-blob animation-delay-4000 opacity-30"></div>
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/20 rounded-full filter blur-3xl animate-blob opacity-30"></div>
+        <div className="absolute top-1/2 right-1/4 w-96 h-96 bg-secondary/20 rounded-full filter blur-3xl animate-blob animation-delay-2000 opacity-30"></div>
+        <div className="absolute bottom-1/4 left-1/3 w-96 h-96 bg-accent/20 rounded-full filter blur-3xl animate-blob animation-delay-4000 opacity-30"></div>
       </div>
       
       <div className="relative z-10 flex min-h-screen items-center justify-center p-4">
         <div className="w-full max-w-md animate-fade-in-slide-up space-y-8">
-          <div className="rounded-2xl bg-black/30 backdrop-blur-lg border border-cyan-500/20 shadow-2xl shadow-cyan-500/10 p-8">
+          <div className="rounded-2xl bg-background/60 backdrop-blur-lg border border-secondary/20 shadow-2xl shadow-secondary/10 p-8">
 
             <div className="flex flex-col items-center mb-6">
-              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-cyan-400 to-purple-600 flex items-center justify-center mb-4 ring-2 ring-cyan-500/50">
+              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-secondary to-primary flex items-center justify-center mb-4 ring-2 ring-secondary/50">
                 <GraduationCap className="text-white w-8 h-8" />
               </div>
-              <h1 className="text-center text-3xl font-bold text-white tracking-wider">
+              <h1 className="text-center text-3xl font-bold text-foreground tracking-wider">
                 Portal Access
               </h1>
-              <p className="text-center text-sm text-cyan-200/80 mt-2">
+              <p className="text-center text-sm text-secondary/80 mt-2">
                 Securely sign in to your account
               </p>
             </div>
 
             <form onSubmit={handleEmailLogin} className="space-y-6">
               <div className="relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-cyan-300/60 w-5 h-5" />
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-secondary/60 w-5 h-5" />
                 <input
                   id="email"
                   name="email"
@@ -160,12 +156,12 @@ export default function LoginPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="Email Address"
                   disabled={isLoading}
-                  className="w-full pl-12 pr-4 py-3 rounded-full bg-black/30 text-white placeholder-gray-400 focus:ring-2 focus:ring-cyan-400 focus:outline-none border border-cyan-500/30 transition-all duration-300"
+                  className="w-full pl-12 pr-4 py-3 rounded-xl bg-background/50 text-foreground placeholder-gray-400 focus:ring-2 focus:ring-ring focus:outline-none border border-secondary/30 transition-all duration-300"
                 />
               </div>
 
               <div className="relative">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-cyan-300/60 w-5 h-5" />
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-secondary/60 w-5 h-5" />
                 <input
                   id="password"
                   name="password"
@@ -176,7 +172,7 @@ export default function LoginPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Password"
                   disabled={isLoading}
-                  className="w-full pl-12 pr-4 py-3 rounded-full bg-black/30 text-white placeholder-gray-400 focus:ring-2 focus:ring-cyan-400 focus:outline-none border border-cyan-500/30 transition-all duration-300"
+                  className="w-full pl-12 pr-4 py-3 rounded-xl bg-background/50 text-foreground placeholder-gray-400 focus:ring-2 focus:ring-ring focus:outline-none border border-secondary/30 transition-all duration-300"
                 />
               </div>
 
@@ -185,22 +181,22 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full py-3 rounded-full bg-gradient-to-r from-cyan-400 to-purple-600 text-white font-bold tracking-wider uppercase hover:scale-105 hover:shadow-lg hover:shadow-cyan-500/30 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed">
+                className="w-full py-3 rounded-xl bg-gradient-to-r from-secondary to-primary text-primary-foreground font-bold tracking-wider uppercase hover:scale-105 hover:shadow-lg hover:shadow-secondary/30 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed">
                 {isLoading ? 'Authenticating...' : 'Sign In'}
               </button>
             </form>
 
             <div className="relative flex items-center py-6">
-              <div className="flex-grow border-t border-cyan-500/20"></div>
+              <div className="flex-grow border-t border-secondary/20"></div>
               <span className="mx-4 flex-shrink text-xs text-gray-400 uppercase">Or Continue With</span>
-              <div className="flex-grow border-t border-cyan-500/20"></div>
+              <div className="flex-grow border-t border-secondary/20"></div>
             </div>
 
             <button
               type="button"
               onClick={handleGoogleLogin}
               disabled={isLoading}
-              className="w-full flex items-center justify-center gap-3 rounded-full bg-black/30 py-3 font-semibold text-gray-200 transition duration-300 ease-in-out border border-cyan-500/30 hover:bg-cyan-500/20 disabled:opacity-50"
+              className="w-full flex items-center justify-center gap-3 rounded-xl bg-background/50 py-3 font-semibold text-gray-200 transition duration-300 ease-in-out border border-secondary/30 hover:bg-secondary/20 disabled:opacity-50"
             >
               <GoogleIcon />
               <span>Sign in with Google</span>

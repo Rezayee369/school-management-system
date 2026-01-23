@@ -52,7 +52,7 @@ export default function DashboardHeader({ userRole }: DashboardHeaderProps) {
   return (
     <header className="flex w-full justify-between items-center mb-10">
       <div>
-        <h1 className="text-3xl md:text-4xl font-bold text-gray-800 capitalize">
+        <h1 className="text-3xl md:text-4xl font-bold text-foreground capitalize">
           {userRole} Dashboard
         </h1>
       </div>
@@ -61,7 +61,7 @@ export default function DashboardHeader({ userRole }: DashboardHeaderProps) {
         <button
           ref={buttonRef}
           onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-          className="flex items-center justify-center h-11 w-11 rounded-full bg-gray-200 text-gray-600 font-bold text-lg hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+          className="flex items-center justify-center h-11 w-11 rounded-full bg-background/70 text-foreground font-bold text-lg hover:bg-muted/50 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background"
         >
           {user?.photoURL ? (
             <img
@@ -76,29 +76,29 @@ export default function DashboardHeader({ userRole }: DashboardHeaderProps) {
 
         <div
           ref={dropdownRef}
-          className={`absolute right-0 mt-2 w-56 origin-top-right rounded-xl bg-white shadow-2xl ring-1 ring-black ring-opacity-5 z-10 transition-all duration-150 ease-out
+          className={`absolute right-0 mt-2 w-56 origin-top-right rounded-xl bg-background/80 backdrop-blur-lg border border-secondary/20 shadow-2xl shadow-primary/10 ring-1 ring-black ring-opacity-5 z-10 transition-all duration-150 ease-out
             ${isDropdownOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'}`}
         >
           <div className="py-1">
             {user?.email && (
-              <div className="px-4 py-3 border-b border-gray-100">
-                <p className="text-sm font-medium text-gray-900">Signed in as</p>
-                <p className="truncate text-sm text-gray-500">{user.email}</p>
+              <div className="px-4 py-3 border-b border-secondary/20">
+                <p className="text-sm font-medium text-foreground">Signed in as</p>
+                <p className="truncate text-sm text-muted-foreground">{user.email}</p>
               </div>
             )}
             <div className="p-1">
                <button
-                className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-gray-400 hover:bg-gray-100 cursor-not-allowed"
+                className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-muted/50 cursor-not-allowed"
                 disabled
               >
-                <Settings className="h-4 w-4 text-gray-400" />
+                <Settings className="h-4 w-4 text-muted-foreground" />
                 <span>Profile</span>
               </button>
               <button
                 onClick={handleLogout}
-                className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-foreground hover:bg-muted/50"
               >
-                <LogOut className="h-4 w-4 text-gray-500" />
+                <LogOut className="h-4 w-4 text-muted-foreground" />
                 <span>Logout</span>
               </button>
             </div>
