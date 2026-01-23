@@ -132,7 +132,7 @@ export default function LoginPage() {
       </div>
       
       <div className="relative z-10 flex min-h-screen items-center justify-center p-4">
-        <div className="w-full max-w-md animate-fade-in-scale space-y-8">
+        <div className="w-full max-w-md animate-fade-in-slide-up space-y-8">
           <div className="rounded-2xl bg-black/30 backdrop-blur-lg border border-cyan-500/20 shadow-2xl shadow-cyan-500/10 p-8">
 
             <div className="flex flex-col items-center mb-6">

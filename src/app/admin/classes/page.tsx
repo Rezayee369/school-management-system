@@ -64,7 +64,7 @@ export default function AdminClassesPage() {
 
   return (
     <main className="flex min-h-screen flex-col items-center p-8 bg-gray-50">
-      <div className="w-full max-w-4xl">
+      <div className="w-full max-w-4xl animate-fade-in-slide-up">
         <h1 className="text-4xl font-bold text-gray-800 mb-8">Manage Classes</h1>
 
         <div className="mb-8 p-6 bg-white rounded-xl shadow-lg">

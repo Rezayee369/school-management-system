@@ -18,7 +18,7 @@ export default function AdminDashboard() {
 
   return (
     <main className="flex min-h-screen flex-col items-center p-8 sm:p-12 md:p-24 bg-gray-50">
-      <div className="w-full max-w-5xl">
+      <div className="w-full max-w-5xl animate-fade-in-slide-up">
         <DashboardHeader userRole="admin" />
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
