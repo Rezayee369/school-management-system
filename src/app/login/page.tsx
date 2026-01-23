@@ -12,7 +12,6 @@ import { doc, getDoc } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
 import { Mail, Lock, GraduationCap } from 'lucide-react';
 
-// Google Icon SVG
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="24px" height="24px" {...props}>
       <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"/>
@@ -29,7 +28,6 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
-  // Shared function to handle post-login logic
   const handleSuccessfulLogin = async (user: User) => {
     const userDocRef = doc(db, 'users', user.uid);
     const userDoc = await getDoc(userDocRef);
@@ -57,9 +55,8 @@ export default function LoginPage() {
           break;
       }
     } else {
-      // This is important for social logins where the user might not be in our DB
       setError('Your account is not registered. Please contact an administrator.');
-      auth.signOut(); // Sign them out as they are not authorized
+      auth.signOut();
     }
   };
 
@@ -83,7 +80,6 @@ export default function LoginPage() {
       } else {
         setError('An unexpected error occurred. Please try again.');
       }
-      console.error('Login error:', error);
     } finally {
       setIsLoading(false);
     }
@@ -101,35 +97,39 @@ export default function LoginPage() {
       if (error.code !== 'auth/popup-closed-by-user') {
         setError('Failed to sign in with Google. Please try again.');
       }
-      console.error('Google sign-in error:', error);
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <main className="relative min-h-screen w-full overflow-hidden bg-gray-100">
-      <div className="absolute inset-0 z-0 bg-gradient-to-br from-white via-gray-50 to-gray-200"></div>
+    <main className="relative min-h-screen w-full overflow-hidden bg-gray-900 md:bg-[#020413]">
+      {/* Background blobs */}
+      <div className="absolute top-0 left-0 w-full h-full z-0">
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-500/50 rounded-full filter blur-3xl animate-blob opacity-30"></div>
+        <div className="absolute top-1/2 right-1/4 w-96 h-96 bg-cyan-500/50 rounded-full filter blur-3xl animate-blob animation-delay-2000 opacity-30"></div>
+        <div className="absolute bottom-1/4 left-1/3 w-96 h-96 bg-pink-500/50 rounded-full filter blur-3xl animate-blob animation-delay-4000 opacity-30"></div>
+      </div>
       
       <div className="relative z-10 flex min-h-screen items-center justify-center p-4">
         <div className="w-full max-w-md animate-fade-in-scale space-y-8">
-          <div className="rounded-2xl bg-white/70 backdrop-blur-xl border border-gray-200/80 shadow-2xl p-8">
+          <div className="rounded-2xl bg-black/30 backdrop-blur-lg border border-cyan-500/20 shadow-2xl shadow-cyan-500/10 p-8">
 
             <div className="flex flex-col items-center mb-6">
-              <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center mb-4">
-                <GraduationCap className="text-gray-600 w-8 h-8" />
+              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-cyan-400 to-purple-600 flex items-center justify-center mb-4 ring-2 ring-cyan-500/50">
+                <GraduationCap className="text-white w-8 h-8" />
               </div>
-              <h1 className="text-center text-3xl font-semibold text-gray-800">
-                School Management Portal
+              <h1 className="text-center text-3xl font-bold text-white tracking-wider">
+                Portal Access
               </h1>
-              <p className="text-center text-sm text-gray-500 mt-2">
-                Welcome back. Please sign in.
+              <p className="text-center text-sm text-cyan-200/80 mt-2">
+                Securely sign in to your account
               </p>
             </div>
 
             <form onSubmit={handleEmailLogin} className="space-y-6">
               <div className="relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-cyan-300/60 w-5 h-5" />
                 <input
                   id="email"
                   name="email"
@@ -140,12 +140,12 @@ export default function LoginPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="Email Address"
                   disabled={isLoading}
-                  className="w-full pl-12 pr-4 py-3 rounded-lg bg-gray-50/80 text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-gray-400 focus:outline-none border border-gray-300 transition"
+                  className="w-full pl-12 pr-4 py-3 rounded-full bg-black/30 text-white placeholder-gray-400 focus:ring-2 focus:ring-cyan-400 focus:outline-none border border-cyan-500/30 transition-all duration-300"
                 />
               </div>
 
               <div className="relative">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-cyan-300/60 w-5 h-5" />
                 <input
                   id="password"
                   name="password"
@@ -156,31 +156,31 @@ export default function LoginPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Password"
                   disabled={isLoading}
-                  className="w-full pl-12 pr-4 py-3 rounded-lg bg-gray-50/80 text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-gray-400 focus:outline-none border border-gray-300 transition"
+                  className="w-full pl-12 pr-4 py-3 rounded-full bg-black/30 text-white placeholder-gray-400 focus:ring-2 focus:ring-cyan-400 focus:outline-none border border-cyan-500/30 transition-all duration-300"
                 />
               </div>
 
-              {error && <p className="text-center text-sm text-red-600">{error}</p>}
+              {error && <p className="text-center text-sm text-pink-400">{error}</p>}
 
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full py-3 rounded-lg bg-gray-800 text-white font-semibold hover:bg-gray-900 transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed">
-                {isLoading ? 'Signing In...' : 'Sign In'}
+                className="w-full py-3 rounded-full bg-gradient-to-r from-cyan-400 to-purple-600 text-white font-bold tracking-wider uppercase hover:scale-105 hover:shadow-lg hover:shadow-cyan-500/30 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed">
+                {isLoading ? 'Authenticating...' : 'Sign In'}
               </button>
             </form>
 
             <div className="relative flex items-center py-6">
-              <div className="flex-grow border-t border-gray-300"></div>
-              <span className="mx-4 flex-shrink text-sm text-gray-400">Or</span>
-              <div className="flex-grow border-t border-gray-300"></div>
+              <div className="flex-grow border-t border-cyan-500/20"></div>
+              <span className="mx-4 flex-shrink text-xs text-gray-400 uppercase">Or Continue With</span>
+              <div className="flex-grow border-t border-cyan-500/20"></div>
             </div>
 
             <button
               type="button"
               onClick={handleGoogleLogin}
               disabled={isLoading}
-              className="w-full flex items-center justify-center gap-3 rounded-lg bg-white py-3 font-semibold text-gray-700 transition duration-300 ease-in-out border border-gray-300 hover:bg-gray-50 disabled:opacity-50"
+              className="w-full flex items-center justify-center gap-3 rounded-full bg-black/30 py-3 font-semibold text-gray-200 transition duration-300 ease-in-out border border-cyan-500/30 hover:bg-cyan-500/20 disabled:opacity-50"
             >
               <GoogleIcon />
               <span>Sign in with Google</span>
