@@ -108,26 +108,22 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="relative min-h-screen w-full overflow-hidden bg-[#020413]">
-      {/* Background Blobs */}
-      <div className="absolute inset-0 z-0 opacity-40">
-        <div className="absolute top-[-100px] left-[-100px] h-[400px] w-[400px] rounded-full bg-gradient-to-r from-purple-700 to-blue-600 blur-[150px]"></div>
-        <div className="absolute bottom-[-150px] right-[-150px] h-[500px] w-[500px] rounded-full bg-gradient-to-r from-cyan-500 to-purple-600 blur-[180px]"></div>
-        <div className="absolute top-[50%] left-[50%] h-[300px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-to-r from-blue-500 to-cyan-400 blur-[160px]"></div>
-      </div>
-
+    <main className="relative min-h-screen w-full overflow-hidden bg-gray-100">
+      <div className="absolute inset-0 z-0 bg-gradient-to-br from-white via-gray-50 to-gray-200"></div>
+      
       <div className="relative z-10 flex min-h-screen items-center justify-center p-4">
         <div className="w-full max-w-md animate-fade-in-scale space-y-8">
-          <div className="rounded-2xl bg-black/30 backdrop-blur-xl border border-white/10 shadow-2xl p-8">
+          <div className="rounded-2xl bg-white/70 backdrop-blur-xl border border-gray-200/80 shadow-2xl p-8">
+
             <div className="flex flex-col items-center mb-6">
-              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-cyan-500 to-purple-600 flex items-center justify-center mb-4">
-                <GraduationCap className="text-white w-8 h-8" />
+              <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center mb-4">
+                <GraduationCap className="text-gray-600 w-8 h-8" />
               </div>
-              <h1 className="text-center text-3xl font-bold text-white">
-                School Management System
+              <h1 className="text-center text-3xl font-semibold text-gray-800">
+                School Management Portal
               </h1>
-              <p className="text-center text-sm text-gray-400 mt-2">
-                Securely access your dashboard
+              <p className="text-center text-sm text-gray-500 mt-2">
+                Welcome back. Please sign in.
               </p>
             </div>
 
@@ -142,9 +138,9 @@ export default function LoginPage() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Email"
+                  placeholder="Email Address"
                   disabled={isLoading}
-                  className="w-full pl-12 pr-4 py-3 rounded-full bg-black/40 text-white placeholder-gray-500 focus:ring-2 focus:ring-cyan-400 focus:outline-none border border-transparent focus:border-cyan-400 transition"
+                  className="w-full pl-12 pr-4 py-3 rounded-lg bg-gray-50/80 text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-gray-400 focus:outline-none border border-gray-300 transition"
                 />
               </div>
 
@@ -160,31 +156,31 @@ export default function LoginPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Password"
                   disabled={isLoading}
-                  className="w-full pl-12 pr-4 py-3 rounded-full bg-black/40 text-white placeholder-gray-500 focus:ring-2 focus:ring-cyan-400 focus:outline-none border border-transparent focus:border-cyan-400 transition"
+                  className="w-full pl-12 pr-4 py-3 rounded-lg bg-gray-50/80 text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-gray-400 focus:outline-none border border-gray-300 transition"
                 />
               </div>
 
-              {error && <p className="text-center text-sm text-red-400">{error}</p>}
+              {error && <p className="text-center text-sm text-red-600">{error}</p>}
 
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full py-3 rounded-full bg-gradient-to-r from-cyan-500 to-purple-600 text-white font-bold text-lg hover:scale-105 hover:shadow-xl hover:shadow-cyan-500/30 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed">
-                {isLoading ? 'Verifying...' : 'Sign In'}
+                className="w-full py-3 rounded-lg bg-gray-800 text-white font-semibold hover:bg-gray-900 transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed">
+                {isLoading ? 'Signing In...' : 'Sign In'}
               </button>
             </form>
 
             <div className="relative flex items-center py-6">
-              <div className="flex-grow border-t border-white/20"></div>
-              <span className="mx-4 flex-shrink text-sm text-gray-400">Or continue with</span>
-              <div className="flex-grow border-t border-white/20"></div>
+              <div className="flex-grow border-t border-gray-300"></div>
+              <span className="mx-4 flex-shrink text-sm text-gray-400">Or</span>
+              <div className="flex-grow border-t border-gray-300"></div>
             </div>
 
             <button
               type="button"
               onClick={handleGoogleLogin}
               disabled={isLoading}
-              className="w-full flex items-center justify-center gap-3 rounded-full bg-black/40 py-3 font-semibold text-white transition duration-300 ease-in-out border border-white/20 hover:bg-white/10 disabled:opacity-50"
+              className="w-full flex items-center justify-center gap-3 rounded-lg bg-white py-3 font-semibold text-gray-700 transition duration-300 ease-in-out border border-gray-300 hover:bg-gray-50 disabled:opacity-50"
             >
               <GoogleIcon />
               <span>Sign in with Google</span>
