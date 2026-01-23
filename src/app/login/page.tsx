@@ -98,7 +98,25 @@ export default function LoginPage() {
       const userDoc = await getDoc(userDocRef);
 
       if (userDoc.exists()) {
-        await handleSuccessfulLogin(user);
+        const role = userDoc.data().role;
+        switch (role) {
+          case 'admin':
+            router.push('/admin');
+            break;
+          case 'teacher':
+            router.push('/teacher');
+            break;
+          case 'student':
+            router.push('/student');
+            break;
+          case 'parent':
+            router.push('/parent');
+            break;
+          default:
+            setError('User role not found. Please contact an administrator.');
+            await signOut(auth);
+            break;
+        }
       } else {
         await setDoc(userDocRef, {
           fullName: user.displayName,
