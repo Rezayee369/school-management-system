@@ -6,9 +6,10 @@ import {
   signInWithEmailAndPassword,
   GoogleAuthProvider,
   signInWithPopup,
+  signOut,
   type User,
 } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
 import { Mail, Lock, GraduationCap } from 'lucide-react';
 
@@ -51,12 +52,12 @@ export default function LoginPage() {
           break;
         default:
           setError('User role not found. Please contact an administrator.');
-          auth.signOut();
+          await signOut(auth);
           break;
       }
     } else {
       setError('Your account is not registered. Please contact an administrator.');
-      auth.signOut();
+      await signOut(auth);
     }
   };
 
@@ -92,10 +93,29 @@ export default function LoginPage() {
 
     try {
       const result = await signInWithPopup(auth, provider);
-      await handleSuccessfulLogin(result.user);
+      const user = result.user;
+      const userDocRef = doc(db, 'users', user.uid);
+      const userDoc = await getDoc(userDocRef);
+
+      if (userDoc.exists()) {
+        // Existing user, proceed to role-based redirect
+        await handleSuccessfulLogin(user);
+      } else {
+        // New user, create a document in Firestore
+        await setDoc(userDocRef, {
+          fullName: user.displayName,
+          email: user.email,
+          role: 'student', // Default role for new Google sign-ups
+          createdAt: serverTimestamp(),
+          photoURL: user.photoURL
+        });
+        // Redirect the new student to their dashboard
+        router.push('/student');
+      }
     } catch (error: any) {
       if (error.code !== 'auth/popup-closed-by-user') {
         setError('Failed to sign in with Google. Please try again.');
+        console.error("Google Sign-In Error: ", error);
       }
     } finally {
       setIsLoading(false);
