@@ -6,6 +6,7 @@ import DashboardHeader from '@/components/DashboardHeader';
 import { BookOpen, Users, Briefcase, CheckSquare, Megaphone, BarChart2 } from 'lucide-react';
 import { useFirestore } from '@/firebase';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import toast from 'react-hot-toast';
 
 export default function AdminDashboard() {
   const db = useFirestore();
@@ -52,34 +53,38 @@ export default function AdminDashboard() {
             {teacherCount === null ? (
               <div className="h-28 bg-muted/40 rounded-xl animate-pulse"></div>
             ) : (
-              <div className="group p-6 bg-background/60 backdrop-blur-sm rounded-xl shadow-lg border border-primary/30 transition-all duration-300 hover:border-primary hover:shadow-xl hover:shadow-primary/20 hover:-translate-y-1">
-                  <div className="flex items-start justify-between">
-                      <div>
-                          <p className="text-sm text-muted-foreground">Total Teachers</p>
-                          <p className="text-4xl font-bold text-foreground mt-2 transition-all duration-300 group-hover:text-primary">{teacherCount}</p>
-                      </div>
-                      <div className="p-3 bg-primary/10 rounded-lg transition-all duration-300 group-hover:bg-primary/20 group-hover:shadow-[0_0_20px_hsl(var(--primary))]">
-                          <Briefcase className="w-6 h-6 text-primary transition-transform duration-300 group-hover:scale-110" />
-                      </div>
-                  </div>
-              </div>
+              <Link href="/admin/users" className="block group">
+                <div className="p-6 h-full bg-background/60 backdrop-blur-sm rounded-xl shadow-lg border border-primary/30 transition-all duration-300 hover:border-primary hover:shadow-xl hover:shadow-primary/20 hover:-translate-y-1">
+                    <div className="flex items-start justify-between">
+                        <div>
+                            <p className="text-sm text-muted-foreground">Total Teachers</p>
+                            <p className="text-4xl font-bold text-foreground mt-2 transition-all duration-300 group-hover:text-primary">{teacherCount}</p>
+                        </div>
+                        <div className="p-3 bg-primary/10 rounded-lg transition-all duration-300 group-hover:bg-primary/20 group-hover:shadow-[0_0_20px_hsl(var(--primary))]">
+                            <Briefcase className="w-6 h-6 text-primary transition-transform duration-300 group-hover:scale-110" />
+                        </div>
+                    </div>
+                </div>
+              </Link>
             )}
             
             {/* Total Students Card */}
             {studentCount === null ? (
               <div className="h-28 bg-muted/40 rounded-xl animate-pulse"></div>
             ) : (
-              <div className="group p-6 bg-background/60 backdrop-blur-sm rounded-xl shadow-lg border border-secondary/30 transition-all duration-300 hover:border-secondary hover:shadow-xl hover:shadow-secondary/20 hover:-translate-y-1">
-                  <div className="flex items-start justify-between">
-                      <div>
-                          <p className="text-sm text-muted-foreground">Total Students</p>
-                          <p className="text-4xl font-bold text-foreground mt-2 transition-all duration-300 group-hover:text-secondary">{studentCount}</p>
-                      </div>
-                      <div className="p-3 bg-secondary/10 rounded-lg transition-all duration-300 group-hover:bg-secondary/20 group-hover:shadow-[0_0_20px_hsl(var(--secondary))]">
-                          <Users className="w-6 h-6 text-secondary transition-transform duration-300 group-hover:scale-110" />
-                      </div>
-                  </div>
-              </div>
+              <Link href="/admin/users" className="block group">
+                <div className="p-6 h-full bg-background/60 backdrop-blur-sm rounded-xl shadow-lg border border-secondary/30 transition-all duration-300 hover:border-secondary hover:shadow-xl hover:shadow-secondary/20 hover:-translate-y-1">
+                    <div className="flex items-start justify-between">
+                        <div>
+                            <p className="text-sm text-muted-foreground">Total Students</p>
+                            <p className="text-4xl font-bold text-foreground mt-2 transition-all duration-300 group-hover:text-secondary">{studentCount}</p>
+                        </div>
+                        <div className="p-3 bg-secondary/10 rounded-lg transition-all duration-300 group-hover:bg-secondary/20 group-hover:shadow-[0_0_20px_hsl(var(--secondary))]">
+                            <Users className="w-6 h-6 text-secondary transition-transform duration-300 group-hover:scale-110" />
+                        </div>
+                    </div>
+                </div>
+              </Link>
             )}
 
             {/* Total Classes Card */}
@@ -102,7 +107,7 @@ export default function AdminDashboard() {
             )}
             
             {/* Attendance Today Card */}
-             <div className="group p-6 bg-background/60 backdrop-blur-sm rounded-xl shadow-lg border border-destructive/30 transition-all duration-300 hover:border-destructive hover:shadow-xl hover:shadow-destructive/20 hover:-translate-y-1">
+             <div onClick={() => toast('Coming soon!')} className="group cursor-pointer p-6 bg-background/60 backdrop-blur-sm rounded-xl shadow-lg border border-destructive/30 transition-all duration-300 hover:border-destructive hover:shadow-xl hover:shadow-destructive/20 hover:-translate-y-1">
                 <div className="flex items-start justify-between">
                     <div>
                         <p className="text-sm text-muted-foreground">Attendance Today</p>
@@ -142,7 +147,7 @@ export default function AdminDashboard() {
                   </div>
                 </Link>
                 
-                <Link href="#" className="group">
+                <div onClick={() => toast('Coming soon!')} className="group cursor-pointer">
                   <div className="flex flex-col h-full p-6 bg-background/60 backdrop-blur-sm rounded-xl shadow-lg transition-all duration-300 border border-accent/30 hover:border-accent hover:shadow-xl hover:shadow-accent/20 hover:-translate-y-1">
                     <div className="flex items-center gap-4 mb-3">
                       <div className="p-3 bg-accent/10 rounded-lg transition-all duration-300 group-hover:bg-accent/20 group-hover:shadow-[0_0_15px_hsl(var(--accent))]">
@@ -152,9 +157,9 @@ export default function AdminDashboard() {
                     </div>
                     <p className="text-muted-foreground">Create and send announcements to all users.</p>
                   </div>
-                </Link>
+                </div>
 
-                <Link href="#" className="group">
+                <div onClick={() => toast('Coming soon!')} className="group cursor-pointer">
                   <div className="flex flex-col h-full p-6 bg-background/60 backdrop-blur-sm rounded-xl shadow-lg transition-all duration-300 border border-primary/30 hover:border-primary hover:shadow-xl hover:shadow-primary/20 hover:-translate-y-1">
                     <div className="flex items-center gap-4 mb-3">
                       <div className="p-3 bg-primary/10 rounded-lg transition-all duration-300 group-hover:bg-primary/20 group-hover:shadow-[0_0_15px_hsl(var(--primary))]">
@@ -164,7 +169,7 @@ export default function AdminDashboard() {
                     </div>
                     <p className="text-muted-foreground">View school performance and user engagement data.</p>
                   </div>
-                </Link>
+                </div>
             </div>
         </div>
       </div>
