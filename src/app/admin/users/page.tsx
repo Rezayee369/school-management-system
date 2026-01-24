@@ -9,6 +9,7 @@ import { signOut } from 'firebase/auth';
 import { UserPlus, Users, Briefcase, UserCircle, ArrowLeft, Trash2, LogOut, Pencil } from 'lucide-react';
 import toast from 'react-hot-toast';
 import ConfirmDialog from '@/components/ConfirmDialog';
+import { SkeletonListRow } from '@/components/Skeleton';
 
 interface UserData {
   id: string;
@@ -195,24 +196,10 @@ export default function AdminUsersPage() {
           <div className="p-6 bg-background/60 backdrop-blur-sm border border-secondary/30 rounded-xl shadow-lg">
             <div className="h-8 w-40 bg-muted/40 rounded-md animate-pulse mb-4"></div>
             <div className="space-y-3">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center p-4 bg-background/50 border border-muted/20 rounded-lg animate-pulse">
-                <div className="h-5 bg-muted/40 rounded-md"></div>
-                <div className="h-5 bg-muted/40 rounded-md"></div>
-                <div className="h-5 w-24 bg-muted/40 rounded-md"></div>
-                <div className="flex justify-end"><div className="w-8 h-8 bg-muted/40 rounded-full"></div></div>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center p-4 bg-background/50 border border-muted/20 rounded-lg animate-pulse">
-                <div className="h-5 bg-muted/40 rounded-md"></div>
-                <div className="h-5 bg-muted/40 rounded-md"></div>
-                <div className="h-5 w-24 bg-muted/40 rounded-md"></div>
-                <div className="flex justify-end"><div className="w-8 h-8 bg-muted/40 rounded-full"></div></div>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center p-4 bg-background/50 border border-muted/20 rounded-lg animate-pulse">
-                <div className="h-5 bg-muted/40 rounded-md"></div>
-                <div className="h-5 bg-muted/40 rounded-md"></div>
-                <div className="h-5 w-24 bg-muted/40 rounded-md"></div>
-                <div className="flex justify-end"><div className="w-8 h-8 bg-muted/40 rounded-full"></div></div>
-              </div>
+              <SkeletonListRow />
+              <SkeletonListRow />
+              <SkeletonListRow />
+              <SkeletonListRow />
             </div>
           </div>
         </div>
