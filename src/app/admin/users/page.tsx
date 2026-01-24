@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { collection, query, onSnapshot, orderBy, doc, writeBatch, where, getDocs, arrayRemove } from 'firebase/firestore';
 import { useFirestore, useAuth } from '@/firebase';
 import { signOut } from 'firebase/auth';
-import { UserPlus, Users, Briefcase, UserCircle, ArrowLeft, Trash2, LogOut } from 'lucide-react';
+import { UserPlus, Users, Briefcase, UserCircle, ArrowLeft, Trash2, LogOut, Pencil } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface UserData {
@@ -23,6 +23,9 @@ export default function AdminUsersPage() {
   const [users, setUsers] = useState<UserData[]>([]);
   const [isLoadingUsers, setIsLoadingUsers] = useState(true);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
+  const [editingUser, setEditingUser] = useState<UserData | null>(null);
+  const [updatedFullName, setUpdatedFullName] = useState('');
+  const [updatedRole, setUpdatedRole] = useState('');
 
   const handleLogout = async () => {
     try {
@@ -51,6 +54,69 @@ export default function AdminUsersPage() {
 
     return () => unsubscribe();
   }, [db]);
+
+  const handleEditClick = (user: UserData) => {
+    if (user.role === 'admin') {
+      toast.error("Admin users cannot be edited from this interface for security reasons.");
+      return;
+    }
+    setEditingUser(user);
+    setUpdatedFullName(user.fullName);
+    setUpdatedRole(user.role);
+  };
+
+  const handleUpdateUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingUser) return;
+
+    const updateToast = toast.loading('Updating user...');
+
+    try {
+        const batch = writeBatch(db);
+        const userDocRef = doc(db, 'users', editingUser.id);
+        
+        const newUserData = {
+            fullName: updatedFullName,
+            role: updatedRole,
+        };
+        batch.update(userDocRef, newUserData);
+
+        // If role changed FROM teacher, unassign from classes.
+        if (editingUser.role === 'teacher' && updatedRole !== 'teacher') {
+            const classesQuery = query(collection(db, 'classes'), where('teacherId', '==', editingUser.id));
+            const snapshot = await getDocs(classesQuery);
+            snapshot.forEach(classDoc => {
+                batch.update(classDoc.ref, { teacherId: '', teacherName: 'Unassigned' });
+            });
+        }
+        
+        // If role changed FROM student, unenroll from classes.
+        if (editingUser.role === 'student' && updatedRole !== 'student') {
+            const classesQuery = query(collection(db, 'classes'), where('studentIds', 'array-contains', editingUser.id));
+            const snapshot = await getDocs(classesQuery);
+            snapshot.forEach(classDoc => {
+                batch.update(classDoc.ref, { studentIds: arrayRemove(editingUser.id) });
+            });
+        }
+
+        // If teacher name changed, update it in their classes.
+        if (editingUser.role === 'teacher' && updatedFullName !== editingUser.fullName) {
+             const classesQuery = query(collection(db, 'classes'), where('teacherId', '==', editingUser.id));
+             const snapshot = await getDocs(classesQuery);
+             snapshot.forEach(classDoc => {
+                 batch.update(classDoc.ref, { teacherName: updatedFullName });
+             });
+        }
+
+        await batch.commit();
+        toast.success(`User updated successfully.`, { id: updateToast });
+        setEditingUser(null);
+    } catch (err: any) {
+        console.error('Error updating user:', err);
+        toast.error(`Failed to update user: ${err.message}.`, { id: updateToast });
+    }
+  };
+
 
   const handleDeleteUser = async (userToDelete: UserData) => {
     // Safety check: prevent deleting other admins
@@ -188,11 +254,19 @@ export default function AdminUsersPage() {
                     {getRoleIcon(user.role)}
                     <span className="text-sm font-semibold capitalize">{user.role}</span>
                   </div>
-                  <div className="flex justify-end">
+                  <div className="flex justify-end items-center gap-2">
+                    <button
+                        onClick={() => handleEditClick(user)}
+                        disabled={user.role === 'admin'}
+                        className="p-2 text-secondary hover:bg-secondary/10 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        aria-label={`Edit ${user.fullName}`}
+                    >
+                        <Pencil size={18} />
+                    </button>
                     <button
                         onClick={() => handleDeleteUser(user)}
-                        disabled={isDeleting === user.id}
-                        className="p-2 text-red-400 hover:bg-red-400/10 rounded-full transition-colors disabled:opacity-50 disabled:cursor-wait"
+                        disabled={isDeleting === user.id || user.role === 'admin'}
+                        className="p-2 text-red-400 hover:bg-red-400/10 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         aria-label={`Delete ${user.fullName}`}
                     >
                         {isDeleting === user.id ? <div className="w-5 h-5 border-2 border-red-400 border-t-transparent rounded-full animate-spin"></div> : <Trash2 size={18} />}
@@ -206,6 +280,57 @@ export default function AdminUsersPage() {
           </div>
         </div>
       </div>
+
+      {editingUser && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex justify-center items-center z-50 animate-fade-in-scale">
+          <div className="bg-background/80 border border-secondary/30 p-8 rounded-2xl shadow-2xl shadow-primary/10 w-full max-w-md m-4">
+            <h2 className="text-2xl font-bold text-foreground mb-1">Edit User</h2>
+            <p className="text-muted-foreground mb-6">Editing profile for <span className="font-semibold text-secondary">{editingUser.fullName}</span></p>
+            
+            <form onSubmit={handleUpdateUser} className="space-y-6">
+              <div>
+                <label htmlFor="fullName" className="block text-sm font-medium text-muted-foreground mb-2">Full Name</label>
+                <input
+                  id="fullName"
+                  type="text"
+                  value={updatedFullName}
+                  onChange={(e) => setUpdatedFullName(e.target.value)}
+                  className="w-full px-4 py-2 bg-background/50 text-foreground placeholder-gray-400 border border-secondary/30 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                  required
+                />
+              </div>
+              <div>
+                <label htmlFor="role" className="block text-sm font-medium text-muted-foreground mb-2">Role</label>
+                <select
+                  id="role"
+                  value={updatedRole}
+                  onChange={(e) => setUpdatedRole(e.target.value)}
+                  className="w-full appearance-none px-4 py-2 bg-background/50 text-foreground border border-secondary/30 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                >
+                  <option value="student">Student</option>
+                  <option value="teacher">Teacher</option>
+                  <option value="parent">Parent</option>
+                </select>
+              </div>
+              <div className="flex justify-end gap-4 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setEditingUser(null)}
+                  className="px-6 py-2 font-semibold text-muted-foreground bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-2 font-semibold text-primary-foreground bg-gradient-to-r from-secondary to-primary rounded-lg shadow-md hover:opacity-90 transition-all"
+                >
+                  Save Changes
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+    )}
     </main>
   );
 }
