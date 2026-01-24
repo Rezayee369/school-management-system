@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { useFirestore, useAuth } from '@/firebase';
 import { firebaseConfig } from '@/firebase/config';
 import toast from 'react-hot-toast';
@@ -82,15 +81,15 @@ export default function CreateUserPage() {
         <main className="flex min-h-screen flex-col items-center justify-center p-4 sm:p-8 bg-background">
              <div className="w-full max-w-md animate-fade-in-slide-up space-y-8">
                 <div className="absolute top-8 left-8">
-                    <Link href="/admin/users" className="flex items-center gap-2 text-muted-foreground hover:text-foreground">
+                    <button onClick={() => router.back()} className="flex items-center gap-2 text-muted-foreground hover:text-foreground">
                         <ArrowLeft size={18} />
-                        <span>Back to Users</span>
-                    </Link>
+                        <span>Back</span>
+                    </button>
                 </div>
                 <div className="absolute top-8 right-8">
                     <button onClick={handleLogout} className="flex items-center gap-2 text-muted-foreground hover:text-foreground">
                         <LogOut size={18} />
-                        <span>Back to Login</span>
+                        <span>Logout</span>
                     </button>
                 </div>
                 

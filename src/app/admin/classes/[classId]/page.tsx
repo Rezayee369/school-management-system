@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { useFirestore, useAuth } from '@/firebase';
 import { collection, doc, onSnapshot, query, where, updateDoc, arrayUnion, arrayRemove, documentId } from 'firebase/firestore';
 import { signOut } from 'firebase/auth';
@@ -136,13 +135,13 @@ export default function ManageStudentsPage() {
     <main className="flex min-h-screen flex-col items-center p-8 bg-background">
       <div className="w-full max-w-6xl animate-fade-in-slide-up">
         <div className="flex justify-between items-center mb-8">
-            <Link href="/admin/classes" className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
+            <button onClick={() => router.back()} className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
                 <ArrowLeft size={18} />
-                <span>Back to Classes</span>
-            </Link>
+                <span>Back</span>
+            </button>
             <button onClick={handleLogout} className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
                 <LogOut size={18} />
-                <span>Back to Login</span>
+                <span>Logout</span>
             </button>
         </div>
         <h1 className="text-4xl font-bold text-foreground mb-2">Manage Students for {classData.name}</h1>
