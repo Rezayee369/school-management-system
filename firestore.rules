@@ -7,8 +7,16 @@ service cloud.firestore {
       return request.auth != null && request.auth.uid == userId;
     }
 
+    function getUserRole(userId) {
+      return get(/databases/$(database)/documents/users/$(userId)).data.role;
+    }
+
     function isAdmin() {
-      return request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+      return request.auth != null && getUserRole(request.auth.uid) == 'admin';
+    }
+
+    function isTeacher() {
+      return request.auth != null && getUserRole(request.auth.uid) == 'teacher';
     }
 
     match /users/{userId} {
@@ -25,8 +33,27 @@ service cloud.firestore {
     }
     
     match /classes/{classId} {
-      // Only admins can read and write (create, update, delete) classes.
-      allow read, write: if isAdmin();
+      // Admins can manage classes.
+      allow write: if isAdmin();
+      // Admins and Teachers can read class information.
+      allow read: if isAdmin() || isTeacher();
+    }
+
+    match /classes/{classId}/students/{studentId} {
+        // Admins can enroll/unenroll students.
+        allow write: if isAdmin();
+        // Admins and Teachers can see who is in a class.
+        allow read: if isAdmin() || isTeacher();
+    }
+    
+    match /attendance/{attendanceId} {
+      // Teachers can create attendance records.
+      allow create: if isTeacher();
+      // Admins can read all attendance records.
+      // Teachers can read records they have created.
+      allow read: if isAdmin() || (isTeacher() && resource.data.teacherId == request.auth.uid);
+      // Only Admins can modify or delete records.
+      allow update, delete: if isAdmin();
     }
   }
 }

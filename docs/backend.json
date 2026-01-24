@@ -41,13 +41,57 @@
                 "type": "string",
                 "description": "The name of the class."
             },
+            "teacherId": {
+              "type": "string",
+              "description": "The UID of the assigned teacher."
+            },
+            "teacherName": {
+              "type": "string",
+              "description": "The name of the assigned teacher."
+            },
             "createdAt": {
                 "type": "string",
                 "format": "date-time",
                 "description": "The timestamp when the class was created."
             }
         },
-        "required": ["name", "createdAt"]
+        "required": ["name", "teacherId", "teacherName", "createdAt"]
+    },
+    "ClassStudent": {
+      "title": "Class Student",
+      "description": "Represents a student enrolled in a class.",
+      "type": "object",
+      "properties": {
+        "studentId": {
+          "type": "string"
+        },
+        "studentName": {
+          "type": "string"
+        }
+      },
+      "required": ["studentId", "studentName"]
+    },
+    "Attendance": {
+      "title": "Attendance",
+      "description": "Represents an attendance record for a student in a class on a specific date.",
+      "type": "object",
+      "properties": {
+        "classId": { "type": "string" },
+        "className": { "type": "string" },
+        "studentId": { "type": "string" },
+        "studentName": { "type": "string" },
+        "teacherId": { "type": "string" },
+        "date": { "type": "string", "description": "ISO 8601 format date string (YYYY-MM-DD)" },
+        "status": {
+          "type": "string",
+          "enum": ["present", "absent", "leave"]
+        },
+        "markedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["classId", "studentId", "teacherId", "date", "status", "markedAt"]
     }
   },
   "auth": {
@@ -65,6 +109,18 @@
         "$ref": "#/backend/entities/Class"
       },
       "description": "Stores information about school classes."
+    },
+    "/classes/{classId}/students/{studentId}": {
+      "schema": {
+        "$ref": "#/backend/entities/ClassStudent"
+      },
+      "description": "A sub-collection listing the students enrolled in a class."
+    },
+    "/attendance/{attendanceId}": {
+      "schema": {
+        "$ref": "#/backend/entities/Attendance"
+      },
+      "description": "Stores all attendance records for all classes."
     }
   }
 }
