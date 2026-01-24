@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { signOut, type User as FirebaseUser } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import { signOut } from 'firebase/auth';
+import { useAuth, useUser } from '@/firebase';
 import { LogOut, User as UserIcon, Settings } from 'lucide-react';
 
 interface DashboardHeaderProps {
@@ -12,14 +12,14 @@ interface DashboardHeaderProps {
 
 export default function DashboardHeader({ userRole }: DashboardHeaderProps) {
   const router = useRouter();
-  const [user, setUser] = useState<FirebaseUser | null>(null);
+  const auth = useAuth();
+  const user = useUser();
+  
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
-    setUser(auth.currentUser);
-
     const handleClickOutside = (event: MouseEvent) => {
       if (
         dropdownRef.current &&

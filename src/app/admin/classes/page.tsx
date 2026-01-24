@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { collection, addDoc, serverTimestamp, query, onSnapshot, orderBy } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { useFirestore } from '@/firebase';
 import { useAuthGuard } from '@/hooks/useAuthGuard';
 
 interface ClassData {
@@ -12,6 +12,7 @@ interface ClassData {
 
 export default function AdminClassesPage() {
   const isLoading = useAuthGuard('admin');
+  const db = useFirestore();
   const [classes, setClasses] = useState<ClassData[]>([]);
   const [newClassName, setNewClassName] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -27,12 +28,12 @@ export default function AdminClassesPage() {
         setClasses(classesData);
       }, (err) => {
         console.error("Error fetching classes:", err);
-        setError("Failed to fetch classes.");
+        setError("Failed to fetch classes. Check permissions.");
       });
 
       return () => unsubscribe();
     }
-  }, [isLoading]);
+  }, [isLoading, db]);
 
   const handleAddClass = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,7 +51,7 @@ export default function AdminClassesPage() {
       setNewClassName('');
     } catch (err) {
       console.error('Error adding class:', err);
-      setError('Failed to add class. Please try again.');
+      setError('Failed to add class. Check permissions.');
     }
   };
 

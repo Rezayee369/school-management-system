@@ -10,7 +10,7 @@ import {
   type User,
 } from 'firebase/auth';
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
-import { auth, db } from '@/lib/firebase';
+import { useAuth, useFirestore } from '@/firebase';
 import { Mail, Lock, GraduationCap } from 'lucide-react';
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -28,6 +28,8 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const auth = useAuth();
+  const db = useFirestore();
 
   const handleSuccessfulLogin = async (user: User) => {
     const userDocRef = doc(db, 'users', user.uid);
@@ -56,6 +58,8 @@ export default function LoginPage() {
           break;
       }
     } else {
+      // This case should ideally not be hit for email/pass login
+      // but is critical for Google login's auto-registration.
       setError('Your account is not registered. Please contact an administrator.');
       await signOut(auth);
     }
@@ -79,6 +83,7 @@ export default function LoginPage() {
       if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
         setError('Invalid email or password.');
       } else {
+        console.error("Email/Pass Sign-In Error: ", error);
         setError('An unexpected error occurred. Please try again.');
       }
     } finally {
@@ -98,26 +103,10 @@ export default function LoginPage() {
       const userDoc = await getDoc(userDocRef);
 
       if (userDoc.exists()) {
-        const role = userDoc.data().role;
-        switch (role) {
-          case 'admin':
-            router.push('/admin');
-            break;
-          case 'teacher':
-            router.push('/teacher');
-            break;
-          case 'student':
-            router.push('/student');
-            break;
-          case 'parent':
-            router.push('/parent');
-            break;
-          default:
-            setError('User role not found. Please contact an administrator.');
-            await signOut(auth);
-            break;
-        }
+        // User exists, redirect based on their role
+        await handleSuccessfulLogin(user);
       } else {
+        // New user, create a doc with 'student' role
         await setDoc(userDocRef, {
           fullName: user.displayName,
           email: user.email,
@@ -125,6 +114,7 @@ export default function LoginPage() {
           createdAt: serverTimestamp(),
           photoURL: user.photoURL
         });
+        // Redirect to student dashboard
         router.push('/student');
       }
     } catch (error: any) {

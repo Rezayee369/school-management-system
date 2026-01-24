@@ -1,0 +1,70 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "User Profile",
+      "description": "Represents a user's profile in the system.",
+      "type": "object",
+      "properties": {
+        "fullName": {
+          "type": "string",
+          "description": "The user's full name."
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "The user's email address."
+        },
+        "role": {
+          "type": "string",
+          "description": "The user's role in the system.",
+          "enum": ["admin", "teacher", "student", "parent"]
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The timestamp when the user was created."
+        },
+        "photoURL": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL of the user's profile picture."
+        }
+      },
+      "required": ["fullName", "email", "role", "createdAt"]
+    },
+    "Class": {
+        "title": "Class",
+        "description": "Represents a school class.",
+        "type": "object",
+        "properties": {
+            "name": {
+                "type": "string",
+                "description": "The name of the class."
+            },
+            "createdAt": {
+                "type": "string",
+                "format": "date-time",
+                "description": "The timestamp when the class was created."
+            }
+        },
+        "required": ["name", "createdAt"]
+    }
+  },
+  "auth": {
+    "providers": ["google.com", "password"]
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": {
+        "$ref": "#/backend/entities/UserProfile"
+      },
+      "description": "Stores public information about a user."
+    },
+    "/classes/{classId}": {
+      "schema": {
+        "$ref": "#/backend/entities/Class"
+      },
+      "description": "Stores information about school classes."
+    }
+  }
+}

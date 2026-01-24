@@ -1,0 +1,27 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Function to check if the user is authenticated and their ID matches.
+    function isOwner(userId) {
+      return request.auth != null && request.auth.uid == userId;
+    }
+
+    // Function to check if the authenticated user has the 'admin' role.
+    function isAdmin() {
+      return request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    match /users/{userId} {
+      // Allow users to create their own profile upon signup.
+      // Allow users to read their own profile data.
+      allow create, read: if isOwner(userId);
+    }
+    
+    match /classes/{classId} {
+      // Only admins can read and write (create, update, delete) classes.
+      allow read, write: if isAdmin();
+    }
+  }
+}

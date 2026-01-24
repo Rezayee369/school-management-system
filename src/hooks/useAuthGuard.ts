@@ -2,45 +2,38 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { onAuthStateChanged, type User } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
-import { auth, db } from '@/lib/firebase';
+import { useUser } from '@/firebase';
 
 export function useAuthGuard(allowedRole: string) {
+  const user = useUser();
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user: User | null) => {
-      if (!user) {
-        router.replace('/login');
-        // A redirect is in progress, but we set loading to false to prevent a stuck screen.
-        setIsLoading(false);
-        return;
-      }
+    // user is undefined when loading, null when not logged in, and an object when logged in.
+    if (user === undefined) {
+      return; // Still loading, wait for user state to resolve.
+    }
 
-      try {
-        const userDocRef = doc(db, 'users', user.uid);
-        const userDoc = await getDoc(userDocRef);
+    if (!user) {
+      // Not logged in, redirect to login.
+      router.replace('/login');
+      setIsLoading(false);
+      return;
+    }
 
-        if (userDoc.exists() && userDoc.data().role === allowedRole) {
-          // User is authorized, show the page content.
-          setIsLoading(false);
-        } else {
-          // Role mismatch or no user document, redirect.
-          router.replace('/login');
-          setIsLoading(false);
-        }
-      } catch (error) {
-        console.error('Error fetching user role:', error);
-        router.replace('/login');
-        setIsLoading(false);
-      }
-    });
-
-    // Cleanup subscription on unmount
-    return () => unsubscribe();
-  }, [allowedRole, router]);
+    // User is logged in, check role.
+    if (user.role === allowedRole) {
+      // Role matches, allow access.
+      setIsLoading(false);
+    } else {
+      // Role mismatch, redirect.
+      // Maybe redirect to their own dashboard or login? Login is safer.
+      console.warn(`Role mismatch: user role is '${user.role}', required '${allowedRole}'. Redirecting to login.`);
+      router.replace('/login');
+      setIsLoading(false);
+    }
+  }, [user, allowedRole, router]);
 
   return isLoading;
 }
