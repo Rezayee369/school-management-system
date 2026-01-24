@@ -85,7 +85,7 @@ export default function AdminDashboard() {
                   </div>
                 </Link>
 
-                <Link href="#" className="group">
+                <Link href="/admin/users" className="group">
                   <div className="flex flex-col h-full p-6 bg-background/60 backdrop-blur-sm rounded-xl shadow-lg hover:shadow-secondary/20 transition-shadow duration-300 border border-secondary/30 hover:border-secondary">
                     <div className="flex items-center gap-4 mb-3">
                       <div className="p-3 bg-secondary/10 rounded-lg">
