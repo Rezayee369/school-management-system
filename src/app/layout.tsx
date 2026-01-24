@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { FirebaseClientProvider } from "@/firebase";
 import { Toaster } from 'react-hot-toast';
+import { ThemeProvider } from "@/components/ThemeProvider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -17,33 +18,35 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
-        <FirebaseClientProvider>
-          {children}
-          <Toaster 
-            position="top-right"
-            toastOptions={{
-              style: {
-                background: 'hsl(var(--background))',
-                color: 'hsl(var(--foreground))',
-                border: '1px solid hsl(var(--secondary) / 0.3)',
-              },
-              success: {
-                iconTheme: {
-                  primary: 'hsl(var(--secondary))',
-                  secondary: 'hsl(var(--background))',
+        <ThemeProvider>
+          <FirebaseClientProvider>
+            {children}
+            <Toaster 
+              position="top-right"
+              toastOptions={{
+                style: {
+                  background: 'hsl(var(--background))',
+                  color: 'hsl(var(--foreground))',
+                  border: '1px solid hsl(var(--secondary) / 0.3)',
                 },
-              },
-              error: {
-                iconTheme: {
-                  primary: 'hsl(var(--destructive))',
-                  secondary: 'hsl(var(--foreground))',
+                success: {
+                  iconTheme: {
+                    primary: 'hsl(var(--secondary))',
+                    secondary: 'hsl(var(--background))',
+                  },
                 },
-              },
-            }}
-          />
-          </FirebaseClientProvider>
+                error: {
+                  iconTheme: {
+                    primary: 'hsl(var(--destructive))',
+                    secondary: 'hsl(var(--foreground))',
+                  },
+                },
+              }}
+            />
+            </FirebaseClientProvider>
+          </ThemeProvider>
       </body>
     </html>
   );
