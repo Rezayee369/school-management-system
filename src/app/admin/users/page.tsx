@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { collection, query, onSnapshot, orderBy, doc, deleteDoc, writeBatch, where, getDocs, arrayRemove } from 'firebase/firestore';
+import { collection, query, onSnapshot, orderBy, doc, writeBatch, where, getDocs, arrayRemove } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
 import { UserPlus, Users, Briefcase, UserCircle, ArrowLeft, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -39,7 +39,7 @@ export default function AdminUsersPage() {
   }, [db]);
 
   const handleDeleteUser = async (userToDelete: UserData) => {
-    // Safety check: prevent deleting other admins or oneself
+    // Safety check: prevent deleting other admins
     if (userToDelete.role === 'admin') {
         toast.error("Admins cannot be deleted from the user interface for security reasons.");
         return;
@@ -51,14 +51,15 @@ export default function AdminUsersPage() {
     }
 
     setIsDeleting(userToDelete.id);
+    const deletionToast = toast.loading(`Deleting ${userToDelete.fullName}...`);
 
     try {
         const batch = writeBatch(db);
 
-        // If user is a teacher, unassign them from classes
+        // If user is a teacher, unassign them from any classes
         if (userToDelete.role === 'teacher') {
-            const classesQuery = query(collection(db, 'classes'), where('teacherId', '==', userToDelete.id));
-            const classesSnapshot = await getDocs(classesQuery);
+            const teacherClassesQuery = query(collection(db, 'classes'), where('teacherId', '==', userToDelete.id));
+            const classesSnapshot = await getDocs(teacherClassesQuery);
             classesSnapshot.forEach(classDoc => {
                 batch.update(classDoc.ref, { teacherId: '', teacherName: 'Unassigned' });
             });
@@ -66,8 +67,8 @@ export default function AdminUsersPage() {
 
         // If user is a student, remove them from any classes they are enrolled in
         if (userToDelete.role === 'student') {
-            const classesQuery = query(collection(db, 'classes'), where('studentIds', 'array-contains', userToDelete.id));
-            const classesSnapshot = await getDocs(classesQuery);
+            const studentClassesQuery = query(collection(db, 'classes'), where('studentIds', 'array-contains', userToDelete.id));
+            const classesSnapshot = await getDocs(studentClassesQuery);
             classesSnapshot.forEach(classDoc => {
                 batch.update(classDoc.ref, { studentIds: arrayRemove(userToDelete.id) });
             });
@@ -78,11 +79,11 @@ export default function AdminUsersPage() {
         batch.delete(userDocRef);
         
         await batch.commit();
-        toast.success(`User data for ${userToDelete.fullName} deleted successfully.`);
+        toast.success(`User data for ${userToDelete.fullName} deleted successfully.`, { id: deletionToast });
 
-    } catch (err) {
+    } catch (err: any) {
         console.error("Error deleting user:", err);
-        toast.error(`Failed to delete user ${userToDelete.fullName}.`);
+        toast.error(`Failed to delete user: ${err.message || 'Please check permissions.'}`, { id: deletionToast });
     } finally {
         setIsDeleting(null);
     }
