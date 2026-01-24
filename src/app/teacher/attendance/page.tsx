@@ -3,12 +3,13 @@
 import { useState, useEffect } from 'react';
 import { useAuthGuard } from '@/hooks/useAuthGuard';
 import { useFirestore, useUser } from '@/firebase';
-import { collection, query, where, onSnapshot, getDocs, setDoc, doc, serverTimestamp } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, setDoc, doc, serverTimestamp, documentId } from 'firebase/firestore';
 import { Calendar, Check, X, Minus } from 'lucide-react';
 
 interface ClassData {
   id: string;
   name: string;
+  studentIds?: string[];
 }
 
 interface StudentData {
@@ -35,50 +36,63 @@ export default function MarkAttendancePage() {
   const today = new Date().toISOString().split('T')[0];
 
   useEffect(() => {
-    if (!isLoading && user) {
-      const classesQuery = query(collection(db, 'classes'), where('teacherId', '==', user.uid));
-      const unsubscribe = onSnapshot(classesQuery, (snapshot) => {
-        const classesData = snapshot.docs.map(doc => ({ id: doc.id, name: doc.data().name as string }));
+    if (isLoading || !user) return;
+    
+    const classesQuery = query(collection(db, 'classes'), where('teacherId', '==', user.uid));
+    const unsubscribe = onSnapshot(classesQuery, (snapshot) => {
+        const classesData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as ClassData));
         setClasses(classesData);
         if (classesData.length > 0 && !selectedClass) {
-          setSelectedClass(classesData[0]);
+            setSelectedClass(classesData[0]);
+        } else if (selectedClass) {
+            // Update selectedClass if it has changed in the snapshot
+            const updatedSelectedClass = classesData.find(c => c.id === selectedClass.id);
+            setSelectedClass(updatedSelectedClass || null);
         }
-      }, (err) => {
+    }, (err) => {
         setError("Could not fetch classes.");
         console.error(err);
-      });
-      return () => unsubscribe();
-    }
-  }, [isLoading, user, db, selectedClass]);
+    });
+    return () => unsubscribe();
+    
+  }, [isLoading, user, db]);
 
   useEffect(() => {
-    if (selectedClass) {
-      // Fetch students for the selected class
-      const studentsRef = collection(db, 'classes', selectedClass.id, 'students');
-      const unsubscribeStudents = onSnapshot(studentsRef, (snapshot) => {
-        const studentData = snapshot.docs.map(doc => ({ id: doc.id, name: doc.data().studentName as string }));
-        setStudents(studentData);
-      });
+    if (!selectedClass) {
+        setStudents([]);
+        return;
+    };
 
-      // Fetch today's attendance for the selected class
-      const attendanceQuery = query(
-        collection(db, 'attendance'),
-        where('classId', '==', selectedClass.id),
-        where('date', '==', today)
-      );
-      const unsubscribeAttendance = onSnapshot(attendanceQuery, (snapshot) => {
-        const newAttendance = new Map<string, AttendanceRecord>();
-        snapshot.forEach(doc => {
-            newAttendance.set(doc.data().studentId, {id: doc.id, status: doc.data().status});
+    let unsubscribeStudents = () => {};
+    const studentIds = selectedClass.studentIds || [];
+    if (studentIds.length > 0) {
+        const studentsQuery = query(collection(db, 'users'), where(documentId(), 'in', studentIds));
+        unsubscribeStudents = onSnapshot(studentsQuery, (snapshot) => {
+            const studentData = snapshot.docs.map(doc => ({ id: doc.id, name: doc.data().fullName as string }));
+            setStudents(studentData);
         });
-        setAttendance(newAttendance);
-      });
-
-      return () => {
-        unsubscribeStudents();
-        unsubscribeAttendance();
-      };
+    } else {
+        setStudents([]);
     }
+
+    // Fetch today's attendance for the selected class
+    const attendanceQuery = query(
+      collection(db, 'attendance'),
+      where('classId', '==', selectedClass.id),
+      where('date', '==', today)
+    );
+    const unsubscribeAttendance = onSnapshot(attendanceQuery, (snapshot) => {
+      const newAttendance = new Map<string, AttendanceRecord>();
+      snapshot.forEach(doc => {
+          newAttendance.set(doc.data().studentId, {id: doc.id, status: doc.data().status});
+      });
+      setAttendance(newAttendance);
+    });
+
+    return () => {
+      unsubscribeStudents();
+      unsubscribeAttendance();
+    };
   }, [selectedClass, db, today]);
 
   const handleMarkAttendance = async (student: StudentData, status: 'present' | 'absent' | 'leave') => {

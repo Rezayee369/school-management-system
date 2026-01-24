@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuthGuard } from '@/hooks/useAuthGuard';
 import { useFirestore } from '@/firebase';
-import { collection, doc, onSnapshot, query, where, setDoc, deleteDoc } from 'firebase/firestore';
+import { collection, doc, onSnapshot, query, where, updateDoc, arrayUnion, arrayRemove, documentId } from 'firebase/firestore';
 import { ArrowLeft, UserPlus, Trash2 } from 'lucide-react';
 
 interface Student {
@@ -16,6 +16,7 @@ interface Student {
 interface ClassData {
     name: string;
     teacherName: string;
+    studentIds?: string[];
 }
 
 export default function ManageStudentsPage() {
@@ -33,21 +34,7 @@ export default function ManageStudentsPage() {
   useEffect(() => {
     if (isLoading || !db || !classId) return;
 
-    // Fetch class details
-    const classDocRef = doc(db, 'classes', classId);
-    const unsubscribeClass = onSnapshot(classDocRef, (doc) => {
-      if (doc.exists()) {
-        setClassData(doc.data() as ClassData);
-      } else {
-        setError("Class not found.");
-        router.push('/admin/classes');
-      }
-    }, (e) => {
-        console.error("Error fetching class details:", e);
-        setError("Failed to load class details.");
-    });
-
-    // Fetch all students in the system (real-time)
+    // Fetch all students in the system (for the 'available' list)
     const allStudentsQuery = query(collection(db, 'users'), where('role', '==', 'student'));
     const unsubscribeAllStudents = onSnapshot(allStudentsQuery, (querySnapshot) => {
         setAllStudents(querySnapshot.docs.map(doc => ({ id: doc.id, fullName: doc.data().fullName } as Student)));
@@ -56,28 +43,49 @@ export default function ManageStudentsPage() {
         setError("Failed to load student list.");
     });
     
-    // Fetch enrolled students for this class (real-time)
-    const enrolledStudentsRef = collection(db, 'classes', classId, 'students');
-    const unsubscribeEnrolled = onSnapshot(enrolledStudentsRef, (snapshot) => {
-      setEnrolledStudents(snapshot.docs.map(doc => ({ id: doc.id, fullName: doc.data().studentName } as Student)));
+    // Watch the class document for changes to studentIds
+    let unsubscribeEnrolledStudents: () => void = () => {};
+    const classDocRef = doc(db, 'classes', classId);
+    const unsubscribeClass = onSnapshot(classDocRef, (classSnap) => {
+        if (classSnap.exists()) {
+            const data = classSnap.data() as ClassData;
+            setClassData(data);
+            
+            unsubscribeEnrolledStudents(); // Unsubscribe from the previous listener
+            
+            const studentIds = data.studentIds || [];
+            if (studentIds.length > 0) {
+                const enrolledQuery = query(collection(db, 'users'), where(documentId(), 'in', studentIds));
+                unsubscribeEnrolledStudents = onSnapshot(enrolledQuery, (enrolledSnap) => {
+                    setEnrolledStudents(enrolledSnap.docs.map(doc => ({ id: doc.id, fullName: doc.data().fullName } as Student)));
+                }, (err) => {
+                     console.error("Error fetching enrolled students:", err);
+                     setError("Failed to load enrolled students.");
+                });
+            } else {
+                setEnrolledStudents([]);
+            }
+        } else {
+            setError("Class not found.");
+            router.push('/admin/classes');
+        }
     }, (e) => {
-        console.error("Error fetching enrolled students:", e);
-        setError("Failed to load enrolled students.");
+        console.error("Error fetching class details:", e);
+        setError("Failed to load class details.");
     });
 
     return () => {
       unsubscribeClass();
       unsubscribeAllStudents();
-      unsubscribeEnrolled();
+      unsubscribeEnrolledStudents();
     };
   }, [isLoading, db, classId, router]);
   
   const handleEnroll = async (student: Student) => {
     try {
-        const studentDocRef = doc(db, 'classes', classId, 'students', student.id);
-        await setDoc(studentDocRef, {
-            studentId: student.id,
-            studentName: student.fullName
+        const classDocRef = doc(db, 'classes', classId);
+        await updateDoc(classDocRef, {
+            studentIds: arrayUnion(student.id)
         });
     } catch (e) {
         console.error("Error enrolling student:", e);
@@ -87,8 +95,10 @@ export default function ManageStudentsPage() {
 
   const handleUnenroll = async (studentId: string) => {
     try {
-        const studentDocRef = doc(db, 'classes', classId, 'students', studentId);
-        await deleteDoc(studentDocRef);
+        const classDocRef = doc(db, 'classes', classId);
+        await updateDoc(classDocRef, {
+            studentIds: arrayRemove(studentId)
+        });
     } catch (e) {
         console.error("Error unenrolling student:", e);
         setError("Failed to unenroll student.");

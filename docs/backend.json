@@ -53,23 +53,16 @@
                 "type": "string",
                 "format": "date-time",
                 "description": "The timestamp when the class was created."
+            },
+            "studentIds": {
+                "type": "array",
+                "description": "List of student UIDs enrolled in the class.",
+                "items": {
+                    "type": "string"
+                }
             }
         },
         "required": ["name", "teacherId", "teacherName", "createdAt"]
-    },
-    "ClassStudent": {
-      "title": "Class Student",
-      "description": "Represents a student enrolled in a class.",
-      "type": "object",
-      "properties": {
-        "studentId": {
-          "type": "string"
-        },
-        "studentName": {
-          "type": "string"
-        }
-      },
-      "required": ["studentId", "studentName"]
     },
     "Attendance": {
       "title": "Attendance",
@@ -109,12 +102,6 @@
         "$ref": "#/backend/entities/Class"
       },
       "description": "Stores information about school classes."
-    },
-    "/classes/{classId}/students/{studentId}": {
-      "schema": {
-        "$ref": "#/backend/entities/ClassStudent"
-      },
-      "description": "A sub-collection listing the students enrolled in a class."
     },
     "/attendance/{attendanceId}": {
       "schema": {
