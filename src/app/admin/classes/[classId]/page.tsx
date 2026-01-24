@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuthGuard } from '@/hooks/useAuthGuard';
 import { useFirestore } from '@/firebase';
-import { collection, doc, getDoc, onSnapshot, query, where, getDocs, setDoc, deleteDoc } from 'firebase/firestore';
+import { collection, doc, onSnapshot, query, where, setDoc, deleteDoc } from 'firebase/firestore';
 import { ArrowLeft, UserPlus, Trash2 } from 'lucide-react';
 
 interface Student {
@@ -31,7 +31,7 @@ export default function ManageStudentsPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (isLoading || !classId) return;
+    if (isLoading || !db || !classId) return;
 
     // Fetch class details
     const classDocRef = doc(db, 'classes', classId);
@@ -42,24 +42,32 @@ export default function ManageStudentsPage() {
         setError("Class not found.");
         router.push('/admin/classes');
       }
+    }, (e) => {
+        console.error("Error fetching class details:", e);
+        setError("Failed to load class details.");
     });
 
-    // Fetch all students in the system
-    const fetchAllStudents = async () => {
-        const studentsQuery = query(collection(db, 'users'), where('role', '==', 'student'));
-        const querySnapshot = await getDocs(studentsQuery);
-        setAllStudents(querySnapshot.docs.map(doc => ({ id: doc.id, fullName: doc.data().fullName })));
-    };
-    fetchAllStudents().catch(e => setError("Failed to fetch student list."));
+    // Fetch all students in the system (real-time)
+    const allStudentsQuery = query(collection(db, 'users'), where('role', '==', 'student'));
+    const unsubscribeAllStudents = onSnapshot(allStudentsQuery, (querySnapshot) => {
+        setAllStudents(querySnapshot.docs.map(doc => ({ id: doc.id, fullName: doc.data().fullName } as Student)));
+    }, (e) => {
+        console.error("Failed to fetch student list:", e);
+        setError("Failed to load student list.");
+    });
     
-    // Fetch enrolled students for this class
+    // Fetch enrolled students for this class (real-time)
     const enrolledStudentsRef = collection(db, 'classes', classId, 'students');
     const unsubscribeEnrolled = onSnapshot(enrolledStudentsRef, (snapshot) => {
-      setEnrolledStudents(snapshot.docs.map(doc => ({ id: doc.id, fullName: doc.data().studentName })));
+      setEnrolledStudents(snapshot.docs.map(doc => ({ id: doc.id, fullName: doc.data().studentName } as Student)));
+    }, (e) => {
+        console.error("Error fetching enrolled students:", e);
+        setError("Failed to load enrolled students.");
     });
 
     return () => {
       unsubscribeClass();
+      unsubscribeAllStudents();
       unsubscribeEnrolled();
     };
   }, [isLoading, db, classId, router]);
@@ -103,7 +111,7 @@ export default function ManageStudentsPage() {
     <main className="flex min-h-screen flex-col items-center p-8 bg-background">
       <div className="w-full max-w-6xl animate-fade-in-slide-up">
         <div className="mb-8">
-            <Link href="/admin/classes" className="flex items-center gap-2 text-muted-foreground hover:text-foreground">
+            <Link href="/admin/classes" className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
                 <ArrowLeft size={18} />
                 <span>Back to Classes</span>
             </Link>
@@ -111,43 +119,55 @@ export default function ManageStudentsPage() {
         <h1 className="text-4xl font-bold text-foreground mb-2">Manage Students for {classData.name}</h1>
         <p className="text-muted-foreground mb-8">Teacher: {classData.teacherName}</p>
 
-        {error && <p className="text-red-500 mb-4">{error}</p>}
+        {error && <p className="text-pink-500 bg-pink-500/10 p-3 rounded-lg text-center mb-4">{error}</p>}
 
         <div className="grid md:grid-cols-2 gap-8">
             {/* Enrolled Students */}
-            <div className="p-6 bg-background/60 backdrop-blur-sm border border-secondary/30 rounded-xl shadow-lg">
+            <div className="p-6 bg-background/60 backdrop-blur-sm border border-secondary/30 rounded-xl shadow-lg transition-all duration-300 hover:border-secondary hover:shadow-secondary/20">
                 <h2 className="text-2xl font-semibold text-foreground mb-4">Enrolled Students ({enrolledStudents.length})</h2>
-                <div className="space-y-3 max-h-96 overflow-y-auto pr-2">
+                <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-2">
                     {enrolledStudents.length > 0 ? (
                         enrolledStudents.map(student => (
-                            <div key={student.id} className="flex items-center justify-between p-3 bg-background/50 rounded-lg">
-                                <span className="text-foreground/90">{student.fullName}</span>
-                                <button onClick={() => handleUnenroll(student.id)} className="p-1.5 text-red-400 hover:bg-red-400/10 rounded-md">
+                            <div key={student.id} className="flex items-center justify-between p-3 bg-background/50 rounded-lg transition-all duration-200 hover:scale-[1.03] hover:bg-background/80">
+                                <span className="text-foreground/90 font-medium">{student.fullName}</span>
+                                <button 
+                                    onClick={() => handleUnenroll(student.id)} 
+                                    className="p-2 text-red-400 hover:bg-red-400/10 rounded-full transition-colors"
+                                    aria-label={`Unenroll ${student.fullName}`}
+                                >
                                     <Trash2 size={18} />
                                 </button>
                             </div>
                         ))
                     ) : (
-                        <p className="text-muted-foreground text-center py-4">No students enrolled yet.</p>
+                        <div className="flex items-center justify-center h-32">
+                            <p className="text-muted-foreground text-center">No students enrolled yet.</p>
+                        </div>
                     )}
                 </div>
             </div>
 
             {/* Unenrolled Students */}
-            <div className="p-6 bg-background/60 backdrop-blur-sm border border-primary/30 rounded-xl shadow-lg">
+            <div className="p-6 bg-background/60 backdrop-blur-sm border border-primary/30 rounded-xl shadow-lg transition-all duration-300 hover:border-primary hover:shadow-primary/20">
                 <h2 className="text-2xl font-semibold text-foreground mb-4">Available Students ({unenrolledStudents.length})</h2>
-                <div className="space-y-3 max-h-96 overflow-y-auto pr-2">
+                <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-2">
                 {unenrolledStudents.length > 0 ? (
                         unenrolledStudents.map(student => (
-                            <div key={student.id} className="flex items-center justify-between p-3 bg-background/50 rounded-lg">
-                                <span className="text-foreground/90">{student.fullName}</span>
-                                <button onClick={() => handleEnroll(student)} className="p-1.5 text-green-400 hover:bg-green-400/10 rounded-md">
+                            <div key={student.id} className="flex items-center justify-between p-3 bg-background/50 rounded-lg transition-all duration-200 hover:scale-[1.03] hover:bg-background/80">
+                                <span className="text-foreground/90 font-medium">{student.fullName}</span>
+                                <button 
+                                    onClick={() => handleEnroll(student)} 
+                                    className="p-2 text-green-400 hover:bg-green-400/10 rounded-full transition-colors"
+                                    aria-label={`Enroll ${student.fullName}`}
+                                >
                                     <UserPlus size={18} />
                                 </button>
                             </div>
                         ))
                     ) : (
-                        <p className="text-muted-foreground text-center py-4">All students are enrolled.</p>
+                        <div className="flex items-center justify-center h-32">
+                            <p className="text-muted-foreground text-center">All available students are enrolled.</p>
+                        </div>
                     )}
                 </div>
             </div>
