@@ -150,9 +150,14 @@ export default function CreateUserPage() {
                         <button
                             type="submit"
                             disabled={isLoading}
-                            className="w-full py-3 rounded-xl bg-gradient-to-r from-secondary to-primary text-primary-foreground font-bold tracking-wider uppercase hover:scale-105 hover:shadow-lg hover:shadow-secondary/30 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="w-full py-3 rounded-xl bg-gradient-to-r from-secondary to-primary text-primary-foreground font-bold tracking-wider uppercase flex items-center justify-center gap-3 hover:scale-105 hover:shadow-lg hover:shadow-secondary/30 transition-all duration-300 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            {isLoading ? 'Creating...' : 'Create User'}
+                            {isLoading ? (
+                                <>
+                                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                    <span>Creating...</span>
+                                </>
+                            ) : 'Create User'}
                         </button>
                     </form>
                 </div>

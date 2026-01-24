@@ -10,6 +10,7 @@ interface ConfirmDialogProps {
   onCancel: () => void;
   confirmText?: string;
   cancelText?: string;
+  isLoading?: boolean;
 }
 
 export default function ConfirmDialog({
@@ -20,6 +21,7 @@ export default function ConfirmDialog({
   onCancel,
   confirmText = 'Confirm',
   cancelText = 'Cancel',
+  isLoading = false,
 }: ConfirmDialogProps) {
     const dialogRef = useRef<HTMLDivElement>(null);
 
@@ -64,9 +66,14 @@ export default function ConfirmDialog({
           <button
             type="button"
             onClick={onConfirm}
-            className="px-6 py-2 font-semibold text-white bg-destructive rounded-lg shadow-md hover:bg-destructive/80 transition-all"
+            disabled={isLoading}
+            className="px-6 py-2 font-semibold text-white bg-destructive rounded-lg shadow-md hover:bg-destructive/80 transition-all active:scale-95 flex items-center justify-center gap-2 min-w-[120px] disabled:opacity-75 disabled:cursor-not-allowed"
           >
-            {confirmText}
+            {isLoading ? (
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+            ) : (
+                confirmText
+            )}
           </button>
         </div>
       </div>

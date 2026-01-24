@@ -37,6 +37,7 @@ export default function MarkClassAttendancePage() {
   const [students, setStudents] = useState<StudentData[]>([]);
   const [attendance, setAttendance] = useState<Map<string, AttendanceRecord>>(new Map());
   const [isLoading, setIsLoading] = useState(true);
+  const [marking, setMarking] = useState<{studentId: string, status: string} | null>(null);
   
   const today = new Date().toISOString().split('T')[0];
 
@@ -112,10 +113,9 @@ export default function MarkClassAttendancePage() {
   }, [classData, db, today]);
 
   const handleMarkAttendance = async (student: StudentData, status: 'present' | 'absent' | 'leave') => {
-    if (!classData || !user || !db) {
-        toast.error("No class selected or user not found.");
-        return;
-    }
+    if (!classData || !user || !db || marking) return;
+
+    setMarking({studentId: student.id, status});
     
     try {
         const attendanceId = attendance.get(student.id)?.id || `${classData.id}_${student.id}_${today}`;
@@ -137,6 +137,8 @@ export default function MarkClassAttendancePage() {
     } catch (e) {
         toast.error("Failed to mark attendance.");
         console.error(e);
+    } finally {
+        setMarking(null);
     }
   };
   
@@ -174,13 +176,34 @@ export default function MarkClassAttendancePage() {
               <div className="space-y-3">
                   {students.length > 0 ? students.map(student => {
                       const currentStatus = attendance.get(student.id)?.status;
+                      const isMarkingPresent = marking?.studentId === student.id && marking?.status === 'present';
+                      const isMarkingAbsent = marking?.studentId === student.id && marking?.status === 'absent';
+                      const isMarkingLeave = marking?.studentId === student.id && marking?.status === 'leave';
                       return (
                           <div key={student.id} className={`p-4 border rounded-lg flex flex-col sm:flex-row items-center justify-between gap-4 transition-colors duration-300 ${getStatusColor(currentStatus)}`}>
                               <p className="text-lg text-foreground/90 font-medium">{student.name}</p>
                               <div className="grid grid-cols-3 gap-2">
-                                  <button onClick={() => handleMarkAttendance(student, 'present')} className={`flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-semibold transition-colors ${currentStatus === 'present' ? 'bg-green-500 text-white' : 'bg-green-500/20 text-green-300 hover:bg-green-500/40'}`}><Check size={16}/> Present</button>
-                                  <button onClick={() => handleMarkAttendance(student, 'absent')} className={`flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-semibold transition-colors ${currentStatus === 'absent' ? 'bg-red-500 text-white' : 'bg-red-500/20 text-red-300 hover:bg-red-500/40'}`}><X size={16}/> Absent</button>
-                                  <button onClick={() => handleMarkAttendance(student, 'leave')} className={`flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-semibold transition-colors ${currentStatus === 'leave' ? 'bg-yellow-500 text-black' : 'bg-yellow-500/20 text-yellow-300 hover:bg-yellow-500/40'}`}><Minus size={16}/> Leave</button>
+                                  <button 
+                                      onClick={() => handleMarkAttendance(student, 'present')} 
+                                      disabled={!!marking}
+                                      className={`flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-semibold transition-all active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed ${currentStatus === 'present' ? 'bg-green-500 text-white' : 'bg-green-500/20 text-green-300 hover:bg-green-500/40'}`}>
+                                      {isMarkingPresent ? <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div> : <Check size={16}/>}
+                                      Present
+                                  </button>
+                                  <button 
+                                      onClick={() => handleMarkAttendance(student, 'absent')} 
+                                      disabled={!!marking}
+                                      className={`flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-semibold transition-all active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed ${currentStatus === 'absent' ? 'bg-red-500 text-white' : 'bg-red-500/20 text-red-300 hover:bg-red-500/40'}`}>
+                                      {isMarkingAbsent ? <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div> : <X size={16}/>}
+                                      Absent
+                                  </button>
+                                  <button 
+                                      onClick={() => handleMarkAttendance(student, 'leave')} 
+                                      disabled={!!marking}
+                                      className={`flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-semibold transition-all active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed ${currentStatus === 'leave' ? 'bg-yellow-500 text-black' : 'bg-yellow-500/20 text-yellow-300 hover:bg-yellow-500/40'}`}>
+                                      {isMarkingLeave ? <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div> : <Minus size={16}/>}
+                                      Leave
+                                  </button>
                               </div>
                           </div>
                       );

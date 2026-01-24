@@ -26,6 +26,7 @@ export default function AdminUsersPage() {
   const [isLoadingUsers, setIsLoadingUsers] = useState(true);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
   const [editingUser, setEditingUser] = useState<UserData | null>(null);
+  const [isUpdating, setIsUpdating] = useState(false);
   const [updatedFullName, setUpdatedFullName] = useState('');
   const [updatedRole, setUpdatedRole] = useState('');
   
@@ -73,7 +74,8 @@ export default function AdminUsersPage() {
   const handleUpdateUser = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingUser) return;
-
+    
+    setIsUpdating(true);
     const updateToast = toast.loading('Updating user...');
 
     try {
@@ -119,6 +121,8 @@ export default function AdminUsersPage() {
     } catch (err: any) {
         console.error('Error updating user:', err);
         toast.error(`Failed to update user: ${err.message}.`, { id: updateToast });
+    } finally {
+        setIsUpdating(false);
     }
   };
 
@@ -232,7 +236,7 @@ export default function AdminUsersPage() {
         <div className="flex justify-between items-center mb-8">
             <h1 className="text-4xl font-bold text-foreground">User Management</h1>
             <Link href="/admin/users/create">
-                <button className="flex items-center gap-2 px-5 py-2.5 font-semibold text-primary-foreground bg-gradient-to-r from-secondary to-primary rounded-lg shadow-md hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background">
+                <button className="flex items-center gap-2 px-5 py-2.5 font-semibold text-primary-foreground bg-gradient-to-r from-secondary to-primary rounded-lg shadow-md hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background active:scale-95 transition-transform">
                     <UserPlus className="w-5 h-5" />
                     <span>Create User</span>
                 </button>
@@ -255,7 +259,7 @@ export default function AdminUsersPage() {
                     <button
                         onClick={() => handleEditClick(user)}
                         disabled={user.role === 'admin'}
-                        className="p-2 text-secondary hover:bg-secondary/10 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="p-2 text-secondary hover:bg-secondary/10 rounded-full transition-colors active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                         aria-label={`Edit ${user.fullName}`}
                     >
                         <Pencil size={18} />
@@ -263,7 +267,7 @@ export default function AdminUsersPage() {
                     <button
                         onClick={() => handleDeleteClick(user)}
                         disabled={isDeleting === user.id || user.role === 'admin'}
-                        className="p-2 text-red-400 hover:bg-red-400/10 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="p-2 text-red-400 hover:bg-red-400/10 rounded-full transition-colors active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                         aria-label={`Delete ${user.fullName}`}
                     >
                         {isDeleting === user.id ? <div className="w-5 h-5 border-2 border-red-400 border-t-transparent rounded-full animate-spin"></div> : <Trash2 size={18} />}
@@ -319,9 +323,17 @@ export default function AdminUsersPage() {
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2 font-semibold text-primary-foreground bg-gradient-to-r from-secondary to-primary rounded-lg shadow-md hover:opacity-90 transition-all"
+                  disabled={isUpdating}
+                  className="px-6 py-2 font-semibold text-primary-foreground bg-gradient-to-r from-secondary to-primary rounded-lg shadow-md hover:opacity-90 transition-all active:scale-95 flex items-center justify-center gap-2 min-w-[150px] disabled:opacity-75 disabled:cursor-not-allowed"
                 >
-                  Save Changes
+                  {isUpdating ? (
+                      <>
+                          <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                          <span>Saving...</span>
+                      </>
+                  ) : (
+                      'Save Changes'
+                  )}
                 </button>
               </div>
             </form>
@@ -336,6 +348,7 @@ export default function AdminUsersPage() {
         onConfirm={handleConfirmDelete}
         onCancel={handleCancelDelete}
         confirmText="Delete User"
+        isLoading={isDeleting === userToDelete?.id}
     />
     </main>
   );

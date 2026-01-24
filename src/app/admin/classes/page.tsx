@@ -32,6 +32,7 @@ export default function AdminClassesPage() {
   const [selectedTeacherId, setSelectedTeacherId] = useState('');
   const [isLoadingTeachers, setIsLoadingTeachers] = useState(true);
   const [isLoadingClasses, setIsLoadingClasses] = useState(true);
+  const [isAddingClass, setIsAddingClass] = useState(false);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
 
   const [classToDelete, setClassToDelete] = useState<ClassData | null>(null);
@@ -105,6 +106,7 @@ export default function AdminClassesPage() {
       return;
     }
 
+    setIsAddingClass(true);
     try {
       await addDoc(collection(db, 'classes'), {
         name: newClassName,
@@ -117,6 +119,8 @@ export default function AdminClassesPage() {
     } catch (err) {
       console.error('Error adding class:', err);
       toast.error('Failed to add class. Check permissions.');
+    } finally {
+      setIsAddingClass(false);
     }
   };
 
@@ -239,16 +243,24 @@ export default function AdminClassesPage() {
                 </div>
                 <button
                   type="submit"
-                  className="px-6 py-2 font-semibold text-primary-foreground bg-gradient-to-r from-secondary to-primary rounded-lg shadow-md hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background"
+                  disabled={isAddingClass}
+                  className="px-6 py-2 font-semibold text-primary-foreground bg-gradient-to-r from-secondary to-primary rounded-lg shadow-md hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background flex items-center justify-center gap-2 active:scale-95 transition-transform disabled:opacity-70 disabled:cursor-not-allowed"
                 >
-                  Add Class
+                  {isAddingClass ? (
+                      <>
+                          <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                          <span>Adding...</span>
+                      </>
+                  ) : (
+                      'Add Class'
+                  )}
                 </button>
             </form>
           ) : (
             <div className="text-center p-4 border-2 border-dashed border-muted/30 rounded-lg">
                 <p className="text-muted-foreground mb-4">You must create at least one teacher before you can create a class.</p>
                 <Link href="/admin/users/create">
-                    <button className="inline-flex items-center gap-2 px-5 py-2.5 font-semibold text-primary-foreground bg-gradient-to-r from-secondary to-primary rounded-lg shadow-md hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background">
+                    <button className="inline-flex items-center gap-2 px-5 py-2.5 font-semibold text-primary-foreground bg-gradient-to-r from-secondary to-primary rounded-lg shadow-md hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background active:scale-95 transition-transform">
                         <UserPlus className="w-5 h-5" />
                         <span>Create Teacher</span>
                     </button>
@@ -277,7 +289,7 @@ export default function AdminClassesPage() {
                     <button
                       onClick={() => handleDeleteClick(c)}
                       disabled={isDeleting === c.id}
-                      className="p-2 text-red-400 hover:bg-red-400/10 rounded-full transition-colors disabled:opacity-50 disabled:cursor-wait"
+                      className="p-2 text-red-400 hover:bg-red-400/10 rounded-full transition-colors active:scale-95 disabled:opacity-50 disabled:cursor-wait"
                       aria-label={`Delete class ${c.name}`}
                     >
                       {isDeleting === c.id ? <div className="w-5 h-5 border-2 border-red-400 border-t-transparent rounded-full animate-spin"></div> : <Trash2 size={18} />}
@@ -298,6 +310,7 @@ export default function AdminClassesPage() {
         onConfirm={handleConfirmDelete}
         onCancel={handleCancelDelete}
         confirmText="Delete Class"
+        isLoading={isDeleting === classToDelete?.id}
       />
     </main>
   );

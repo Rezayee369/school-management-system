@@ -185,8 +185,13 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full py-3 rounded-xl bg-gradient-to-r from-secondary to-primary text-primary-foreground font-bold tracking-wider uppercase hover:scale-105 hover:shadow-lg hover:shadow-secondary/30 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed">
-                {isLoading ? 'Authenticating...' : 'Sign In'}
+                className="w-full py-3 rounded-xl bg-gradient-to-r from-secondary to-primary text-primary-foreground font-bold tracking-wider uppercase flex items-center justify-center gap-3 hover:scale-105 hover:shadow-lg hover:shadow-secondary/30 transition-all duration-300 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">
+                {isLoading ? (
+                    <>
+                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        <span>Authenticating...</span>
+                    </>
+                ) : 'Sign In'}
               </button>
             </form>
 
@@ -200,10 +205,19 @@ export default function LoginPage() {
               type="button"
               onClick={handleGoogleLogin}
               disabled={isLoading}
-              className="w-full flex items-center justify-center gap-3 rounded-xl bg-background/50 py-3 font-semibold text-gray-200 transition duration-300 ease-in-out border border-secondary/30 hover:bg-secondary/20 disabled:opacity-50"
+              className="w-full flex items-center justify-center gap-3 rounded-xl bg-background/50 py-3 font-semibold text-gray-200 transition duration-300 ease-in-out border border-secondary/30 hover:bg-secondary/20 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <GoogleIcon />
-              <span>Sign in with Google</span>
+              {isLoading ? (
+                  <>
+                      <div className="w-5 h-5 border-2 border-gray-200 border-t-transparent rounded-full animate-spin"></div>
+                      <span>Signing in...</span>
+                  </>
+              ) : (
+                  <>
+                      <GoogleIcon />
+                      <span>Sign in with Google</span>
+                  </>
+              )}
             </button>
           </div>
         </div>

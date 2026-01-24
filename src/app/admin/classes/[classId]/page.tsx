@@ -31,6 +31,9 @@ export default function ManageStudentsPage() {
   const [classData, setClassData] = useState<ClassData | null>(null);
   const [allStudents, setAllStudents] = useState<Student[]>([]);
   const [enrolledStudents, setEnrolledStudents] = useState<Student[]>([]);
+  
+  const [isEnrolling, setIsEnrolling] = useState<string | null>(null);
+  const [isUnenrolling, setIsUnenrolling] = useState<string | null>(null);
 
   const [studentToUnenroll, setStudentToUnenroll] = useState<Student | null>(null);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
@@ -96,6 +99,7 @@ export default function ManageStudentsPage() {
   }, [db, classId, router]);
   
   const handleEnroll = async (student: Student) => {
+    setIsEnrolling(student.id);
     try {
         const classDocRef = doc(db, 'classes', classId);
         await updateDoc(classDocRef, {
@@ -105,6 +109,8 @@ export default function ManageStudentsPage() {
     } catch (e) {
         console.error("Error enrolling student:", e);
         toast.error("Failed to enroll student.");
+    } finally {
+        setIsEnrolling(null);
     }
   };
   
@@ -120,6 +126,7 @@ export default function ManageStudentsPage() {
   
   const handleConfirmUnenroll = async () => {
     if (!studentToUnenroll) return;
+    setIsUnenrolling(studentToUnenroll.id);
 
     try {
         const classDocRef = doc(db, 'classes', classId);
@@ -132,6 +139,7 @@ export default function ManageStudentsPage() {
         toast.error("Failed to unenroll student.");
     } finally {
         handleCancelUnenroll();
+        setIsUnenrolling(null);
     }
   };
 
@@ -206,7 +214,7 @@ export default function ManageStudentsPage() {
                                 <span className="text-foreground/90 font-medium">{student.fullName}</span>
                                 <button 
                                     onClick={() => handleUnenrollClick(student)} 
-                                    className="p-2 text-red-400 hover:bg-red-400/10 rounded-full transition-colors"
+                                    className="p-2 text-red-400 hover:bg-red-400/10 rounded-full transition-colors active:scale-95"
                                     aria-label={`Unenroll ${student.fullName}`}
                                 >
                                     <Trash2 size={18} />
@@ -231,10 +239,11 @@ export default function ManageStudentsPage() {
                                 <span className="text-foreground/90 font-medium">{student.fullName}</span>
                                 <button 
                                     onClick={() => handleEnroll(student)} 
-                                    className="p-2 text-green-400 hover:bg-green-400/10 rounded-full transition-colors"
+                                    disabled={isEnrolling === student.id}
+                                    className="p-2 text-green-400 hover:bg-green-400/10 rounded-full transition-colors active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                                     aria-label={`Enroll ${student.fullName}`}
                                 >
-                                    <UserPlus size={18} />
+                                    {isEnrolling === student.id ? <div className="w-4 h-4 border-2 border-green-400 border-t-transparent rounded-full animate-spin"></div> : <UserPlus size={18} />}
                                 </button>
                             </div>
                         ))
@@ -254,6 +263,7 @@ export default function ManageStudentsPage() {
         onConfirm={handleConfirmUnenroll}
         onCancel={handleCancelUnenroll}
         confirmText="Unenroll"
+        isLoading={isUnenrolling === studentToUnenroll?.id}
       />
     </main>
   );
