@@ -6,7 +6,7 @@ import DashboardHeader from '@/components/DashboardHeader';
 import Link from 'next/link';
 import { useFirestore, useUser } from '@/firebase';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
-import { CalendarCheck, BookOpen, Users } from 'lucide-react';
+import { BookOpen, Users, ChevronRight } from 'lucide-react';
 
 interface ClassData {
   id: string;
@@ -56,39 +56,30 @@ export default function TeacherDashboard() {
       <div className="w-full max-w-4xl animate-fade-in-slide-up">
         <DashboardHeader userRole="teacher" />
         
-        <div className="mt-8">
-             <h2 className="text-2xl font-semibold text-foreground mb-6">Quick Actions</h2>
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Link href="/teacher/attendance" className="group">
-                  <div className="flex flex-col h-full p-6 bg-background/60 backdrop-blur-sm rounded-xl shadow-lg hover:shadow-primary/20 transition-shadow duration-300 border border-primary/30 hover:border-primary">
-                    <div className="flex items-center gap-4 mb-3">
-                      <div className="p-3 bg-primary/10 rounded-lg">
-                        <CalendarCheck className="w-6 h-6 text-primary" />
-                      </div>
-                      <h2 className="text-xl font-semibold text-foreground">Mark Attendance</h2>
-                    </div>
-                    <p className="text-muted-foreground">Mark daily attendance for your assigned classes.</p>
-                  </div>
-                </Link>
-            </div>
-        </div>
-
         <div className="mt-12">
             <h2 className="text-2xl font-semibold text-foreground mb-6">My Classes</h2>
             <div className="p-6 bg-background/60 backdrop-blur-sm border border-secondary/30 rounded-xl shadow-lg">
                 {classes.length > 0 ? (
                     <div className="space-y-4">
                         {classes.map(c => (
-                            <div key={c.id} className="p-4 bg-background/30 border border-muted/20 rounded-lg flex justify-between items-center">
-                                <div className="flex items-center gap-4">
-                                    <BookOpen className="w-5 h-5 text-secondary" />
-                                    <p className="text-lg text-foreground/90 font-semibold">{c.name}</p>
+                             <Link key={c.id} href={`/teacher/classes/${c.id}/attendance`} className="block group">
+                                <div className="p-4 bg-background/30 border border-muted/20 rounded-lg flex justify-between items-center transition-all duration-300 group-hover:border-primary/50 group-hover:bg-primary/10">
+                                    <div className="flex items-center gap-4">
+                                        <BookOpen className="w-5 h-5 text-secondary" />
+                                        <p className="text-lg text-foreground/90 font-semibold">{c.name}</p>
+                                    </div>
+                                    <div className="flex items-center gap-4">
+                                        <div className="flex items-center gap-2 text-muted-foreground">
+                                            <Users className="w-5 h-5" />
+                                            <span>{c.studentIds?.length || 0} Students</span>
+                                        </div>
+                                        <div className="flex items-center gap-1 text-primary opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                            <span>Mark Attendance</span>
+                                            <ChevronRight className="w-5 h-5" />
+                                        </div>
+                                    </div>
                                 </div>
-                                <div className="flex items-center gap-2 text-muted-foreground">
-                                    <Users className="w-5 h-5" />
-                                    <span>{c.studentIds?.length || 0} Students</span>
-                                </div>
-                            </div>
+                            </Link>
                         ))}
                     </div>
                 ) : (
