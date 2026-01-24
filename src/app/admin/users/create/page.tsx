@@ -35,9 +35,9 @@ export default function CreateUserPage() {
 
         const tempAppName = `temp-user-creation-${Date.now()}`;
         const tempApp = initializeApp(firebaseConfig, tempAppName);
-        const tempAuth = getAuth(tempApp);
 
         try {
+            const tempAuth = getAuth(tempApp);
             const userCredential = await createUserWithEmailAndPassword(tempAuth, email, password);
             const newUser = userCredential.user;
 
@@ -49,7 +49,6 @@ export default function CreateUserPage() {
                 photoURL: null,
             });
 
-            await deleteApp(tempApp);
             router.push('/admin/users');
 
         } catch (error: any) {
@@ -61,8 +60,8 @@ export default function CreateUserPage() {
             } else {
                 setError('Failed to create user. Please check the console for details.');
             }
-            await deleteApp(tempApp).catch(delError => console.error("Failed to delete temp app", delError));
         } finally {
+            await deleteApp(tempApp).catch(delError => console.error("Failed to delete temp app", delError));
             setIsLoading(false);
         }
     };
@@ -129,7 +128,6 @@ export default function CreateUserPage() {
                                 <option value="student">Student</option>
                                 <option value="teacher">Teacher</option>
                                 <option value="parent">Parent</option>
-                                <option value="admin">Admin</option>
                             </select>
                         </div>
                         
