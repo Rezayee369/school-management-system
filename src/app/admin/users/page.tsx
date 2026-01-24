@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { collection, query, onSnapshot, orderBy } from 'firebase/firestore';
+import { collection, query, onSnapshot, orderBy, doc, deleteDoc, writeBatch, where, getDocs, arrayRemove } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
-import { UserPlus, Users, Briefcase, UserCircle, ArrowLeft } from 'lucide-react';
+import { UserPlus, Users, Briefcase, UserCircle, ArrowLeft, Trash2 } from 'lucide-react';
 
 interface UserData {
   id: string;
@@ -18,6 +18,7 @@ export default function AdminUsersPage() {
   const [users, setUsers] = useState<UserData[]>([]);
   const [isLoadingUsers, setIsLoadingUsers] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState<string | null>(null);
 
   useEffect(() => {
     const q = query(collection(db, 'users'), orderBy('createdAt', 'desc'));
@@ -36,6 +37,49 @@ export default function AdminUsersPage() {
 
     return () => unsubscribe();
   }, [db]);
+
+  const handleDeleteUser = async (userToDelete: UserData) => {
+    if (!window.confirm(`Are you sure you want to delete ${userToDelete.fullName}? This will remove them from all associated classes. This action cannot be undone.`)) {
+        return;
+    }
+
+    setIsDeleting(userToDelete.id);
+    setError(null);
+
+    try {
+        const batch = writeBatch(db);
+
+        // If user is a teacher, unassign them from classes
+        if (userToDelete.role === 'teacher') {
+            const classesQuery = query(collection(db, 'classes'), where('teacherId', '==', userToDelete.id));
+            const classesSnapshot = await getDocs(classesQuery);
+            classesSnapshot.forEach(classDoc => {
+                batch.update(classDoc.ref, { teacherId: '', teacherName: 'Unassigned' });
+            });
+        }
+
+        // If user is a student, remove them from any classes they are enrolled in
+        if (userToDelete.role === 'student') {
+            const classesQuery = query(collection(db, 'classes'), where('studentIds', 'array-contains', userToDelete.id));
+            const classesSnapshot = await getDocs(classesQuery);
+            classesSnapshot.forEach(classDoc => {
+                batch.update(classDoc.ref, { studentIds: arrayRemove(userToDelete.id) });
+            });
+        }
+        
+        // Delete the user document itself. Note this does NOT delete the user from Firebase Auth.
+        const userDocRef = doc(db, 'users', userToDelete.id);
+        batch.delete(userDocRef);
+        
+        await batch.commit();
+
+    } catch (err) {
+        console.error("Error deleting user:", err);
+        setError(`Failed to delete user ${userToDelete.fullName}.`);
+    } finally {
+        setIsDeleting(null);
+    }
+  };
 
   if (isLoadingUsers) {
     return (
@@ -79,12 +123,22 @@ export default function AdminUsersPage() {
           <div className="space-y-3">
             {users.length > 0 ? (
               users.map((user) => (
-                <div key={user.id} className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center p-4 bg-background/50 border border-muted/20 rounded-lg transition-all hover:border-primary/50">
+                <div key={user.id} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center p-4 bg-background/50 border border-muted/20 rounded-lg transition-all hover:border-primary/50">
                   <div className="font-medium text-foreground/90">{user.fullName}</div>
                   <div className="text-muted-foreground">{user.email}</div>
                   <div className="flex items-center gap-2">
                     {getRoleIcon(user.role)}
                     <span className="text-sm font-semibold capitalize">{user.role}</span>
+                  </div>
+                  <div className="flex justify-end">
+                    <button
+                        onClick={() => handleDeleteUser(user)}
+                        disabled={isDeleting === user.id}
+                        className="p-2 text-red-400 hover:bg-red-400/10 rounded-full transition-colors disabled:opacity-50 disabled:cursor-wait"
+                        aria-label={`Delete ${user.fullName}`}
+                    >
+                        {isDeleting === user.id ? <div className="w-5 h-5 border-2 border-red-400 border-t-transparent rounded-full animate-spin"></div> : <Trash2 size={18} />}
+                    </button>
                   </div>
                 </div>
               ))

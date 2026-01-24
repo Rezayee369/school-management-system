@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { collection, addDoc, serverTimestamp, query, onSnapshot, orderBy, where, getDocs } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, query, onSnapshot, orderBy, where, getDocs, deleteDoc, doc } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
-import { ChevronRight, UserPlus, ArrowLeft } from 'lucide-react';
+import { ChevronRight, UserPlus, ArrowLeft, Trash2 } from 'lucide-react';
 
 interface ClassData {
   id: string;
@@ -26,6 +26,7 @@ export default function AdminClassesPage() {
   const [error, setError] = useState<string | null>(null);
   const [isLoadingTeachers, setIsLoadingTeachers] = useState(true);
   const [isLoadingClasses, setIsLoadingClasses] = useState(true);
+  const [isDeleting, setIsDeleting] = useState<string | null>(null);
 
   // Fetch Teachers
   useEffect(() => {
@@ -97,6 +98,24 @@ export default function AdminClassesPage() {
     } catch (err) {
       console.error('Error adding class:', err);
       setError('Failed to add class. Check permissions.');
+    }
+  };
+
+  const handleDeleteClass = async (classId: string, className: string) => {
+    if (!window.confirm(`Are you sure you want to delete the class "${className}"? This action cannot be undone.`)) {
+        return;
+    }
+
+    setIsDeleting(classId);
+    setError(null);
+    try {
+        await deleteDoc(doc(db, 'classes', classId));
+        // Note: This does not delete associated attendance records, which will be orphaned.
+    } catch (err) {
+        console.error("Error deleting class:", err);
+        setError('Failed to delete class.');
+    } finally {
+        setIsDeleting(null);
     }
   };
 
@@ -175,12 +194,22 @@ export default function AdminClassesPage() {
                     <p className="text-lg text-foreground/90 font-semibold">{c.name}</p>
                     <p className="text-sm text-muted-foreground">Teacher: {c.teacherName}</p>
                   </div>
-                  <Link href={`/admin/classes/${c.id}`}>
-                    <div className="flex items-center text-secondary hover:text-primary cursor-pointer">
-                      <span>Manage Students</span>
-                      <ChevronRight className="w-5 h-5" />
-                    </div>
-                  </Link>
+                  <div className="flex items-center gap-4">
+                    <Link href={`/admin/classes/${c.id}`}>
+                      <div className="flex items-center text-secondary hover:text-primary cursor-pointer">
+                        <span>Manage Students</span>
+                        <ChevronRight className="w-5 h-5" />
+                      </div>
+                    </Link>
+                    <button
+                      onClick={() => handleDeleteClass(c.id, c.name)}
+                      disabled={isDeleting === c.id}
+                      className="p-2 text-red-400 hover:bg-red-400/10 rounded-full transition-colors disabled:opacity-50 disabled:cursor-wait"
+                      aria-label={`Delete class ${c.name}`}
+                    >
+                      {isDeleting === c.id ? <div className="w-5 h-5 border-2 border-red-400 border-t-transparent rounded-full animate-spin"></div> : <Trash2 size={18} />}
+                    </button>
+                  </div>
                 </div>
               ))
             ) : (
