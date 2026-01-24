@@ -93,6 +93,9 @@ export default function ManageStudentsPage() {
   };
 
   const handleUnenroll = async (student: Student) => {
+    if (!window.confirm(`Are you sure you want to unenroll ${student.fullName}?`)) {
+        return;
+    }
     try {
         const classDocRef = doc(db, 'classes', classId);
         await updateDoc(classDocRef, {
