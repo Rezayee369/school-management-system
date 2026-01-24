@@ -41,16 +41,16 @@ export default function LoginPage() {
 
       switch (role) {
         case 'admin':
-          router.push('/admin');
+          router.replace('/admin');
           break;
         case 'teacher':
-          router.push('/teacher');
+          router.replace('/teacher');
           break;
         case 'student':
-          router.push('/student');
+          router.replace('/student');
           break;
         case 'parent':
-          router.push('/parent');
+          router.replace('/parent');
           break;
         default:
           setError('User role not found. Please contact an administrator.');
@@ -115,7 +115,7 @@ export default function LoginPage() {
           photoURL: user.photoURL
         });
         // Redirect to student dashboard
-        router.push('/student');
+        router.replace('/student');
       }
     } catch (error: any) {
       if (error.code !== 'auth/popup-closed-by-user') {

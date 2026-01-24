@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useAuthGuard } from '@/hooks/useAuthGuard';
 import { useFirestore } from '@/firebase';
 import { firebaseConfig } from '@/firebase/config';
 
@@ -13,7 +12,6 @@ import { setDoc, doc, serverTimestamp } from 'firebase/firestore';
 import { ArrowLeft, User, Mail, Lock, UserCheck } from 'lucide-react';
 
 export default function CreateUserPage() {
-    useAuthGuard('admin');
     const router = useRouter();
     const db = useFirestore();
 

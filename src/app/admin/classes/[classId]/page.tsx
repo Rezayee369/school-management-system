@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useAuthGuard } from '@/hooks/useAuthGuard';
 import { useFirestore } from '@/firebase';
 import { collection, doc, onSnapshot, query, where, updateDoc, arrayUnion, arrayRemove, documentId } from 'firebase/firestore';
 import { ArrowLeft, UserPlus, Trash2 } from 'lucide-react';
@@ -20,7 +19,6 @@ interface ClassData {
 }
 
 export default function ManageStudentsPage() {
-  const isLoading = useAuthGuard('admin');
   const db = useFirestore();
   const params = useParams();
   const router = useRouter();
@@ -32,7 +30,7 @@ export default function ManageStudentsPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (isLoading || !db || !classId) return;
+    if (!db || !classId) return;
 
     // Fetch all students in the system (for the 'available' list)
     const allStudentsQuery = query(collection(db, 'users'), where('role', '==', 'student'));
@@ -79,7 +77,7 @@ export default function ManageStudentsPage() {
       unsubscribeAllStudents();
       unsubscribeEnrolledStudents();
     };
-  }, [isLoading, db, classId, router]);
+  }, [db, classId, router]);
   
   const handleEnroll = async (student: Student) => {
     try {
@@ -109,7 +107,7 @@ export default function ManageStudentsPage() {
     (student) => !enrolledStudents.some((enrolled) => enrolled.id === student.id)
   );
 
-  if (isLoading || !classData) {
+  if (!classData) {
     return (
       <main className="flex min-h-screen flex-col items-center justify-center p-8 bg-background">
         <p>Loading...</p>

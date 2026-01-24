@@ -2,14 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useAuthGuard } from '@/hooks/useAuthGuard';
 import DashboardHeader from '@/components/DashboardHeader';
 import { BookOpen, Users, Briefcase, CheckSquare, Megaphone, BarChart2 } from 'lucide-react';
 import { useFirestore } from '@/firebase';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 
 export default function AdminDashboard() {
-  const isLoadingAuth = useAuthGuard('admin');
   const db = useFirestore();
 
   const [teacherCount, setTeacherCount] = useState<number | null>(null);
@@ -17,7 +15,7 @@ export default function AdminDashboard() {
   const [classCount, setClassCount] = useState<number | null>(null);
 
   useEffect(() => {
-    if (isLoadingAuth || !db) return;
+    if (!db) return;
 
     // Listener for teachers
     const teachersQuery = query(collection(db, 'users'), where('role', '==', 'teacher'));
@@ -42,15 +40,7 @@ export default function AdminDashboard() {
       unsubscribeStudents();
       unsubscribeClasses();
     };
-  }, [isLoadingAuth, db]);
-
-  if (isLoadingAuth) {
-    return (
-      <main className="flex min-h-screen flex-col items-center justify-center p-24 bg-background text-foreground">
-        <p>Loading...</p>
-      </main>
-    );
-  }
+  }, [db]);
 
   return (
     <main className="flex min-h-screen flex-col items-center p-8 sm:p-12 bg-background text-foreground">

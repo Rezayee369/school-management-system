@@ -4,8 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { collection, addDoc, serverTimestamp, query, onSnapshot, orderBy, where, getDocs } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
-import { useAuthGuard } from '@/hooks/useAuthGuard';
-import { ChevronRight, UserPlus } from 'lucide-react';
+import { ChevronRight, UserPlus, ArrowLeft } from 'lucide-react';
 
 interface ClassData {
   id: string;
@@ -19,7 +18,6 @@ interface TeacherData {
 }
 
 export default function AdminClassesPage() {
-  const isLoading = useAuthGuard('admin');
   const db = useFirestore();
   const [classes, setClasses] = useState<ClassData[]>([]);
   const [teachers, setTeachers] = useState<TeacherData[]>([]);
@@ -27,52 +25,52 @@ export default function AdminClassesPage() {
   const [selectedTeacherId, setSelectedTeacherId] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isLoadingTeachers, setIsLoadingTeachers] = useState(true);
+  const [isLoadingClasses, setIsLoadingClasses] = useState(true);
 
   // Fetch Teachers
   useEffect(() => {
-    if (!isLoading) {
-      setIsLoadingTeachers(true);
-      const fetchTeachers = async () => {
-        try {
-            const teachersQuery = query(collection(db, 'users'), where('role', '==', 'teacher'));
-            const querySnapshot = await getDocs(teachersQuery);
-            const teachersData: TeacherData[] = [];
-            querySnapshot.forEach((doc) => {
-              teachersData.push({ id: doc.id, fullName: doc.data().fullName });
-            });
-            setTeachers(teachersData);
-            if (teachersData.length > 0) {
-              setSelectedTeacherId(teachersData[0].id);
-            }
-        } catch (e) {
-            console.error("Failed to fetch teachers:", e);
-            setError("Could not load teachers. Please check permissions and try again.");
-        } finally {
-            setIsLoadingTeachers(false);
-        }
-      };
-      fetchTeachers();
-    }
-  }, [isLoading, db]);
+    setIsLoadingTeachers(true);
+    const fetchTeachers = async () => {
+      try {
+          const teachersQuery = query(collection(db, 'users'), where('role', '==', 'teacher'));
+          const querySnapshot = await getDocs(teachersQuery);
+          const teachersData: TeacherData[] = [];
+          querySnapshot.forEach((doc) => {
+            teachersData.push({ id: doc.id, fullName: doc.data().fullName });
+          });
+          setTeachers(teachersData);
+          if (teachersData.length > 0) {
+            setSelectedTeacherId(teachersData[0].id);
+          }
+      } catch (e) {
+          console.error("Failed to fetch teachers:", e);
+          setError("Could not load teachers. Please check permissions and try again.");
+      } finally {
+          setIsLoadingTeachers(false);
+      }
+    };
+    fetchTeachers();
+  }, [db]);
 
   // Fetch Classes
   useEffect(() => {
-    if (!isLoading) {
-      const q = query(collection(db, 'classes'), orderBy('createdAt', 'desc'));
-      const unsubscribe = onSnapshot(q, (querySnapshot) => {
-        const classesData: ClassData[] = [];
-        querySnapshot.forEach((doc) => {
-          classesData.push({ id: doc.id, ...doc.data() } as ClassData);
-        });
-        setClasses(classesData);
-      }, (err) => {
-        console.error("Error fetching classes:", err);
-        setError("Failed to fetch classes. Check permissions.");
+    setIsLoadingClasses(true);
+    const q = query(collection(db, 'classes'), orderBy('createdAt', 'desc'));
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      const classesData: ClassData[] = [];
+      querySnapshot.forEach((doc) => {
+        classesData.push({ id: doc.id, ...doc.data() } as ClassData);
       });
+      setClasses(classesData);
+      setIsLoadingClasses(false);
+    }, (err) => {
+      console.error("Error fetching classes:", err);
+      setError("Failed to fetch classes. Check permissions.");
+      setIsLoadingClasses(false);
+    });
 
-      return () => unsubscribe();
-    }
-  }, [isLoading, db]);
+    return () => unsubscribe();
+  }, [db]);
 
   const handleAddClass = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -102,7 +100,7 @@ export default function AdminClassesPage() {
     }
   };
 
-  if (isLoading) {
+  if (isLoadingTeachers || isLoadingClasses) {
     return (
       <main className="flex min-h-screen flex-col items-center justify-center p-8 bg-background">
         <p>Loading...</p>
@@ -113,6 +111,12 @@ export default function AdminClassesPage() {
   return (
     <main className="flex min-h-screen flex-col items-center p-8 bg-background">
       <div className="w-full max-w-4xl animate-fade-in-slide-up">
+        <div className="mb-8">
+            <Link href="/admin" className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
+                <ArrowLeft size={18} />
+                <span>Back to Dashboard</span>
+            </Link>
+        </div>
         <h1 className="text-4xl font-bold text-foreground mb-8">Manage Classes</h1>
 
         <div className="mb-8 p-6 bg-background/60 backdrop-blur-sm border border-primary/30 rounded-xl shadow-lg">

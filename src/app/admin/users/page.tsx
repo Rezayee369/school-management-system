@@ -4,8 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { collection, query, onSnapshot, orderBy } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
-import { useAuthGuard } from '@/hooks/useAuthGuard';
-import { UserPlus, Users, Briefcase, UserCircle } from 'lucide-react';
+import { UserPlus, Users, Briefcase, UserCircle, ArrowLeft } from 'lucide-react';
 
 interface UserData {
   id: string;
@@ -15,33 +14,30 @@ interface UserData {
 }
 
 export default function AdminUsersPage() {
-  const isLoadingAuth = useAuthGuard('admin');
   const db = useFirestore();
   const [users, setUsers] = useState<UserData[]>([]);
   const [isLoadingUsers, setIsLoadingUsers] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!isLoadingAuth) {
-      const q = query(collection(db, 'users'), orderBy('createdAt', 'desc'));
-      const unsubscribe = onSnapshot(q, (querySnapshot) => {
-        const usersData: UserData[] = [];
-        querySnapshot.forEach((doc) => {
-          usersData.push({ id: doc.id, ...doc.data() } as UserData);
-        });
-        setUsers(usersData);
-        setIsLoadingUsers(false);
-      }, (err) => {
-        console.error("Error fetching users:", err);
-        setError("Failed to fetch users. Check Firestore permissions.");
-        setIsLoadingUsers(false);
+    const q = query(collection(db, 'users'), orderBy('createdAt', 'desc'));
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      const usersData: UserData[] = [];
+      querySnapshot.forEach((doc) => {
+        usersData.push({ id: doc.id, ...doc.data() } as UserData);
       });
+      setUsers(usersData);
+      setIsLoadingUsers(false);
+    }, (err) => {
+      console.error("Error fetching users:", err);
+      setError("Failed to fetch users. Check Firestore permissions.");
+      setIsLoadingUsers(false);
+    });
 
-      return () => unsubscribe();
-    }
-  }, [isLoadingAuth, db]);
+    return () => unsubscribe();
+  }, [db]);
 
-  if (isLoadingAuth || isLoadingUsers) {
+  if (isLoadingUsers) {
     return (
       <main className="flex min-h-screen flex-col items-center justify-center p-8 bg-background">
         <p>Loading...</p>
@@ -61,6 +57,12 @@ export default function AdminUsersPage() {
   return (
     <main className="flex min-h-screen flex-col items-center p-8 bg-background">
       <div className="w-full max-w-6xl animate-fade-in-slide-up">
+        <div className="mb-8">
+            <Link href="/admin" className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
+                <ArrowLeft size={18} />
+                <span>Back to Dashboard</span>
+            </Link>
+        </div>
         <div className="flex justify-between items-center mb-8">
             <h1 className="text-4xl font-bold text-foreground">User Management</h1>
             <Link href="/admin/users/create">
