@@ -22,7 +22,7 @@ export default function RootLayout({
         <FirebaseClientProvider>
           {children}
           <Toaster 
-            position="bottom-center"
+            position="top-right"
             toastOptions={{
               style: {
                 background: 'hsl(var(--background))',
