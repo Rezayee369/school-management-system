@@ -1,14 +1,50 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuthGuard } from '@/hooks/useAuthGuard';
 import DashboardHeader from '@/components/DashboardHeader';
 import { BookOpen, Users, Briefcase, CheckSquare, Megaphone, BarChart2 } from 'lucide-react';
+import { useFirestore } from '@/firebase';
+import { collection, query, where, onSnapshot } from 'firebase/firestore';
 
 export default function AdminDashboard() {
-  const isLoading = useAuthGuard('admin');
+  const isLoadingAuth = useAuthGuard('admin');
+  const db = useFirestore();
 
-  if (isLoading) {
+  const [teacherCount, setTeacherCount] = useState<number | null>(null);
+  const [studentCount, setStudentCount] = useState<number | null>(null);
+  const [classCount, setClassCount] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (isLoadingAuth || !db) return;
+
+    // Listener for teachers
+    const teachersQuery = query(collection(db, 'users'), where('role', '==', 'teacher'));
+    const unsubscribeTeachers = onSnapshot(teachersQuery, (snapshot) => {
+      setTeacherCount(snapshot.size);
+    });
+
+    // Listener for students
+    const studentsQuery = query(collection(db, 'users'), where('role', '==', 'student'));
+    const unsubscribeStudents = onSnapshot(studentsQuery, (snapshot) => {
+      setStudentCount(snapshot.size);
+    });
+
+    // Listener for classes
+    const classesQuery = collection(db, 'classes');
+    const unsubscribeClasses = onSnapshot(classesQuery, (snapshot) => {
+      setClassCount(snapshot.size);
+    });
+
+    return () => {
+      unsubscribeTeachers();
+      unsubscribeStudents();
+      unsubscribeClasses();
+    };
+  }, [isLoadingAuth, db]);
+
+  if (isLoadingAuth) {
     return (
       <main className="flex min-h-screen flex-col items-center justify-center p-24 bg-background text-foreground">
         <p>Loading...</p>
@@ -26,7 +62,7 @@ export default function AdminDashboard() {
                 <div className="flex items-start justify-between">
                     <div>
                         <p className="text-sm text-muted-foreground">Total Teachers</p>
-                        <p className="text-4xl font-bold text-foreground mt-2">—</p>
+                        <p className="text-4xl font-bold text-foreground mt-2">{teacherCount ?? '—'}</p>
                     </div>
                     <div className="p-3 bg-primary/10 rounded-lg">
                         <Briefcase className="w-6 h-6 text-primary" />
@@ -37,7 +73,7 @@ export default function AdminDashboard() {
                 <div className="flex items-start justify-between">
                     <div>
                         <p className="text-sm text-muted-foreground">Total Students</p>
-                        <p className="text-4xl font-bold text-foreground mt-2">—</p>
+                        <p className="text-4xl font-bold text-foreground mt-2">{studentCount ?? '—'}</p>
                     </div>
                     <div className="p-3 bg-secondary/10 rounded-lg">
                         <Users className="w-6 h-6 text-secondary" />
@@ -49,7 +85,7 @@ export default function AdminDashboard() {
                     <div className="flex items-start justify-between">
                         <div>
                             <p className="text-sm text-muted-foreground">Total Classes</p>
-                            <p className="text-4xl font-bold text-foreground mt-2">—</p>
+                            <p className="text-4xl font-bold text-foreground mt-2">{classCount ?? '—'}</p>
                         </div>
                         <div className="p-3 bg-accent/10 rounded-lg">
                             <BookOpen className="w-6 h-6 text-accent" />
@@ -61,7 +97,7 @@ export default function AdminDashboard() {
                 <div className="flex items-start justify-between">
                     <div>
                         <p className="text-sm text-muted-foreground">Attendance Today</p>
-                        <p className="text-4xl font-bold text-foreground mt-2">—</p>
+                        <p className="text-4xl font-bold text-foreground mt-2">0</p>
                     </div>
                     <div className="p-3 bg-primary/10 rounded-lg">
                         <CheckSquare className="w-6 h-6 text-primary" />
