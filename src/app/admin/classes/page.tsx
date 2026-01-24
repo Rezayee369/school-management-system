@@ -8,6 +8,7 @@ import { useFirestore, useAuth } from '@/firebase';
 import { signOut } from 'firebase/auth';
 import { ChevronRight, UserPlus, ArrowLeft, Trash2, LogOut } from 'lucide-react';
 import toast from 'react-hot-toast';
+import ConfirmDialog from '@/components/ConfirmDialog';
 
 interface ClassData {
   id: string;
@@ -31,6 +32,9 @@ export default function AdminClassesPage() {
   const [isLoadingTeachers, setIsLoadingTeachers] = useState(true);
   const [isLoadingClasses, setIsLoadingClasses] = useState(true);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
+
+  const [classToDelete, setClassToDelete] = useState<ClassData | null>(null);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
   const handleLogout = async () => {
     try {
@@ -115,21 +119,33 @@ export default function AdminClassesPage() {
     }
   };
 
-  const handleDeleteClass = async (classId: string, className: string) => {
-    if (!window.confirm(`Are you sure you want to delete the class "${className}"? This action cannot be undone.`)) {
-        return;
-    }
+  const handleDeleteClick = (classData: ClassData) => {
+    setClassToDelete(classData);
+    setIsConfirmOpen(true);
+  };
 
-    setIsDeleting(classId);
+  const handleCancelDelete = () => {
+    setIsConfirmOpen(false);
+    setClassToDelete(null);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!classToDelete) return;
+
+    setIsConfirmOpen(false);
+    setIsDeleting(classToDelete.id);
+    const deletionToast = toast.loading(`Deleting class "${classToDelete.name}"...`);
+
     try {
-        await deleteDoc(doc(db, 'classes', classId));
-        toast.success(`Class "${className}" deleted successfully.`);
+        await deleteDoc(doc(db, 'classes', classToDelete.id));
+        toast.success(`Class "${classToDelete.name}" deleted successfully.`, { id: deletionToast });
         // Note: This does not delete associated attendance records, which will be orphaned.
     } catch (err) {
         console.error("Error deleting class:", err);
-        toast.error('Failed to delete class.');
+        toast.error('Failed to delete class.', { id: deletionToast });
     } finally {
         setIsDeleting(null);
+        setClassToDelete(null);
     }
   };
 
@@ -245,7 +261,7 @@ export default function AdminClassesPage() {
                       </div>
                     </Link>
                     <button
-                      onClick={() => handleDeleteClass(c.id, c.name)}
+                      onClick={() => handleDeleteClick(c)}
                       disabled={isDeleting === c.id}
                       className="p-2 text-red-400 hover:bg-red-400/10 rounded-full transition-colors disabled:opacity-50 disabled:cursor-wait"
                       aria-label={`Delete class ${c.name}`}
@@ -261,6 +277,14 @@ export default function AdminClassesPage() {
           </div>
         </div>
       </div>
+      <ConfirmDialog
+        open={isConfirmOpen}
+        title={`Delete Class: ${classToDelete?.name || ''}`}
+        description="Are you sure you want to delete this class? All student enrollments for this class will be removed. This action cannot be undone."
+        onConfirm={handleConfirmDelete}
+        onCancel={handleCancelDelete}
+        confirmText="Delete Class"
+      />
     </main>
   );
 }
