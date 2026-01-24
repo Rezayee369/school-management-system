@@ -132,6 +132,8 @@ export default function MarkClassAttendancePage() {
             markedAt: serverTimestamp(),
         }, { merge: true });
 
+        toast.success(`Marked ${student.name} as ${status}.`);
+
     } catch (e) {
         toast.error("Failed to mark attendance.");
         console.error(e);
