@@ -105,8 +105,41 @@ export default function AdminUsersPage() {
 
   if (isLoadingUsers) {
     return (
-      <main className="flex min-h-screen flex-col items-center justify-center p-8 bg-background">
-        <p>Loading...</p>
+      <main className="flex min-h-screen flex-col items-center p-8 bg-background">
+        <div className="w-full max-w-6xl animate-fade-in-slide-up">
+          <div className="flex justify-between items-center mb-8">
+            <div className="h-6 w-40 bg-muted/40 rounded-md animate-pulse"></div>
+            <div className="h-6 w-32 bg-muted/40 rounded-md animate-pulse"></div>
+          </div>
+          <div className="flex justify-between items-center mb-8">
+            <div className="h-10 w-72 bg-muted/40 rounded-md animate-pulse"></div>
+            <div className="h-12 w-36 bg-muted/40 rounded-lg animate-pulse"></div>
+          </div>
+
+          <div className="p-6 bg-background/60 backdrop-blur-sm border border-secondary/30 rounded-xl shadow-lg">
+            <div className="h-8 w-40 bg-muted/40 rounded-md animate-pulse mb-4"></div>
+            <div className="space-y-3">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center p-4 bg-background/50 border border-muted/20 rounded-lg animate-pulse">
+                <div className="h-5 bg-muted/40 rounded-md"></div>
+                <div className="h-5 bg-muted/40 rounded-md"></div>
+                <div className="h-5 w-24 bg-muted/40 rounded-md"></div>
+                <div className="flex justify-end"><div className="w-8 h-8 bg-muted/40 rounded-full"></div></div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center p-4 bg-background/50 border border-muted/20 rounded-lg animate-pulse">
+                <div className="h-5 bg-muted/40 rounded-md"></div>
+                <div className="h-5 bg-muted/40 rounded-md"></div>
+                <div className="h-5 w-24 bg-muted/40 rounded-md"></div>
+                <div className="flex justify-end"><div className="w-8 h-8 bg-muted/40 rounded-full"></div></div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center p-4 bg-background/50 border border-muted/20 rounded-lg animate-pulse">
+                <div className="h-5 bg-muted/40 rounded-md"></div>
+                <div className="h-5 bg-muted/40 rounded-md"></div>
+                <div className="h-5 w-24 bg-muted/40 rounded-md"></div>
+                <div className="flex justify-end"><div className="w-8 h-8 bg-muted/40 rounded-full"></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
       </main>
     );
   }

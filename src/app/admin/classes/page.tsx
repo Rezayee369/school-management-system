@@ -135,8 +135,34 @@ export default function AdminClassesPage() {
 
   if (isLoadingTeachers || isLoadingClasses) {
     return (
-      <main className="flex min-h-screen flex-col items-center justify-center p-8 bg-background">
-        <p>Loading...</p>
+      <main className="flex min-h-screen flex-col items-center p-8 bg-background">
+        <div className="w-full max-w-4xl animate-fade-in-slide-up">
+          <div className="flex justify-between items-center mb-8">
+            <div className="h-6 w-48 bg-muted/40 rounded-md animate-pulse"></div>
+            <div className="h-6 w-32 bg-muted/40 rounded-md animate-pulse"></div>
+          </div>
+          <div className="h-10 w-64 bg-muted/40 rounded-md animate-pulse mb-8"></div>
+
+          <div className="mb-8 p-6 bg-background/60 backdrop-blur-sm border border-primary/30 rounded-xl shadow-lg">
+            <div className="h-8 w-48 bg-muted/40 rounded-md animate-pulse mb-4"></div>
+            <div className="flex flex-col gap-4">
+              <div className='flex flex-col sm:flex-row gap-4'>
+                <div className="h-10 flex-grow bg-muted/40 rounded-md animate-pulse"></div>
+                <div className="h-10 flex-grow bg-muted/40 rounded-md animate-pulse"></div>
+              </div>
+              <div className="h-10 w-32 bg-muted/40 rounded-lg animate-pulse"></div>
+            </div>
+          </div>
+
+          <div className="p-6 bg-background/60 backdrop-blur-sm border border-secondary/30 rounded-xl shadow-lg">
+            <div className="h-8 w-56 bg-muted/40 rounded-md animate-pulse mb-4"></div>
+            <div className="space-y-4">
+              <div className="h-20 bg-muted/30 rounded-lg animate-pulse"></div>
+              <div className="h-20 bg-muted/30 rounded-lg animate-pulse"></div>
+              <div className="h-20 bg-muted/30 rounded-lg animate-pulse"></div>
+            </div>
+          </div>
+        </div>
       </main>
     );
   }
