@@ -3,24 +3,35 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useFirestore } from '@/firebase';
+import { useFirestore, useAuth } from '@/firebase';
 import { firebaseConfig } from '@/firebase/config';
 import toast from 'react-hot-toast';
 
 import { initializeApp, deleteApp } from 'firebase/app';
-import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
+import { getAuth, createUserWithEmailAndPassword, signOut } from 'firebase/auth';
 import { setDoc, doc, serverTimestamp } from 'firebase/firestore';
-import { ArrowLeft, User, Mail, Lock, UserCheck } from 'lucide-react';
+import { ArrowLeft, User, Mail, Lock, UserCheck, LogOut } from 'lucide-react';
 
 export default function CreateUserPage() {
     const router = useRouter();
     const db = useFirestore();
+    const auth = useAuth();
 
     const [fullName, setFullName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [role, setRole] = useState('student');
     const [isLoading, setIsLoading] = useState(false);
+
+    const handleLogout = async () => {
+        try {
+          await signOut(auth);
+          router.push('/login');
+        } catch (error) {
+          console.error('Logout Error:', error);
+          toast.error('Failed to log out.');
+        }
+    };
 
     const handleCreateUser = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -75,6 +86,12 @@ export default function CreateUserPage() {
                         <ArrowLeft size={18} />
                         <span>Back to Users</span>
                     </Link>
+                </div>
+                <div className="absolute top-8 right-8">
+                    <button onClick={handleLogout} className="flex items-center gap-2 text-muted-foreground hover:text-foreground">
+                        <LogOut size={18} />
+                        <span>Back to Login</span>
+                    </button>
                 </div>
                 
                 <div className="rounded-2xl bg-background/60 backdrop-blur-lg border border-secondary/20 shadow-2xl shadow-secondary/10 p-8">

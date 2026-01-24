@@ -2,9 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { collection, query, onSnapshot, orderBy, doc, writeBatch, where, getDocs, arrayRemove } from 'firebase/firestore';
-import { useFirestore } from '@/firebase';
-import { UserPlus, Users, Briefcase, UserCircle, ArrowLeft, Trash2 } from 'lucide-react';
+import { useFirestore, useAuth } from '@/firebase';
+import { signOut } from 'firebase/auth';
+import { UserPlus, Users, Briefcase, UserCircle, ArrowLeft, Trash2, LogOut } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface UserData {
@@ -16,9 +18,21 @@ interface UserData {
 
 export default function AdminUsersPage() {
   const db = useFirestore();
+  const auth = useAuth();
+  const router = useRouter();
   const [users, setUsers] = useState<UserData[]>([]);
   const [isLoadingUsers, setIsLoadingUsers] = useState(true);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      router.push('/login');
+    } catch (error) {
+      console.error('Logout Error:', error);
+      toast.error('Failed to log out.');
+    }
+  };
 
   useEffect(() => {
     const q = query(collection(db, 'users'), orderBy('createdAt', 'desc'));
@@ -109,11 +123,15 @@ export default function AdminUsersPage() {
   return (
     <main className="flex min-h-screen flex-col items-center p-8 bg-background">
       <div className="w-full max-w-6xl animate-fade-in-slide-up">
-        <div className="mb-8">
+        <div className="flex justify-between items-center mb-8">
             <Link href="/admin" className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
                 <ArrowLeft size={18} />
                 <span>Back to Dashboard</span>
             </Link>
+            <button onClick={handleLogout} className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
+                <LogOut size={18} />
+                <span>Back to Login</span>
+            </button>
         </div>
         <div className="flex justify-between items-center mb-8">
             <h1 className="text-4xl font-bold text-foreground">User Management</h1>

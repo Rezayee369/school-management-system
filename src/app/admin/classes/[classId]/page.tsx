@@ -3,9 +3,10 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useFirestore } from '@/firebase';
+import { useFirestore, useAuth } from '@/firebase';
 import { collection, doc, onSnapshot, query, where, updateDoc, arrayUnion, arrayRemove, documentId } from 'firebase/firestore';
-import { ArrowLeft, UserPlus, Trash2 } from 'lucide-react';
+import { signOut } from 'firebase/auth';
+import { ArrowLeft, UserPlus, Trash2, LogOut } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface Student {
@@ -21,6 +22,7 @@ interface ClassData {
 
 export default function ManageStudentsPage() {
   const db = useFirestore();
+  const auth = useAuth();
   const params = useParams();
   const router = useRouter();
   const classId = params.classId as string;
@@ -28,6 +30,16 @@ export default function ManageStudentsPage() {
   const [classData, setClassData] = useState<ClassData | null>(null);
   const [allStudents, setAllStudents] = useState<Student[]>([]);
   const [enrolledStudents, setEnrolledStudents] = useState<Student[]>([]);
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      router.push('/login');
+    } catch (error) {
+      console.error('Logout Error:', error);
+      toast.error('Failed to log out.');
+    }
+  };
 
   useEffect(() => {
     if (!db || !classId) return;
@@ -123,11 +135,15 @@ export default function ManageStudentsPage() {
   return (
     <main className="flex min-h-screen flex-col items-center p-8 bg-background">
       <div className="w-full max-w-6xl animate-fade-in-slide-up">
-        <div className="mb-8">
+        <div className="flex justify-between items-center mb-8">
             <Link href="/admin/classes" className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
                 <ArrowLeft size={18} />
                 <span>Back to Classes</span>
             </Link>
+            <button onClick={handleLogout} className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
+                <LogOut size={18} />
+                <span>Back to Login</span>
+            </button>
         </div>
         <h1 className="text-4xl font-bold text-foreground mb-2">Manage Students for {classData.name}</h1>
         <p className="text-muted-foreground mb-8">Teacher: {classData.teacherName}</p>
