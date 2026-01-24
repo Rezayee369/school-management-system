@@ -39,7 +39,14 @@ export default function AdminUsersPage() {
   }, [db]);
 
   const handleDeleteUser = async (userToDelete: UserData) => {
-    if (!window.confirm(`Are you sure you want to delete ${userToDelete.fullName}? This will remove them from all associated classes. This action cannot be undone.`)) {
+    // Safety check: prevent deleting other admins or oneself
+    if (userToDelete.role === 'admin') {
+        toast.error("Admins cannot be deleted from the user interface for security reasons.");
+        return;
+    }
+    
+    const confirmationMessage = `Are you sure you want to delete ${userToDelete.fullName}?\n\nThis will remove their data and class enrollments from the application.\n\nNOTE: This action does NOT delete their login account. That must be done manually in the Firebase console.`;
+    if (!window.confirm(confirmationMessage)) {
         return;
     }
 
@@ -66,12 +73,12 @@ export default function AdminUsersPage() {
             });
         }
         
-        // Delete the user document itself. Note this does NOT delete the user from Firebase Auth.
+        // Delete the user document itself.
         const userDocRef = doc(db, 'users', userToDelete.id);
         batch.delete(userDocRef);
         
         await batch.commit();
-        toast.success(`User ${userToDelete.fullName} deleted successfully.`);
+        toast.success(`User data for ${userToDelete.fullName} deleted successfully.`);
 
     } catch (err) {
         console.error("Error deleting user:", err);
