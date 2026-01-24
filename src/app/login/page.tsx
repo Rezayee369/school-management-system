@@ -12,6 +12,7 @@ import {
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { useAuth, useFirestore } from '@/firebase';
 import { Mail, Lock, GraduationCap } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="24px" height="24px" {...props}>
@@ -25,7 +26,6 @@ const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const auth = useAuth();
@@ -53,25 +53,24 @@ export default function LoginPage() {
           router.replace('/parent');
           break;
         default:
-          setError('User role not found. Please contact an administrator.');
+          toast.error('User role not found. Please contact an administrator.');
           await signOut(auth);
           break;
       }
     } else {
       // This case should ideally not be hit for email/pass login
       // but is critical for Google login's auto-registration.
-      setError('Your account is not registered. Please contact an administrator.');
+      toast.error('Your account is not registered. Please contact an administrator.');
       await signOut(auth);
     }
   };
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
     setIsLoading(true);
 
     if (!email || !password) {
-      setError('Please enter both email and password.');
+      toast.error('Please enter both email and password.');
       setIsLoading(false);
       return;
     }
@@ -81,10 +80,10 @@ export default function LoginPage() {
       await handleSuccessfulLogin(userCredential.user);
     } catch (error: any) {
       if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
-        setError('Invalid email or password.');
+        toast.error('Invalid email or password.');
       } else {
         console.error("Email/Pass Sign-In Error: ", error);
-        setError('An unexpected error occurred. Please try again.');
+        toast.error('An unexpected error occurred. Please try again.');
       }
     } finally {
       setIsLoading(false);
@@ -92,7 +91,6 @@ export default function LoginPage() {
   };
 
   const handleGoogleLogin = async () => {
-    setError(null);
     setIsLoading(true);
     const provider = new GoogleAuthProvider();
 
@@ -119,7 +117,7 @@ export default function LoginPage() {
       }
     } catch (error: any) {
       if (error.code !== 'auth/popup-closed-by-user') {
-        setError('Failed to sign in with Google. Please try again.');
+        toast.error('Failed to sign in with Google. Please try again.');
         console.error("Google Sign-In Error: ", error);
       }
     } finally {
@@ -183,8 +181,6 @@ export default function LoginPage() {
                   className="w-full pl-12 pr-4 py-3 rounded-xl bg-background/50 text-foreground placeholder-gray-400 focus:ring-2 focus:ring-ring focus:outline-none border border-secondary/30 transition-all duration-300"
                 />
               </div>
-
-              {error && <p className="text-center text-sm text-pink-400">{error}</p>}
 
               <button
                 type="submit"

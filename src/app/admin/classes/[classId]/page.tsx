@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useFirestore } from '@/firebase';
 import { collection, doc, onSnapshot, query, where, updateDoc, arrayUnion, arrayRemove, documentId } from 'firebase/firestore';
 import { ArrowLeft, UserPlus, Trash2 } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 interface Student {
   id: string;
@@ -27,7 +28,6 @@ export default function ManageStudentsPage() {
   const [classData, setClassData] = useState<ClassData | null>(null);
   const [allStudents, setAllStudents] = useState<Student[]>([]);
   const [enrolledStudents, setEnrolledStudents] = useState<Student[]>([]);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!db || !classId) return;
@@ -38,7 +38,7 @@ export default function ManageStudentsPage() {
         setAllStudents(querySnapshot.docs.map(doc => ({ id: doc.id, fullName: doc.data().fullName } as Student)));
     }, (e) => {
         console.error("Failed to fetch student list:", e);
-        setError("Failed to load student list.");
+        toast.error("Failed to load student list.");
     });
     
     // Watch the class document for changes to studentIds
@@ -58,18 +58,18 @@ export default function ManageStudentsPage() {
                     setEnrolledStudents(enrolledSnap.docs.map(doc => ({ id: doc.id, fullName: doc.data().fullName } as Student)));
                 }, (err) => {
                      console.error("Error fetching enrolled students:", err);
-                     setError("Failed to load enrolled students.");
+                     toast.error("Failed to load enrolled students.");
                 });
             } else {
                 setEnrolledStudents([]);
             }
         } else {
-            setError("Class not found.");
+            toast.error("Class not found.");
             router.push('/admin/classes');
         }
     }, (e) => {
         console.error("Error fetching class details:", e);
-        setError("Failed to load class details.");
+        toast.error("Failed to load class details.");
     });
 
     return () => {
@@ -85,21 +85,23 @@ export default function ManageStudentsPage() {
         await updateDoc(classDocRef, {
             studentIds: arrayUnion(student.id)
         });
+        toast.success(`${student.fullName} enrolled successfully.`);
     } catch (e) {
         console.error("Error enrolling student:", e);
-        setError("Failed to enroll student.");
+        toast.error("Failed to enroll student.");
     }
   };
 
-  const handleUnenroll = async (studentId: string) => {
+  const handleUnenroll = async (student: Student) => {
     try {
         const classDocRef = doc(db, 'classes', classId);
         await updateDoc(classDocRef, {
-            studentIds: arrayRemove(studentId)
+            studentIds: arrayRemove(student.id)
         });
+        toast.success(`${student.fullName} unenrolled successfully.`);
     } catch (e) {
         console.error("Error unenrolling student:", e);
-        setError("Failed to unenroll student.");
+        toast.error("Failed to unenroll student.");
     }
   };
 
@@ -127,8 +129,6 @@ export default function ManageStudentsPage() {
         <h1 className="text-4xl font-bold text-foreground mb-2">Manage Students for {classData.name}</h1>
         <p className="text-muted-foreground mb-8">Teacher: {classData.teacherName}</p>
 
-        {error && <p className="text-pink-500 bg-pink-500/10 p-3 rounded-lg text-center mb-4">{error}</p>}
-
         <div className="grid md:grid-cols-2 gap-8">
             {/* Enrolled Students */}
             <div className="p-6 bg-background/60 backdrop-blur-sm border border-secondary/30 rounded-xl shadow-lg transition-all duration-300 hover:border-secondary hover:shadow-secondary/20">
@@ -139,7 +139,7 @@ export default function ManageStudentsPage() {
                             <div key={student.id} className="flex items-center justify-between p-3 bg-background/50 rounded-lg transition-all duration-200 hover:scale-[1.03] hover:bg-background/80">
                                 <span className="text-foreground/90 font-medium">{student.fullName}</span>
                                 <button 
-                                    onClick={() => handleUnenroll(student.id)} 
+                                    onClick={() => handleUnenroll(student)} 
                                     className="p-2 text-red-400 hover:bg-red-400/10 rounded-full transition-colors"
                                     aria-label={`Unenroll ${student.fullName}`}
                                 >

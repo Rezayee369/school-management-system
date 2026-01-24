@@ -5,8 +5,9 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useFirestore } from '@/firebase';
 import { firebaseConfig } from '@/firebase/config';
+import toast from 'react-hot-toast';
 
-import { initializeApp, getApp, deleteApp } from 'firebase/app';
+import { initializeApp, deleteApp } from 'firebase/app';
 import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
 import { setDoc, doc, serverTimestamp } from 'firebase/firestore';
 import { ArrowLeft, User, Mail, Lock, UserCheck } from 'lucide-react';
@@ -19,20 +20,20 @@ export default function CreateUserPage() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [role, setRole] = useState('student');
-    const [error, setError] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
 
     const handleCreateUser = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!fullName || !email || !password || !role) {
-            setError('All fields are required.');
+            toast.error('All fields are required.');
             return;
         }
         setIsLoading(true);
-        setError(null);
-
+        
         const tempAppName = `temp-user-creation-${Date.now()}`;
         const tempApp = initializeApp(firebaseConfig, tempAppName);
+        
+        const loadingToastId = toast.loading('Creating user...');
 
         try {
             const tempAuth = getAuth(tempApp);
@@ -47,17 +48,18 @@ export default function CreateUserPage() {
                 photoURL: null,
             });
 
+            toast.success('User created successfully!', { id: loadingToastId });
             router.push('/admin/users');
 
         } catch (error: any) {
             console.error('Error creating user:', error);
+            let errorMessage = 'Failed to create user. Please check the console for details.';
             if (error.code === 'auth/email-already-in-use') {
-                setError('This email is already registered.');
+                errorMessage = 'This email is already registered.';
             } else if (error.code === 'auth/weak-password') {
-                setError('Password should be at least 6 characters.');
-            } else {
-                setError('Failed to create user. Please check the console for details.');
+                errorMessage = 'Password should be at least 6 characters.';
             }
+            toast.error(errorMessage, { id: loadingToastId });
         } finally {
             await deleteApp(tempApp).catch(delError => console.error("Failed to delete temp app", delError));
             setIsLoading(false);
@@ -129,8 +131,6 @@ export default function CreateUserPage() {
                             </select>
                         </div>
                         
-                        {error && <p className="text-center text-sm text-pink-400">{error}</p>}
-
                         <button
                             type="submit"
                             disabled={isLoading}

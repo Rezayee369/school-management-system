@@ -7,6 +7,7 @@ import { useAuthGuard } from '@/hooks/useAuthGuard';
 import { useFirestore, useUser } from '@/firebase';
 import { collection, query, where, onSnapshot, setDoc, doc, serverTimestamp, documentId } from 'firebase/firestore';
 import { Calendar, Check, X, Minus, ArrowLeft } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 interface ClassData {
   id: string;
@@ -35,7 +36,6 @@ export default function MarkClassAttendancePage() {
   const [classData, setClassData] = useState<ClassData | null>(null);
   const [students, setStudents] = useState<StudentData[]>([]);
   const [attendance, setAttendance] = useState<Map<string, AttendanceRecord>>(new Map());
-  const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   
   const today = new Date().toISOString().split('T')[0];
@@ -52,16 +52,16 @@ export default function MarkClassAttendancePage() {
             if (data.teacherId === user.uid) {
                 setClassData(data);
             } else {
-                setError("You are not authorized to view this class.");
+                toast.error("You are not authorized to view this class.");
                 setClassData(null);
             }
         } else {
-            setError("Class not found.");
+            toast.error("Class not found.");
             setClassData(null);
         }
         setIsLoading(false);
     }, (err) => {
-        setError("Could not fetch class details.");
+        toast.error("Could not fetch class details.");
         console.error(err);
         setIsLoading(false);
     });
@@ -84,7 +84,7 @@ export default function MarkClassAttendancePage() {
             const studentData = snapshot.docs.map(doc => ({ id: doc.id, name: doc.data().fullName as string }));
             setStudents(studentData);
         }, (err) => {
-            setError("Could not fetch students for this class.");
+            toast.error("Could not fetch students for this class.");
             console.error(err);
         });
     } else {
@@ -113,7 +113,7 @@ export default function MarkClassAttendancePage() {
 
   const handleMarkAttendance = async (student: StudentData, status: 'present' | 'absent' | 'leave') => {
     if (!classData || !user || !db) {
-        setError("No class selected or user not found.");
+        toast.error("No class selected or user not found.");
         return;
     }
     
@@ -133,7 +133,7 @@ export default function MarkClassAttendancePage() {
         }, { merge: true });
 
     } catch (e) {
-        setError("Failed to mark attendance.");
+        toast.error("Failed to mark attendance.");
         console.error(e);
     }
   };
@@ -165,8 +165,6 @@ export default function MarkClassAttendancePage() {
             <Calendar size={16}/>
             <span>{new Date(today).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
         </div>
-
-        {error && <p className="text-red-500 bg-red-500/10 p-3 rounded-md mb-4">{error}</p>}
 
         {classData ? (
           <div className="p-6 bg-background/60 backdrop-blur-sm border border-secondary/30 rounded-xl shadow-lg">

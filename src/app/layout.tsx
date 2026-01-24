@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { FirebaseClientProvider } from "@/firebase";
+import { Toaster } from 'react-hot-toast';
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -18,7 +19,31 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <FirebaseClientProvider>{children}</FirebaseClientProvider>
+        <FirebaseClientProvider>
+          {children}
+          <Toaster 
+            position="bottom-center"
+            toastOptions={{
+              style: {
+                background: 'hsl(var(--background))',
+                color: 'hsl(var(--foreground))',
+                border: '1px solid hsl(var(--secondary) / 0.3)',
+              },
+              success: {
+                iconTheme: {
+                  primary: 'hsl(var(--secondary))',
+                  secondary: 'hsl(var(--background))',
+                },
+              },
+              error: {
+                iconTheme: {
+                  primary: 'hsl(var(--destructive))',
+                  secondary: 'hsl(var(--foreground))',
+                },
+              },
+            }}
+          />
+          </FirebaseClientProvider>
       </body>
     </html>
   );

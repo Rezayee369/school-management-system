@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { collection, addDoc, serverTimestamp, query, onSnapshot, orderBy, where, getDocs, deleteDoc, doc } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
 import { ChevronRight, UserPlus, ArrowLeft, Trash2 } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 interface ClassData {
   id: string;
@@ -23,7 +24,6 @@ export default function AdminClassesPage() {
   const [teachers, setTeachers] = useState<TeacherData[]>([]);
   const [newClassName, setNewClassName] = useState('');
   const [selectedTeacherId, setSelectedTeacherId] = useState('');
-  const [error, setError] = useState<string | null>(null);
   const [isLoadingTeachers, setIsLoadingTeachers] = useState(true);
   const [isLoadingClasses, setIsLoadingClasses] = useState(true);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
@@ -45,7 +45,7 @@ export default function AdminClassesPage() {
           }
       } catch (e) {
           console.error("Failed to fetch teachers:", e);
-          setError("Could not load teachers. Please check permissions and try again.");
+          toast.error("Could not load teachers. Please check permissions and try again.");
       } finally {
           setIsLoadingTeachers(false);
       }
@@ -66,7 +66,7 @@ export default function AdminClassesPage() {
       setIsLoadingClasses(false);
     }, (err) => {
       console.error("Error fetching classes:", err);
-      setError("Failed to fetch classes. Check permissions.");
+      toast.error("Failed to fetch classes. Check permissions.");
       setIsLoadingClasses(false);
     });
 
@@ -76,14 +76,13 @@ export default function AdminClassesPage() {
   const handleAddClass = async (e: React.FormEvent) => {
     e.preventDefault();
     if (newClassName.trim() === '' || !selectedTeacherId) {
-      setError('Class name and teacher are required.');
+      toast.error('Class name and teacher are required.');
       return;
     }
-    setError(null);
 
     const selectedTeacher = teachers.find(t => t.id === selectedTeacherId);
     if (!selectedTeacher) {
-      setError('Selected teacher not found.');
+      toast.error('Selected teacher not found.');
       return;
     }
 
@@ -95,9 +94,10 @@ export default function AdminClassesPage() {
         createdAt: serverTimestamp(),
       });
       setNewClassName('');
+      toast.success(`Class "${newClassName}" created.`);
     } catch (err) {
       console.error('Error adding class:', err);
-      setError('Failed to add class. Check permissions.');
+      toast.error('Failed to add class. Check permissions.');
     }
   };
 
@@ -107,13 +107,13 @@ export default function AdminClassesPage() {
     }
 
     setIsDeleting(classId);
-    setError(null);
     try {
         await deleteDoc(doc(db, 'classes', classId));
+        toast.success(`Class "${className}" deleted successfully.`);
         // Note: This does not delete associated attendance records, which will be orphaned.
     } catch (err) {
         console.error("Error deleting class:", err);
-        setError('Failed to delete class.');
+        toast.error('Failed to delete class.');
     } finally {
         setIsDeleting(null);
     }
@@ -181,7 +181,6 @@ export default function AdminClassesPage() {
                 </Link>
             </div>
           )}
-          {error && <p className="text-sm text-red-500 mt-2">{error}</p>}
         </div>
 
         <div className="p-6 bg-background/60 backdrop-blur-sm border border-secondary/30 rounded-xl shadow-lg">

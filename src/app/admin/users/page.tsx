@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { collection, query, onSnapshot, orderBy, doc, deleteDoc, writeBatch, where, getDocs, arrayRemove } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
 import { UserPlus, Users, Briefcase, UserCircle, ArrowLeft, Trash2 } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 interface UserData {
   id: string;
@@ -17,7 +18,6 @@ export default function AdminUsersPage() {
   const db = useFirestore();
   const [users, setUsers] = useState<UserData[]>([]);
   const [isLoadingUsers, setIsLoadingUsers] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
 
   useEffect(() => {
@@ -31,7 +31,7 @@ export default function AdminUsersPage() {
       setIsLoadingUsers(false);
     }, (err) => {
       console.error("Error fetching users:", err);
-      setError("Failed to fetch users. Check Firestore permissions.");
+      toast.error("Failed to fetch users. Check Firestore permissions.");
       setIsLoadingUsers(false);
     });
 
@@ -44,7 +44,6 @@ export default function AdminUsersPage() {
     }
 
     setIsDeleting(userToDelete.id);
-    setError(null);
 
     try {
         const batch = writeBatch(db);
@@ -72,10 +71,11 @@ export default function AdminUsersPage() {
         batch.delete(userDocRef);
         
         await batch.commit();
+        toast.success(`User ${userToDelete.fullName} deleted successfully.`);
 
     } catch (err) {
         console.error("Error deleting user:", err);
-        setError(`Failed to delete user ${userToDelete.fullName}.`);
+        toast.error(`Failed to delete user ${userToDelete.fullName}.`);
     } finally {
         setIsDeleting(null);
     }
@@ -119,7 +119,6 @@ export default function AdminUsersPage() {
 
         <div className="p-6 bg-background/60 backdrop-blur-sm border border-secondary/30 rounded-xl shadow-lg">
           <h2 className="text-2xl font-semibold text-foreground mb-4">All Users</h2>
-          {error && <p className="text-sm text-red-500 mb-4">{error}</p>}
           <div className="space-y-3">
             {users.length > 0 ? (
               users.map((user) => (
