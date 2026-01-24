@@ -183,7 +183,7 @@ export default function AdminUsersPage() {
   if (isLoadingUsers) {
     return (
       <main className="flex min-h-screen flex-col items-center p-8 bg-background">
-        <div className="w-full max-w-6xl animate-fade-in-slide-up">
+        <div className="w-full max-w-6xl">
           <div className="flex justify-between items-center mb-8">
             <div className="h-6 w-40 bg-muted/40 rounded-md animate-pulse"></div>
             <div className="h-6 w-32 bg-muted/40 rounded-md animate-pulse"></div>

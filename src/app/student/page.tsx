@@ -67,7 +67,7 @@ export default function StudentDashboard() {
   if (isLoadingAuth || isLoading) {
     return (
       <main className="flex min-h-screen flex-col items-center p-8 sm:p-12 bg-background text-foreground">
-        <div className="w-full max-w-7xl animate-fade-in-slide-up">
+        <div className="w-full max-w-7xl">
           <DashboardHeader userRole="student" />
           
           {/* Attendance Summary Skeleton */}

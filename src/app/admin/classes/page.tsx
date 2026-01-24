@@ -166,7 +166,7 @@ export default function AdminClassesPage() {
 
     return (
       <main className="flex min-h-screen flex-col items-center p-8 bg-background">
-        <div className="w-full max-w-4xl animate-fade-in-slide-up">
+        <div className="w-full max-w-4xl">
           <div className="flex justify-between items-center mb-8">
             <Skeleton className="h-6 w-24" />
             <Skeleton className="h-6 w-24" />

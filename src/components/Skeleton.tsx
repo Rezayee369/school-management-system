@@ -19,7 +19,7 @@ export function Skeleton({
 }: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={`animate-pulse rounded-md bg-muted/40 ${className}`}
+      className={`bg-muted/40 rounded-md ${className}`}
       {...props}
     />
   );
@@ -31,7 +31,7 @@ export function Skeleton({
  */
 export function SkeletonCard() {
     return (
-        <div className="p-6 h-28 bg-background/60 backdrop-blur-sm rounded-xl shadow-lg border border-muted/30 animate-pulse">
+        <div className="p-6 h-28 bg-background/60 backdrop-blur-sm rounded-xl shadow-lg border border-muted/30">
             <div className="flex items-start justify-between">
                 <div>
                     <SkeletonBlock className="h-4 w-24" />
@@ -51,7 +51,7 @@ export function SkeletonCard() {
  */
 export function SkeletonListRow() {
     return (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center p-4 bg-background/50 border border-muted/20 rounded-lg animate-pulse">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center p-4 bg-background/50 border border-muted/20 rounded-lg">
             <SkeletonBlock className="h-5" />
             <SkeletonBlock className="h-5" />
             <SkeletonBlock className="h-5 w-24" />

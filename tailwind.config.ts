@@ -60,7 +60,7 @@ const config: Config = {
         "fade-in-slide-up": {
           "0%": {
             opacity: "0",
-            transform: "translateY(20px)",
+            transform: "translateY(10px)",
           },
           "100%": {
             opacity: "1",
@@ -89,8 +89,8 @@ const config: Config = {
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
-        "fade-in-slide-up": "fade-in-slide-up 0.5s ease-out forwards",
-        "fade-in-scale": "fade-in-scale 0.5s ease-out forwards",
+        "fade-in-slide-up": "fade-in-slide-up 0.4s ease-out forwards",
+        "fade-in-scale": "fade-in-scale 0.2s ease-out forwards",
         "blob": "blob 7s infinite",
       },
       backgroundImage: {

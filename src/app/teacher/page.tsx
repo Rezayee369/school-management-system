@@ -46,7 +46,7 @@ export default function TeacherDashboard() {
   if (isLoadingAuth || isLoadingClasses) {
     return (
       <main className="flex min-h-screen flex-col items-center p-12 bg-background text-foreground">
-        <div className="w-full max-w-4xl animate-fade-in-slide-up">
+        <div className="w-full max-w-4xl">
           <DashboardHeader userRole="teacher" />
           
           <div className="mt-12">
