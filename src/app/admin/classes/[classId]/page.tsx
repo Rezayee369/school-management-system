@@ -7,6 +7,7 @@ import { collection, doc, onSnapshot, query, where, updateDoc, arrayUnion, array
 import { signOut } from 'firebase/auth';
 import { ArrowLeft, UserPlus, Trash2, LogOut } from 'lucide-react';
 import toast from 'react-hot-toast';
+import ConfirmDialog from '@/components/ConfirmDialog';
 
 interface Student {
   id: string;
@@ -29,6 +30,9 @@ export default function ManageStudentsPage() {
   const [classData, setClassData] = useState<ClassData | null>(null);
   const [allStudents, setAllStudents] = useState<Student[]>([]);
   const [enrolledStudents, setEnrolledStudents] = useState<Student[]>([]);
+
+  const [studentToUnenroll, setStudentToUnenroll] = useState<Student | null>(null);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
   const handleLogout = async () => {
     try {
@@ -102,20 +106,31 @@ export default function ManageStudentsPage() {
         toast.error("Failed to enroll student.");
     }
   };
+  
+  const handleUnenrollClick = (student: Student) => {
+    setStudentToUnenroll(student);
+    setIsConfirmOpen(true);
+  };
 
-  const handleUnenroll = async (student: Student) => {
-    if (!window.confirm(`Are you sure you want to unenroll ${student.fullName}?`)) {
-        return;
-    }
+  const handleCancelUnenroll = () => {
+    setIsConfirmOpen(false);
+    setStudentToUnenroll(null);
+  };
+  
+  const handleConfirmUnenroll = async () => {
+    if (!studentToUnenroll) return;
+
     try {
         const classDocRef = doc(db, 'classes', classId);
         await updateDoc(classDocRef, {
-            studentIds: arrayRemove(student.id)
+            studentIds: arrayRemove(studentToUnenroll.id)
         });
-        toast.success(`${student.fullName} unenrolled successfully.`);
+        toast.success(`${studentToUnenroll.fullName} unenrolled successfully.`);
     } catch (e) {
         console.error("Error unenrolling student:", e);
         toast.error("Failed to unenroll student.");
+    } finally {
+        handleCancelUnenroll();
     }
   };
 
@@ -157,7 +172,7 @@ export default function ManageStudentsPage() {
                             <div key={student.id} className="flex items-center justify-between p-3 bg-background/50 rounded-lg transition-all duration-200 hover:scale-[1.03] hover:bg-background/80">
                                 <span className="text-foreground/90 font-medium">{student.fullName}</span>
                                 <button 
-                                    onClick={() => handleUnenroll(student)} 
+                                    onClick={() => handleUnenrollClick(student)} 
                                     className="p-2 text-red-400 hover:bg-red-400/10 rounded-full transition-colors"
                                     aria-label={`Unenroll ${student.fullName}`}
                                 >
@@ -199,6 +214,14 @@ export default function ManageStudentsPage() {
             </div>
         </div>
       </div>
+      <ConfirmDialog
+        open={isConfirmOpen}
+        title={`Unenroll ${studentToUnenroll?.fullName || 'Student'}`}
+        description="Are you sure you want to remove this student from the class? This will not delete their account."
+        onConfirm={handleConfirmUnenroll}
+        onCancel={handleCancelUnenroll}
+        confirmText="Unenroll"
+      />
     </main>
   );
 }
