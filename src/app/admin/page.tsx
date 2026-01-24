@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import DashboardHeader from '@/components/DashboardHeader';
-import { BookOpen, Users, Briefcase, CheckSquare, Megaphone, BarChart2 } from 'lucide-react';
+import { BookOpen, Users, Briefcase, Shield, Megaphone, BarChart2 } from 'lucide-react';
 import { useFirestore } from '@/firebase';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import toast from 'react-hot-toast';
@@ -14,6 +14,7 @@ export default function AdminDashboard() {
   const [teacherCount, setTeacherCount] = useState<number | null>(null);
   const [studentCount, setStudentCount] = useState<number | null>(null);
   const [classCount, setClassCount] = useState<number | null>(null);
+  const [adminCount, setAdminCount] = useState<number | null>(null);
 
   useEffect(() => {
     if (!db) return;
@@ -36,10 +37,17 @@ export default function AdminDashboard() {
       setClassCount(snapshot.size);
     });
 
+    // Listener for admins
+    const adminsQuery = query(collection(db, 'users'), where('role', '==', 'admin'));
+    const unsubscribeAdmins = onSnapshot(adminsQuery, (snapshot) => {
+      setAdminCount(snapshot.size);
+    });
+
     return () => {
       unsubscribeTeachers();
       unsubscribeStudents();
       unsubscribeClasses();
+      unsubscribeAdmins();
     };
   }, [db]);
 
@@ -136,18 +144,32 @@ export default function AdminDashboard() {
               </Link>
             )}
             
-            {/* Attendance Today Card */}
-             <div onClick={() => toast('Coming soon!')} className="group cursor-pointer p-6 bg-background/60 backdrop-blur-sm rounded-xl shadow-lg border border-destructive/30 transition-all duration-300 hover:border-destructive hover:shadow-xl hover:shadow-destructive/20 hover:-translate-y-1">
+            {/* Total Admins Card */}
+            {adminCount === null ? (
+              <div className="p-6 h-28 bg-background/60 backdrop-blur-sm rounded-xl shadow-lg border border-destructive/30 animate-pulse">
                 <div className="flex items-start justify-between">
                     <div>
-                        <p className="text-sm text-muted-foreground">Attendance Today</p>
-                        <p className="text-4xl font-bold text-foreground mt-2 transition-all duration-300 group-hover:text-destructive">0</p>
+                        <div className="h-4 w-24 bg-muted/40 rounded-md"></div>
+                        <div className="h-10 w-16 bg-muted/40 rounded-md mt-2"></div>
                     </div>
-                    <div className="p-3 bg-destructive/10 rounded-lg transition-all duration-300 group-hover:bg-destructive/20 group-hover:shadow-[0_0_20px_hsl(var(--destructive))]">
-                        <CheckSquare className="w-6 h-6 text-destructive transition-transform duration-300 group-hover:scale-110" />
+                    <div className="p-3 bg-destructive/10 rounded-lg">
+                        <div className="w-6 h-6 bg-muted/40 rounded-full"></div>
                     </div>
                 </div>
-            </div>
+              </div>
+            ) : (
+              <div className="group p-6 bg-background/60 backdrop-blur-sm rounded-xl shadow-lg border border-destructive/30 transition-all duration-300 hover:border-destructive hover:shadow-xl hover:shadow-destructive/20 hover:-translate-y-1">
+                <div className="flex items-start justify-between">
+                    <div>
+                        <p className="text-sm text-muted-foreground">Total Admins</p>
+                        <p className="text-4xl font-bold text-foreground mt-2 transition-all duration-300 group-hover:text-destructive">{adminCount}</p>
+                    </div>
+                    <div className="p-3 bg-destructive/10 rounded-lg transition-all duration-300 group-hover:bg-destructive/20 group-hover:shadow-[0_0_20px_hsl(var(--destructive))]">
+                        <Shield className="w-6 h-6 text-destructive transition-transform duration-300 group-hover:scale-110" />
+                    </div>
+                </div>
+              </div>
+            )}
         </div>
 
         <div className="mt-12">
