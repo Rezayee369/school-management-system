@@ -2,9 +2,10 @@
 
 import { useAuthGuard } from '@/hooks/useAuthGuard';
 import DashboardHeader from '@/components/DashboardHeader';
+import PermissionDenied from '@/components/PermissionDenied';
 
 export default function ParentDashboard() {
-  const isLoading = useAuthGuard('parent');
+  const { isLoading, isAuthorized, userRole } = useAuthGuard('parent');
 
   if (isLoading) {
     return (
@@ -12,6 +13,10 @@ export default function ParentDashboard() {
         <p>Loading...</p>
       </main>
     );
+  }
+
+  if (!isAuthorized) {
+    return <PermissionDenied userRole={userRole} />;
   }
 
   return (

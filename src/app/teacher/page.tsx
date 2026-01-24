@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { useFirestore, useUser } from '@/firebase';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { BookOpen, Users, ChevronRight } from 'lucide-react';
+import PermissionDenied from '@/components/PermissionDenied';
 
 interface ClassData {
   id: string;
@@ -15,7 +16,7 @@ interface ClassData {
 }
 
 export default function TeacherDashboard() {
-  const isLoadingAuth = useAuthGuard('teacher');
+  const { isLoading: isLoadingAuth, isAuthorized, userRole } = useAuthGuard('teacher');
   const user = useUser();
   const db = useFirestore();
 
@@ -23,7 +24,10 @@ export default function TeacherDashboard() {
   const [isLoadingClasses, setIsLoadingClasses] = useState(true);
 
   useEffect(() => {
-    if (isLoadingAuth || !user) return;
+    if (isLoadingAuth || !isAuthorized || !user) {
+        if (!isLoadingAuth) setIsLoadingClasses(false);
+        return;
+    };
 
     setIsLoadingClasses(true);
     const classesQuery = query(collection(db, 'classes'), where('teacherId', '==', user.uid));
@@ -41,7 +45,7 @@ export default function TeacherDashboard() {
     });
 
     return () => unsubscribe();
-  }, [isLoadingAuth, user, db]);
+  }, [isLoadingAuth, isAuthorized, user, db]);
 
   if (isLoadingAuth || isLoadingClasses) {
     return (
@@ -61,6 +65,10 @@ export default function TeacherDashboard() {
         </div>
       </main>
     );
+  }
+
+  if (!isAuthorized) {
+    return <PermissionDenied userRole={userRole} />;
   }
 
   return (

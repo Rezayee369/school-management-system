@@ -6,6 +6,7 @@ import { useUser, useFirestore } from '@/firebase';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { useState, useEffect } from 'react';
 import { BookOpen, CheckCircle, XCircle, MinusCircle } from 'lucide-react';
+import PermissionDenied from '@/components/PermissionDenied';
 
 interface ClassData {
   id: string;
@@ -19,16 +20,19 @@ interface AttendanceData {
 }
 
 export default function StudentDashboard() {
-  const isLoadingAuth = useAuthGuard('student');
+  const { isLoading: isLoadingAuth, isAuthorized, userRole } = useAuthGuard('student');
   const user = useUser();
   const db = useFirestore();
 
   const [classes, setClasses] = useState<ClassData[]>([]);
   const [attendance, setAttendance] = useState<AttendanceData[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingData, setIsLoadingData] = useState(true);
 
   useEffect(() => {
-    if (isLoadingAuth || !user) return;
+    if (isLoadingAuth || !isAuthorized || !user) {
+        if (!isLoadingAuth && !isAuthorized) setIsLoadingData(false);
+        return;
+    };
 
     // Fetch classes
     const classesQuery = query(collection(db, 'classes'), where('studentIds', 'array-contains', user.uid));
@@ -38,10 +42,10 @@ export default function StudentDashboard() {
         ...doc.data(),
       } as ClassData));
       setClasses(classesData);
-      setIsLoading(false);
+      setIsLoadingData(false);
     }, (error) => {
       console.error("Error fetching classes:", error);
-      setIsLoading(false);
+      setIsLoadingData(false);
     });
 
     // Fetch attendance records for the student
@@ -56,7 +60,7 @@ export default function StudentDashboard() {
       unsubscribeClasses();
       unsubscribeAttendance();
     };
-  }, [isLoadingAuth, user, db]);
+  }, [isLoadingAuth, isAuthorized, user, db]);
 
   const attendanceSummary = attendance.reduce((acc, record) => {
     acc[record.status] = (acc[record.status] || 0) + 1;
@@ -64,7 +68,7 @@ export default function StudentDashboard() {
   }, {} as Record<'present' | 'absent' | 'leave', number>);
 
 
-  if (isLoadingAuth || isLoading) {
+  if (isLoadingAuth || isLoadingData) {
     return (
       <main className="flex min-h-screen flex-col items-center p-8 sm:p-12 bg-background text-foreground">
         <div className="w-full max-w-7xl">
@@ -90,6 +94,10 @@ export default function StudentDashboard() {
         </div>
       </main>
     );
+  }
+  
+  if (!isAuthorized) {
+    return <PermissionDenied userRole={userRole} />;
   }
 
   return (

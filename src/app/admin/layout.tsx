@@ -1,13 +1,14 @@
 'use client';
 
 import { useAuthGuard } from '@/hooks/useAuthGuard';
+import PermissionDenied from '@/components/PermissionDenied';
 
 export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const isLoading = useAuthGuard('admin');
+  const { isLoading, isAuthorized, userRole } = useAuthGuard('admin');
 
   if (isLoading) {
     return (
@@ -15,6 +16,10 @@ export default function AdminLayout({
         <p>Loading...</p>
       </main>
     );
+  }
+
+  if (!isAuthorized) {
+    return <PermissionDenied userRole={userRole} />;
   }
 
   return <>{children}</>;

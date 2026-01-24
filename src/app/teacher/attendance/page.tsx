@@ -3,12 +3,17 @@
 import { useAuthGuard } from '@/hooks/useAuthGuard';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
+import PermissionDenied from '@/components/PermissionDenied';
 
 export default function AttendanceLandingPage() {
-  const isLoading = useAuthGuard('teacher');
+  const { isLoading, isAuthorized, userRole } = useAuthGuard('teacher');
 
   if (isLoading) {
     return <main className="flex min-h-screen items-center justify-center p-8 bg-background"><p>Loading...</p></main>;
+  }
+
+  if (!isAuthorized) {
+    return <PermissionDenied userRole={userRole} />;
   }
 
   return (

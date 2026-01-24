@@ -8,6 +8,7 @@ import { useFirestore, useUser } from '@/firebase';
 import { collection, query, where, onSnapshot, setDoc, doc, serverTimestamp, documentId } from 'firebase/firestore';
 import { Calendar, Check, X, Minus, ArrowLeft } from 'lucide-react';
 import toast from 'react-hot-toast';
+import PermissionDenied from '@/components/PermissionDenied';
 
 interface ClassData {
   id: string;
@@ -27,7 +28,7 @@ interface AttendanceRecord {
 }
 
 export default function MarkClassAttendancePage() {
-  const isLoadingAuth = useAuthGuard('teacher');
+  const { isLoading: isLoadingAuth, isAuthorized, userRole } = useAuthGuard('teacher');
   const user = useUser();
   const db = useFirestore();
   const params = useParams();
@@ -36,13 +37,16 @@ export default function MarkClassAttendancePage() {
   const [classData, setClassData] = useState<ClassData | null>(null);
   const [students, setStudents] = useState<StudentData[]>([]);
   const [attendance, setAttendance] = useState<Map<string, AttendanceRecord>>(new Map());
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingData, setIsLoadingData] = useState(true);
   const [marking, setMarking] = useState<{studentId: string, status: string} | null>(null);
   
   const today = new Date().toISOString().split('T')[0];
 
   useEffect(() => {
-    if (isLoadingAuth || !user || !classId || !db) return;
+    if (isLoadingAuth || !isAuthorized || !user || !classId || !db) {
+        if (!isLoadingAuth) setIsLoadingData(false);
+        return;
+    }
 
     // Fetch class data
     const classDocRef = doc(db, 'classes', classId);
@@ -60,16 +64,16 @@ export default function MarkClassAttendancePage() {
             toast.error("Class not found.");
             setClassData(null);
         }
-        setIsLoading(false);
+        setIsLoadingData(false);
     }, (err) => {
         toast.error("Could not fetch class details.");
         console.error(err);
-        setIsLoading(false);
+        setIsLoadingData(false);
     });
 
     return () => unsubscribeClass();
     
-  }, [isLoadingAuth, user, db, classId]);
+  }, [isLoadingAuth, isAuthorized, user, db, classId]);
 
   useEffect(() => {
     if (!classData || !db) {
@@ -151,8 +155,12 @@ export default function MarkClassAttendancePage() {
     }
   };
 
-  if (isLoading || isLoadingAuth) {
+  if (isLoadingData || isLoadingAuth) {
     return <main className="flex min-h-screen items-center justify-center p-8 bg-background"><p>Loading...</p></main>;
+  }
+
+  if (!isAuthorized) {
+    return <PermissionDenied userRole={userRole} />;
   }
 
   return (
@@ -212,9 +220,9 @@ export default function MarkClassAttendancePage() {
                   )}
               </div>
           </div>
-        ) : !isLoading && (
+        ) : !isLoadingData && (
            <div className="p-6 bg-background/60 backdrop-blur-sm border border-destructive/30 rounded-xl shadow-lg text-center">
-              <p className="text-destructive-foreground">Could not load class data.</p>
+              <p className="text-destructive-foreground">Could not load class data. This may be due to a permission error or invalid class ID.</p>
            </div>
         )}
       </div>
