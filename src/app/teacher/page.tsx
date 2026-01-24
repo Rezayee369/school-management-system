@@ -45,8 +45,20 @@ export default function TeacherDashboard() {
 
   if (isLoadingAuth || isLoadingClasses) {
     return (
-      <main className="flex min-h-screen flex-col items-center justify-center p-24 bg-background text-foreground">
-        <p>Loading...</p>
+      <main className="flex min-h-screen flex-col items-center p-12 bg-background text-foreground">
+        <div className="w-full max-w-4xl animate-fade-in-slide-up">
+          <DashboardHeader userRole="teacher" />
+          
+          <div className="mt-12">
+              <div className="h-8 w-48 bg-muted/50 rounded-md animate-pulse mb-6"></div>
+              <div className="p-6 bg-background/60 backdrop-blur-sm border border-secondary/30 rounded-xl shadow-lg">
+                  <div className="space-y-4">
+                      <div className="h-20 bg-muted/30 rounded-lg animate-pulse"></div>
+                      <div className="h-20 bg-muted/30 rounded-lg animate-pulse"></div>
+                  </div>
+              </div>
+          </div>
+        </div>
       </main>
     );
   }

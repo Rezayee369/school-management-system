@@ -66,8 +66,28 @@ export default function StudentDashboard() {
 
   if (isLoadingAuth || isLoading) {
     return (
-      <main className="flex min-h-screen flex-col items-center justify-center p-24 bg-background text-foreground">
-        <p>Loading...</p>
+      <main className="flex min-h-screen flex-col items-center p-8 sm:p-12 bg-background text-foreground">
+        <div className="w-full max-w-7xl animate-fade-in-slide-up">
+          <DashboardHeader userRole="student" />
+          
+          {/* Attendance Summary Skeleton */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-12">
+            <div className="h-28 bg-muted/40 rounded-xl animate-pulse"></div>
+            <div className="h-28 bg-muted/40 rounded-xl animate-pulse"></div>
+            <div className="h-28 bg-muted/40 rounded-xl animate-pulse"></div>
+          </div>
+
+          {/* My Classes Skeleton */}
+          <div className="mt-12">
+            <div className="h-8 w-48 bg-muted/40 rounded-md animate-pulse mb-6"></div>
+            <div className="p-6 bg-background/60 backdrop-blur-sm border border-secondary/30 rounded-xl shadow-lg">
+              <div className="space-y-4">
+                <div className="h-20 bg-muted/30 rounded-lg animate-pulse"></div>
+                <div className="h-20 bg-muted/30 rounded-lg animate-pulse"></div>
+              </div>
+            </div>
+          </div>
+        </div>
       </main>
     );
   }
