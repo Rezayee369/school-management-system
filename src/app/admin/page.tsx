@@ -53,7 +53,7 @@ export default function AdminDashboard() {
   }, [db]);
 
   return (
-    <main className="flex min-h-screen flex-col items-center p-8 sm:p-12 bg-background text-foreground">
+    <main className="flex min-h-screen flex-col items-center p-4 sm:p-8 lg:p-12 bg-background text-foreground">
       <div className="w-full max-w-7xl animate-fade-in-slide-up">
         <DashboardHeader userRole="admin" />
         

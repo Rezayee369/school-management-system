@@ -49,7 +49,7 @@ export default function TeacherDashboard() {
 
   if (isLoadingAuth || isLoadingClasses) {
     return (
-      <main className="flex min-h-screen flex-col items-center p-12 bg-background text-foreground">
+      <main className="flex min-h-screen flex-col items-center p-8 sm:p-12 bg-background text-foreground">
         <div className="w-full max-w-4xl">
           <DashboardHeader userRole="teacher" />
           
@@ -72,7 +72,7 @@ export default function TeacherDashboard() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center p-12 bg-background text-foreground">
+    <main className="flex min-h-screen flex-col items-center p-8 sm:p-12 bg-background text-foreground">
       <div className="w-full max-w-4xl animate-fade-in-slide-up">
         <DashboardHeader userRole="teacher" />
         
@@ -83,12 +83,12 @@ export default function TeacherDashboard() {
                     <div className="space-y-4">
                         {classes.map(c => (
                              <Link key={c.id} href={`/teacher/classes/${c.id}/attendance`} className="block group">
-                                <div className="p-4 bg-background/30 border border-muted/20 rounded-lg flex justify-between items-center transition-all duration-300 group-hover:border-primary/50 group-hover:bg-primary/10">
+                                <div className="p-4 bg-background/30 border border-muted/20 rounded-lg flex flex-col md:flex-row justify-between md:items-center gap-4 transition-all duration-300 group-hover:border-primary/50 group-hover:bg-primary/10">
                                     <div className="flex items-center gap-4">
                                         <BookOpen className="w-5 h-5 text-secondary" />
                                         <p className="text-lg text-foreground/90 font-semibold">{c.name}</p>
                                     </div>
-                                    <div className="flex items-center gap-4">
+                                    <div className="flex flex-col sm:flex-row sm:items-center w-full md:w-auto justify-between gap-4">
                                         <div className="flex items-center gap-2 text-muted-foreground">
                                             <Users className="w-5 h-5" />
                                             <span>{c.studentIds?.length || 0} Students</span>

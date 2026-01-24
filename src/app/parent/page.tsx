@@ -20,7 +20,7 @@ export default function ParentDashboard() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center p-24 bg-background text-foreground">
+    <main className="flex min-h-screen flex-col items-center p-8 sm:p-12 md:p-24 bg-background text-foreground">
       <div className="w-full max-w-4xl animate-fade-in-slide-up">
         <DashboardHeader userRole="parent" />
         <div className="p-8 bg-background/60 backdrop-blur-sm border border-primary/30 rounded-xl shadow-lg">

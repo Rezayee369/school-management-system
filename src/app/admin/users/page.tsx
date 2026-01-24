@@ -186,7 +186,7 @@ export default function AdminUsersPage() {
 
   if (isLoadingUsers) {
     return (
-      <main className="flex min-h-screen flex-col items-center p-8 bg-background">
+      <main className="flex min-h-screen flex-col items-center p-4 sm:p-8 bg-background">
         <div className="w-full max-w-6xl">
           <div className="flex justify-between items-center mb-8">
             <div className="h-6 w-40 bg-muted/40 rounded-md animate-pulse"></div>
@@ -221,7 +221,7 @@ export default function AdminUsersPage() {
   };
 
   return (
-    <main className="flex min-h-screen flex-col items-center p-8 bg-background">
+    <main className="flex min-h-screen flex-col items-center p-4 sm:p-8 bg-background">
       <div className="w-full max-w-6xl animate-fade-in-slide-up">
         <div className="flex justify-between items-center mb-8">
             <button onClick={() => router.back()} className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
@@ -233,7 +233,7 @@ export default function AdminUsersPage() {
                 <span>Logout</span>
             </button>
         </div>
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
             <h1 className="text-4xl font-bold text-foreground">User Management</h1>
             <Link href="/admin/users/create">
                 <button className="flex items-center gap-2 px-5 py-2.5 font-semibold text-primary-foreground bg-gradient-to-r from-secondary to-primary rounded-lg shadow-md hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background active:scale-95 transition-transform">
@@ -250,7 +250,7 @@ export default function AdminUsersPage() {
               users.map((user) => (
                 <div key={user.id} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center p-4 bg-background/50 border border-muted/20 rounded-lg transition-all hover:border-primary/50">
                   <div className="font-medium text-foreground/90">{user.fullName}</div>
-                  <div className="text-muted-foreground">{user.email}</div>
+                  <div className="text-muted-foreground truncate">{user.email}</div>
                   <div className="flex items-center gap-2">
                     {getRoleIcon(user.role)}
                     <span className="text-sm font-semibold capitalize">{user.role}</span>

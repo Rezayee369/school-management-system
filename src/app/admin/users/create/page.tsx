@@ -93,7 +93,7 @@ export default function CreateUserPage() {
                     </button>
                 </div>
                 
-                <div className="rounded-2xl bg-background/60 backdrop-blur-lg border border-secondary/20 shadow-2xl shadow-secondary/10 p-8">
+                <div className="rounded-2xl bg-background/60 backdrop-blur-lg border border-secondary/20 shadow-2xl shadow-secondary/10 p-6 md:p-8">
                     <div className="flex flex-col items-center mb-6">
                         <h1 className="text-center text-3xl font-bold text-foreground tracking-wider">
                             Create New User

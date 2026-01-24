@@ -169,7 +169,7 @@ export default function AdminClassesPage() {
     );
 
     return (
-      <main className="flex min-h-screen flex-col items-center p-8 bg-background">
+      <main className="flex min-h-screen flex-col items-center p-4 sm:p-8 bg-background">
         <div className="w-full max-w-4xl">
           <div className="flex justify-between items-center mb-8">
             <Skeleton className="h-6 w-24" />
@@ -202,7 +202,7 @@ export default function AdminClassesPage() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center p-8 bg-background">
+    <main className="flex min-h-screen flex-col items-center p-4 sm:p-8 bg-background">
       <div className="w-full max-w-4xl animate-fade-in-slide-up">
         <div className="flex justify-between items-center mb-8">
             <button onClick={() => router.back()} className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
@@ -244,7 +244,7 @@ export default function AdminClassesPage() {
                 <button
                   type="submit"
                   disabled={isAddingClass}
-                  className="px-6 py-2 font-semibold text-primary-foreground bg-gradient-to-r from-secondary to-primary rounded-lg shadow-md hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background flex items-center justify-center gap-2 active:scale-95 transition-transform disabled:opacity-70 disabled:cursor-not-allowed"
+                  className="px-6 py-2 w-full sm:w-auto sm:self-start font-semibold text-primary-foreground bg-gradient-to-r from-secondary to-primary rounded-lg shadow-md hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background flex items-center justify-center gap-2 active:scale-95 transition-transform disabled:opacity-70 disabled:cursor-not-allowed"
                 >
                   {isAddingClass ? (
                       <>
@@ -274,12 +274,12 @@ export default function AdminClassesPage() {
           <div className="space-y-4">
             {classes.length > 0 ? (
               classes.map((c) => (
-                <div key={c.id} className="p-4 bg-background/30 border border-muted/20 rounded-lg flex justify-between items-center">
+                <div key={c.id} className="p-4 bg-background/30 border border-muted/20 rounded-lg flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center">
                   <div>
                     <p className="text-lg text-foreground/90 font-semibold">{c.name}</p>
                     <p className="text-sm text-muted-foreground">Teacher: {c.teacherName}</p>
                   </div>
-                  <div className="flex items-center gap-4">
+                  <div className="flex w-full sm:w-auto justify-end items-center gap-4">
                     <Link href={`/admin/classes/${c.id}`}>
                       <div className="flex items-center text-secondary hover:text-primary cursor-pointer">
                         <span>Manage Students</span>

@@ -155,7 +155,7 @@ export default function ManageStudentsPage() {
       </div>
     );
     return (
-      <main className="flex min-h-screen flex-col items-center p-8 bg-background">
+      <main className="flex min-h-screen flex-col items-center p-4 sm:p-8 bg-background">
         <div className="w-full max-w-6xl">
           <div className="flex justify-between items-center mb-8">
               <Skeleton className="h-6 w-24" />
@@ -188,7 +188,7 @@ export default function ManageStudentsPage() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center p-8 bg-background">
+    <main className="flex min-h-screen flex-col items-center p-4 sm:p-8 bg-background">
       <div className="w-full max-w-6xl animate-fade-in-slide-up">
         <div className="flex justify-between items-center mb-8">
             <button onClick={() => router.back()} className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">

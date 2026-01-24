@@ -164,7 +164,7 @@ export default function MarkClassAttendancePage() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center p-8 bg-background">
+    <main className="flex min-h-screen flex-col items-center p-4 sm:p-8 bg-background">
       <div className="w-full max-w-4xl animate-fade-in-slide-up">
         <div className="mb-8">
             <Link href="/teacher" className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
@@ -190,7 +190,7 @@ export default function MarkClassAttendancePage() {
                       return (
                           <div key={student.id} className={`p-4 border rounded-lg flex flex-col sm:flex-row items-center justify-between gap-4 transition-colors duration-300 ${getStatusColor(currentStatus)}`}>
                               <p className="text-lg text-foreground/90 font-medium">{student.name}</p>
-                              <div className="grid grid-cols-3 gap-2">
+                              <div className="grid grid-cols-3 gap-2 w-full sm:w-auto">
                                   <button 
                                       onClick={() => handleMarkAttendance(student, 'present')} 
                                       disabled={!!marking}
