@@ -8,6 +8,7 @@ import { useFirestore, useAuth } from '@/firebase';
 import { signOut } from 'firebase/auth';
 import { UserPlus, Users, Briefcase, UserCircle, ArrowLeft, Trash2, LogOut, Pencil } from 'lucide-react';
 import toast from 'react-hot-toast';
+import ConfirmDialog from '@/components/ConfirmDialog';
 
 interface UserData {
   id: string;
@@ -26,6 +27,9 @@ export default function AdminUsersPage() {
   const [editingUser, setEditingUser] = useState<UserData | null>(null);
   const [updatedFullName, setUpdatedFullName] = useState('');
   const [updatedRole, setUpdatedRole] = useState('');
+  
+  const [userToDelete, setUserToDelete] = useState<UserData | null>(null);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
   const handleLogout = async () => {
     try {
@@ -117,19 +121,24 @@ export default function AdminUsersPage() {
     }
   };
 
-
-  const handleDeleteUser = async (userToDelete: UserData) => {
-    // Safety check: prevent deleting other admins
-    if (userToDelete.role === 'admin') {
+  const handleDeleteClick = (user: UserData) => {
+    if (user.role === 'admin') {
         toast.error("Admins cannot be deleted from the user interface for security reasons.");
         return;
     }
-    
-    const confirmationMessage = `Are you sure you want to delete ${userToDelete.fullName}?\n\nThis will remove their data and class enrollments from the application.\n\nNOTE: This action does NOT delete their login account. That must be done manually in the Firebase console.`;
-    if (!window.confirm(confirmationMessage)) {
-        return;
-    }
+    setUserToDelete(user);
+    setIsConfirmOpen(true);
+  };
 
+  const handleCancelDelete = () => {
+    setIsConfirmOpen(false);
+    setUserToDelete(null);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!userToDelete) return;
+
+    setIsConfirmOpen(false);
     setIsDeleting(userToDelete.id);
     const deletionToast = toast.loading(`Deleting ${userToDelete.fullName}...`);
 
@@ -166,6 +175,7 @@ export default function AdminUsersPage() {
         toast.error(`Failed to delete user: ${err.message || 'Please check permissions.'}`, { id: deletionToast });
     } finally {
         setIsDeleting(null);
+        setUserToDelete(null);
     }
   };
 
@@ -264,7 +274,7 @@ export default function AdminUsersPage() {
                         <Pencil size={18} />
                     </button>
                     <button
-                        onClick={() => handleDeleteUser(user)}
+                        onClick={() => handleDeleteClick(user)}
                         disabled={isDeleting === user.id || user.role === 'admin'}
                         className="p-2 text-red-400 hover:bg-red-400/10 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         aria-label={`Delete ${user.fullName}`}
@@ -331,6 +341,15 @@ export default function AdminUsersPage() {
           </div>
         </div>
     )}
+
+    <ConfirmDialog
+        open={isConfirmOpen}
+        title={`Delete ${userToDelete?.fullName || 'User'}`}
+        description="Are you sure you want to delete this user's application data? This includes class enrollments. Note: This does not delete their login account."
+        onConfirm={handleConfirmDelete}
+        onCancel={handleCancelDelete}
+        confirmText="Delete User"
+    />
     </main>
   );
 }
