@@ -52,8 +52,10 @@ service cloud.firestore {
       // Admins can read all attendance records.
       // Teachers can read records they have created.
       allow read: if isAdmin() || (isTeacher() && resource.data.teacherId == request.auth.uid);
-      // Only Admins can modify or delete records.
-      allow update, delete: if isAdmin();
+      // Teachers can update records they have created. Admins can update any.
+      allow update: if isAdmin() || (isTeacher() && resource.data.teacherId == request.auth.uid);
+      // Only Admins can delete records.
+      allow delete: if isAdmin();
     }
   }
 }
