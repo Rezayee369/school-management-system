@@ -7,6 +7,7 @@ import { BookOpen, Users, Briefcase, Shield, Megaphone, BarChart2 } from 'lucide
 import { useFirestore } from '@/firebase';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import toast from 'react-hot-toast';
+import { SkeletonCard } from '@/components/Skeleton';
 
 export default function AdminDashboard() {
   const db = useFirestore();
@@ -59,17 +60,7 @@ export default function AdminDashboard() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {/* Total Teachers Card */}
             {teacherCount === null ? (
-              <div className="p-6 h-28 bg-background/60 backdrop-blur-sm rounded-xl shadow-lg border border-primary/30 animate-pulse">
-                <div className="flex items-start justify-between">
-                    <div>
-                        <div className="h-4 w-24 bg-muted/40 rounded-md"></div>
-                        <div className="h-10 w-16 bg-muted/40 rounded-md mt-2"></div>
-                    </div>
-                    <div className="p-3 bg-primary/10 rounded-lg">
-                        <div className="w-6 h-6 bg-muted/40 rounded-full"></div>
-                    </div>
-                </div>
-              </div>
+              <SkeletonCard />
             ) : (
               <Link href="/admin/users" className="block group">
                 <div className="p-6 h-full bg-background/60 backdrop-blur-sm rounded-xl shadow-lg border border-primary/30 transition-all duration-300 hover:border-primary hover:shadow-xl hover:shadow-primary/20 hover:-translate-y-1">
@@ -88,17 +79,7 @@ export default function AdminDashboard() {
             
             {/* Total Students Card */}
             {studentCount === null ? (
-              <div className="p-6 h-28 bg-background/60 backdrop-blur-sm rounded-xl shadow-lg border border-secondary/30 animate-pulse">
-                <div className="flex items-start justify-between">
-                    <div>
-                        <div className="h-4 w-24 bg-muted/40 rounded-md"></div>
-                        <div className="h-10 w-16 bg-muted/40 rounded-md mt-2"></div>
-                    </div>
-                    <div className="p-3 bg-secondary/10 rounded-lg">
-                        <div className="w-6 h-6 bg-muted/40 rounded-full"></div>
-                    </div>
-                </div>
-              </div>
+              <SkeletonCard />
             ) : (
               <Link href="/admin/users" className="block group">
                 <div className="p-6 h-full bg-background/60 backdrop-blur-sm rounded-xl shadow-lg border border-secondary/30 transition-all duration-300 hover:border-secondary hover:shadow-xl hover:shadow-secondary/20 hover:-translate-y-1">
@@ -117,17 +98,7 @@ export default function AdminDashboard() {
 
             {/* Total Classes Card */}
             {classCount === null ? (
-              <div className="p-6 h-28 bg-background/60 backdrop-blur-sm rounded-xl shadow-lg border border-accent/30 animate-pulse">
-                <div className="flex items-start justify-between">
-                    <div>
-                        <div className="h-4 w-24 bg-muted/40 rounded-md"></div>
-                        <div className="h-10 w-16 bg-muted/40 rounded-md mt-2"></div>
-                    </div>
-                    <div className="p-3 bg-accent/10 rounded-lg">
-                        <div className="w-6 h-6 bg-muted/40 rounded-full"></div>
-                    </div>
-                </div>
-              </div>
+              <SkeletonCard />
             ) : (
               <Link href="/admin/classes" className="block group">
                   <div className="p-6 h-full bg-background/60 backdrop-blur-sm rounded-xl shadow-lg border border-accent/30 transition-all duration-300 hover:border-accent hover:shadow-xl hover:shadow-accent/20 hover:-translate-y-1">
@@ -146,17 +117,7 @@ export default function AdminDashboard() {
             
             {/* Total Admins Card */}
             {adminCount === null ? (
-              <div className="p-6 h-28 bg-background/60 backdrop-blur-sm rounded-xl shadow-lg border border-destructive/30 animate-pulse">
-                <div className="flex items-start justify-between">
-                    <div>
-                        <div className="h-4 w-24 bg-muted/40 rounded-md"></div>
-                        <div className="h-10 w-16 bg-muted/40 rounded-md mt-2"></div>
-                    </div>
-                    <div className="p-3 bg-destructive/10 rounded-lg">
-                        <div className="w-6 h-6 bg-muted/40 rounded-full"></div>
-                    </div>
-                </div>
-              </div>
+              <SkeletonCard />
             ) : (
               <div className="group p-6 bg-background/60 backdrop-blur-sm rounded-xl shadow-lg border border-destructive/30 transition-all duration-300 hover:border-destructive hover:shadow-xl hover:shadow-destructive/20 hover:-translate-y-1">
                 <div className="flex items-start justify-between">
