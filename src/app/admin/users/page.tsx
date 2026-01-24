@@ -276,7 +276,19 @@ export default function AdminUsersPage() {
                 </div>
               ))
             ) : (
-              <p className="text-muted-foreground text-center py-8">No users found.</p>
+                <div className="text-center py-16">
+                    <Users className="mx-auto h-12 w-12 text-muted-foreground" />
+                    <h3 className="mt-4 text-lg font-semibold text-foreground">No Users Found</h3>
+                    <p className="mt-2 text-sm text-muted-foreground">Get started by creating the first user account.</p>
+                    <div className="mt-6">
+                        <Link href="/admin/users/create">
+                            <button className="inline-flex items-center gap-2 px-5 py-2.5 font-semibold text-primary-foreground bg-gradient-to-r from-secondary to-primary rounded-lg shadow-md hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background active:scale-95 transition-transform">
+                                <UserPlus className="w-5 h-5" />
+                                <span>Create User</span>
+                            </button>
+                        </Link>
+                    </div>
+                </div>
             )}
           </div>
         </div>

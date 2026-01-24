@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { collection, addDoc, serverTimestamp, query, onSnapshot, orderBy, where, getDocs, deleteDoc, doc } from 'firebase/firestore';
 import { useFirestore, useAuth } from '@/firebase';
 import { signOut } from 'firebase/auth';
-import { ChevronRight, UserPlus, ArrowLeft, Trash2, LogOut } from 'lucide-react';
+import { ChevronRight, UserPlus, ArrowLeft, Trash2, LogOut, BookOpen } from 'lucide-react';
 import toast from 'react-hot-toast';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import { Skeleton } from '@/components/Skeleton';
@@ -298,7 +298,11 @@ export default function AdminClassesPage() {
                 </div>
               ))
             ) : (
-              <p className="text-muted-foreground">No classes found. Add one above to get started.</p>
+              <div className="text-center py-12">
+                  <BookOpen className="mx-auto h-12 w-12 text-muted-foreground" />
+                  <h3 className="mt-4 text-lg font-semibold text-foreground">No Classes Created Yet</h3>
+                  <p className="mt-2 text-sm text-muted-foreground">Use the form above to create the first class and assign a teacher.</p>
+              </div>
             )}
           </div>
         </div>

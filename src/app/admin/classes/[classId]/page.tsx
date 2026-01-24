@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useFirestore, useAuth } from '@/firebase';
 import { collection, doc, onSnapshot, query, where, updateDoc, arrayUnion, arrayRemove, documentId } from 'firebase/firestore';
 import { signOut } from 'firebase/auth';
-import { ArrowLeft, UserPlus, Trash2, LogOut } from 'lucide-react';
+import { ArrowLeft, UserPlus, Trash2, LogOut, Users, UserCheck } from 'lucide-react';
 import toast from 'react-hot-toast';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import { Skeleton } from '@/components/Skeleton';
@@ -222,8 +222,10 @@ export default function ManageStudentsPage() {
                             </div>
                         ))
                     ) : (
-                        <div className="flex items-center justify-center h-32">
-                            <p className="text-muted-foreground text-center">No students enrolled yet.</p>
+                        <div className="flex flex-col items-center justify-center h-40 text-center">
+                            <Users className="h-10 w-10 text-muted-foreground" />
+                            <h3 className="mt-4 text-md font-semibold text-foreground">No Students Enrolled</h3>
+                            <p className="mt-1 text-sm text-muted-foreground">Enroll students from the 'Available Students' list.</p>
                         </div>
                     )}
                 </div>
@@ -248,8 +250,10 @@ export default function ManageStudentsPage() {
                             </div>
                         ))
                     ) : (
-                        <div className="flex items-center justify-center h-32">
-                            <p className="text-muted-foreground text-center">All available students are enrolled.</p>
+                        <div className="flex flex-col items-center justify-center h-40 text-center">
+                            <UserCheck className="h-10 w-10 text-green-400" />
+                            <h3 className="mt-4 text-md font-semibold text-foreground">All Students Enrolled</h3>
+                            <p className="mt-1 text-sm text-muted-foreground">There are no more available students to enroll in this class.</p>
                         </div>
                     )}
                 </div>
