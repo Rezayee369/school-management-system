@@ -8,6 +8,7 @@ import { signOut } from 'firebase/auth';
 import { ArrowLeft, UserPlus, Trash2, LogOut } from 'lucide-react';
 import toast from 'react-hot-toast';
 import ConfirmDialog from '@/components/ConfirmDialog';
+import { Skeleton } from '@/components/Skeleton';
 
 interface Student {
   id: string;
@@ -139,9 +140,41 @@ export default function ManageStudentsPage() {
   );
 
   if (!classData) {
+    const SkeletonStudentRow = () => (
+      <div className="flex items-center justify-between p-3 bg-background/50 rounded-lg animate-pulse">
+        <Skeleton className="h-5 w-48" />
+        <Skeleton className="w-8 h-8 rounded-full" />
+      </div>
+    );
     return (
-      <main className="flex min-h-screen flex-col items-center justify-center p-8 bg-background">
-        <p>Loading...</p>
+      <main className="flex min-h-screen flex-col items-center p-8 bg-background">
+        <div className="w-full max-w-6xl animate-fade-in-slide-up">
+          <div className="flex justify-between items-center mb-8">
+              <Skeleton className="h-6 w-24" />
+              <Skeleton className="h-6 w-24" />
+          </div>
+          <Skeleton className="h-10 w-3/4 mb-2" />
+          <Skeleton className="h-5 w-1/2 mb-8" />
+
+          <div className="grid md:grid-cols-2 gap-8">
+              <div className="p-6 bg-background/60 backdrop-blur-sm border border-secondary/30 rounded-xl shadow-lg">
+                  <Skeleton className="h-8 w-3/4 mb-4" />
+                  <div className="space-y-3">
+                      <SkeletonStudentRow />
+                      <SkeletonStudentRow />
+                      <SkeletonStudentRow />
+                  </div>
+              </div>
+              <div className="p-6 bg-background/60 backdrop-blur-sm border border-primary/30 rounded-xl shadow-lg">
+                  <Skeleton className="h-8 w-3/4 mb-4" />
+                  <div className="space-y-3">
+                      <SkeletonStudentRow />
+                      <SkeletonStudentRow />
+                      <SkeletonStudentRow />
+                  </div>
+              </div>
+          </div>
+        </div>
       </main>
     );
   }
