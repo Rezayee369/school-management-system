@@ -147,7 +147,7 @@ export default function StudentDashboard() {
                 {classes.length > 0 ? (
                     <div className="space-y-4">
                         {classes.map(c => (
-                            <div key={c.id} className="p-4 bg-background/30 border border-muted/20 rounded-lg flex justify-between items-center">
+                            <div key={c.id} className="p-4 bg-background/30 border border-muted/20 rounded-lg flex justify-between items-center transition-all duration-300 hover:border-primary/50 hover:bg-primary/10">
                                 <div className="flex items-center gap-4">
                                     <BookOpen className="w-5 h-5 text-secondary" />
                                     <div>
