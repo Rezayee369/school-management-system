@@ -3,10 +3,9 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { collection, query, onSnapshot, orderBy, doc, writeBatch, where, getDocs, arrayRemove } from 'firebase/firestore';
-import { useFirestore, useAuth } from '@/firebase';
-import { signOut } from 'firebase/auth';
-import { UserPlus, Users, Briefcase, UserCircle, ArrowLeft, Trash2, LogOut, Pencil } from 'lucide-react';
+import { collection, query, onSnapshot, orderBy, doc, writeBatch, where, getDocs, getDoc, arrayRemove, deleteField } from 'firebase/firestore';
+import { useFirestore } from '@/firebase';
+import { UserPlus, Users, Briefcase, UserCircle, ArrowLeft, Trash2, Pencil } from 'lucide-react';
 import toast from 'react-hot-toast';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import { SkeletonListRow } from '@/components/Skeleton';
@@ -20,11 +19,11 @@ interface UserData {
 
 export default function AdminUsersPage() {
   const db = useFirestore();
-  const auth = useAuth();
   const router = useRouter();
   const [users, setUsers] = useState<UserData[]>([]);
   const [isLoadingUsers, setIsLoadingUsers] = useState(true);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
+  
   const [editingUser, setEditingUser] = useState<UserData | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
   const [updatedFullName, setUpdatedFullName] = useState('');
@@ -33,15 +32,9 @@ export default function AdminUsersPage() {
   const [userToDelete, setUserToDelete] = useState<UserData | null>(null);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
-  const handleLogout = async () => {
-    try {
-      await signOut(auth);
-      router.push('/login');
-    } catch (error) {
-      console.error('Logout Error:', error);
-      toast.error('Failed to log out.');
-    }
-  };
+  // For parent linking
+  const [allStudents, setAllStudents] = useState<UserData[]>([]);
+  const [linkedStudentIds, setLinkedStudentIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     const q = query(collection(db, 'users'), orderBy('createdAt', 'desc'));
@@ -61,14 +54,38 @@ export default function AdminUsersPage() {
     return () => unsubscribe();
   }, [db]);
 
-  const handleEditClick = (user: UserData) => {
+  const handleEditClick = async (user: UserData) => {
     if (user.role === 'admin') {
       toast.error("Admin users cannot be edited from this interface for security reasons.");
       return;
     }
+    
     setEditingUser(user);
     setUpdatedFullName(user.fullName);
     setUpdatedRole(user.role);
+
+    if (user.role === 'parent' || updatedRole === 'parent') {
+        if (allStudents.length === 0) {
+            const studentsQuery = query(collection(db, 'users'), where('role', '==', 'student'));
+            const querySnapshot = await getDocs(studentsQuery);
+            setAllStudents(querySnapshot.docs.map(d => ({ id: d.id, ...d.data() } as UserData)));
+        }
+    }
+    
+    const userDoc = await getDoc(doc(db, 'users', user.id));
+    setLinkedStudentIds(new Set(userDoc.data()?.studentIds || []));
+  };
+
+  const handleStudentLinkToggle = (studentId: string) => {
+    setLinkedStudentIds(prev => {
+        const newSet = new Set(prev);
+        if (newSet.has(studentId)) {
+            newSet.delete(studentId);
+        } else {
+            newSet.add(studentId);
+        }
+        return newSet;
+    });
   };
 
   const handleUpdateUser = async (e: React.FormEvent) => {
@@ -82,13 +99,19 @@ export default function AdminUsersPage() {
         const batch = writeBatch(db);
         const userDocRef = doc(db, 'users', editingUser.id);
         
-        const newUserData = {
+        const newUserData: { [key: string]: any } = {
             fullName: updatedFullName,
             role: updatedRole,
         };
+
+        if (updatedRole === 'parent') {
+            newUserData.studentIds = Array.from(linkedStudentIds);
+        } else if (editingUser.role === 'parent' && updatedRole !== 'parent') {
+            newUserData.studentIds = deleteField();
+        }
+
         batch.update(userDocRef, newUserData);
 
-        // If role changed FROM teacher, unassign from classes.
         if (editingUser.role === 'teacher' && updatedRole !== 'teacher') {
             const classesQuery = query(collection(db, 'classes'), where('teacherId', '==', editingUser.id));
             const snapshot = await getDocs(classesQuery);
@@ -97,7 +120,6 @@ export default function AdminUsersPage() {
             });
         }
         
-        // If role changed FROM student, unenroll from classes.
         if (editingUser.role === 'student' && updatedRole !== 'student') {
             const classesQuery = query(collection(db, 'classes'), where('studentIds', 'array-contains', editingUser.id));
             const snapshot = await getDocs(classesQuery);
@@ -106,7 +128,6 @@ export default function AdminUsersPage() {
             });
         }
 
-        // If teacher name changed, update it in their classes.
         if (editingUser.role === 'teacher' && updatedFullName !== editingUser.fullName) {
              const classesQuery = query(collection(db, 'classes'), where('teacherId', '==', editingUser.id));
              const snapshot = await getDocs(classesQuery);
@@ -150,7 +171,6 @@ export default function AdminUsersPage() {
     try {
         const batch = writeBatch(db);
 
-        // If user is a teacher, unassign them from any classes
         if (userToDelete.role === 'teacher') {
             const teacherClassesQuery = query(collection(db, 'classes'), where('teacherId', '==', userToDelete.id));
             const classesSnapshot = await getDocs(teacherClassesQuery);
@@ -159,7 +179,6 @@ export default function AdminUsersPage() {
             });
         }
 
-        // If user is a student, remove them from any classes they are enrolled in
         if (userToDelete.role === 'student') {
             const studentClassesQuery = query(collection(db, 'classes'), where('studentIds', 'array-contains', userToDelete.id));
             const classesSnapshot = await getDocs(studentClassesQuery);
@@ -168,7 +187,6 @@ export default function AdminUsersPage() {
             });
         }
         
-        // Delete the user document itself.
         const userDocRef = doc(db, 'users', userToDelete.id);
         batch.delete(userDocRef);
         
@@ -190,7 +208,6 @@ export default function AdminUsersPage() {
         <div className="w-full max-w-6xl">
           <div className="flex justify-between items-center mb-8">
             <div className="h-6 w-40 bg-muted/40 rounded-md animate-pulse"></div>
-            <div className="h-6 w-32 bg-muted/40 rounded-md animate-pulse"></div>
           </div>
           <div className="flex justify-between items-center mb-8">
             <div className="h-10 w-72 bg-muted/40 rounded-md animate-pulse"></div>
@@ -227,10 +244,6 @@ export default function AdminUsersPage() {
             <button onClick={() => router.back()} className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
                 <ArrowLeft size={18} />
                 <span>Back</span>
-            </button>
-            <button onClick={handleLogout} className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
-                <LogOut size={18} />
-                <span>Logout</span>
             </button>
         </div>
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
@@ -296,7 +309,7 @@ export default function AdminUsersPage() {
 
       {editingUser && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex justify-center items-center z-50 animate-fade-in-scale">
-          <div className="bg-background/80 border border-secondary/30 p-8 rounded-2xl shadow-2xl shadow-primary/10 w-full max-w-md m-4">
+          <div className="bg-background/80 border border-secondary/30 p-8 rounded-2xl shadow-2xl shadow-primary/10 w-full max-w-lg m-4">
             <h2 className="text-2xl font-bold text-foreground mb-1">Edit User</h2>
             <p className="text-muted-foreground mb-6">Editing profile for <span className="font-semibold text-secondary">{editingUser.fullName}</span></p>
             
@@ -325,6 +338,29 @@ export default function AdminUsersPage() {
                   <option value="parent">Parent</option>
                 </select>
               </div>
+
+              {updatedRole === 'parent' && (
+                <div>
+                    <label className="block text-sm font-medium text-muted-foreground mb-2">Linked Students</label>
+                    <div className="max-h-48 overflow-y-auto space-y-2 p-3 bg-background/70 border border-secondary/30 rounded-md">
+                        {allStudents.length > 0 ? allStudents.map(student => (
+                            <div key={student.id} className="flex items-center gap-3">
+                                <input
+                                    type="checkbox"
+                                    id={`student-${student.id}`}
+                                    checked={linkedStudentIds.has(student.id)}
+                                    onChange={() => handleStudentLinkToggle(student.id)}
+                                    className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer"
+                                />
+                                <label htmlFor={`student-${student.id}`} className="text-sm text-foreground cursor-pointer">
+                                    {student.fullName}
+                                </label>
+                            </div>
+                        )) : <p className="text-sm text-muted-foreground">No students available to link.</p>}
+                    </div>
+                </div>
+              )}
+
               <div className="flex justify-end gap-4 pt-4">
                 <button
                   type="button"

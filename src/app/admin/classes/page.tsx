@@ -4,9 +4,8 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { collection, addDoc, serverTimestamp, query, onSnapshot, orderBy, where, getDocs, deleteDoc, doc } from 'firebase/firestore';
-import { useFirestore, useAuth } from '@/firebase';
-import { signOut } from 'firebase/auth';
-import { ChevronRight, UserPlus, ArrowLeft, Trash2, LogOut, BookOpen } from 'lucide-react';
+import { useFirestore } from '@/firebase';
+import { ChevronRight, UserPlus, ArrowLeft, Trash2, BookOpen } from 'lucide-react';
 import toast from 'react-hot-toast';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import { Skeleton } from '@/components/Skeleton';
@@ -24,7 +23,6 @@ interface TeacherData {
 
 export default function AdminClassesPage() {
   const db = useFirestore();
-  const auth = useAuth();
   const router = useRouter();
   const [classes, setClasses] = useState<ClassData[]>([]);
   const [teachers, setTeachers] = useState<TeacherData[]>([]);
@@ -37,16 +35,6 @@ export default function AdminClassesPage() {
 
   const [classToDelete, setClassToDelete] = useState<ClassData | null>(null);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
-
-  const handleLogout = async () => {
-    try {
-      await signOut(auth);
-      router.push('/login');
-    } catch (error) {
-      console.error('Logout Error:', error);
-      toast.error('Failed to log out.');
-    }
-  };
 
   // Fetch Teachers
   useEffect(() => {
@@ -173,7 +161,6 @@ export default function AdminClassesPage() {
         <div className="w-full max-w-4xl">
           <div className="flex justify-between items-center mb-8">
             <Skeleton className="h-6 w-24" />
-            <Skeleton className="h-6 w-24" />
           </div>
           <Skeleton className="h-10 w-64 mb-8" />
 
@@ -208,10 +195,6 @@ export default function AdminClassesPage() {
             <button onClick={() => router.back()} className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
                 <ArrowLeft size={18} />
                 <span>Back</span>
-            </button>
-             <button onClick={handleLogout} className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
-                <LogOut size={18} />
-                <span>Logout</span>
             </button>
         </div>
         <h1 className="text-4xl font-bold text-foreground mb-8">Manage Classes</h1>

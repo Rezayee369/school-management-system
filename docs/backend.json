@@ -28,6 +28,13 @@
             "type": "string",
             "format": "uri",
             "description": "URL of the user's profile picture."
+        },
+        "studentIds": {
+            "type": "array",
+            "description": "For parent roles, this contains the UIDs of their linked children.",
+            "items": {
+                "type": "string"
+            }
         }
       },
       "required": ["fullName", "email", "role", "createdAt"]

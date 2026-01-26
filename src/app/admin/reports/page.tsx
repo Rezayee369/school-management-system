@@ -2,10 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useFirestore, useAuth } from '@/firebase';
+import { useFirestore } from '@/firebase';
 import { collection, getDocs } from 'firebase/firestore';
-import { ArrowLeft, LogOut, TrendingUp, UserX } from 'lucide-react';
-import { signOut } from 'firebase/auth';
+import { ArrowLeft, TrendingUp, UserX } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 // Data interfaces
@@ -45,22 +44,11 @@ const HIGH_ABSENCE_THRESHOLD = 3; // Let's set a threshold
 
 export default function AdminReportsPage() {
     const db = useFirestore();
-    const auth = useAuth();
     const router = useRouter();
 
     const [classReport, setClassReport] = useState<ClassReport[]>([]);
     const [highAbsenceReport, setHighAbsenceReport] = useState<HighAbsenceReport[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-
-    const handleLogout = async () => {
-        try {
-          await signOut(auth);
-          router.push('/login');
-        } catch (error) {
-          console.error('Logout Error:', error);
-          toast.error('Failed to log out.');
-        }
-    };
 
     useEffect(() => {
         const generateReports = async () => {
@@ -159,7 +147,6 @@ export default function AdminReportsPage() {
                 <div className="w-full max-w-7xl">
                     <div className="flex justify-between items-center mb-8">
                         <div className="h-6 w-40 bg-muted/40 rounded-md animate-pulse"></div>
-                        <div className="h-6 w-32 bg-muted/40 rounded-md animate-pulse"></div>
                     </div>
                     <div className="h-10 w-72 bg-muted/40 rounded-md animate-pulse mb-12"></div>
                     <div className="flex flex-col gap-12">
@@ -178,10 +165,6 @@ export default function AdminReportsPage() {
                     <button onClick={() => router.back()} className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
                         <ArrowLeft size={18} />
                         <span>Back</span>
-                    </button>
-                    <button onClick={handleLogout} className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
-                        <LogOut size={18} />
-                        <span>Logout</span>
                     </button>
                 </div>
                 <h1 className="text-4xl font-bold text-foreground mb-12">Analytics & Reports</h1>

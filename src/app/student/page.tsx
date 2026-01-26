@@ -7,7 +7,6 @@ import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { useState, useEffect } from 'react';
 import { BookOpen, CheckCircle, XCircle, MinusCircle, ClipboardCheck } from 'lucide-react';
 import PermissionDenied from '@/components/PermissionDenied';
-import { Calendar } from '@/components/ui/calendar';
 
 interface ClassData {
   id: string;
@@ -35,7 +34,6 @@ export default function StudentDashboard() {
   const [attendance, setAttendance] = useState<AttendanceData[]>([]);
   const [grades, setGrades] = useState<GradeData[]>([]);
   const [isLoadingData, setIsLoadingData] = useState(true);
-  const [date, setDate] = useState<Date | undefined>(new Date());
 
   useEffect(() => {
     if (isLoadingAuth || !isAuthorized || !user || !db) {

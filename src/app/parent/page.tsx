@@ -5,10 +5,9 @@ import { useAuthGuard } from '@/hooks/useAuthGuard';
 import DashboardHeader from '@/components/DashboardHeader';
 import PermissionDenied from '@/components/PermissionDenied';
 import { useUser, useFirestore } from '@/firebase';
+import { collection, doc, getDoc, onSnapshot, query, where, documentId, getDocs } from 'firebase/firestore';
 import { BookOpen, CheckCircle, XCircle, MinusCircle, Users, ClipboardCheck } from 'lucide-react';
 
-// NOTE: The current data model does not explicitly link parents to students.
-// The following interfaces and logic are placeholders for when that relationship is defined in Firestore.
 interface StudentData {
   id: string;
   name: string;
@@ -30,44 +29,81 @@ interface GradeData {
   assignmentScore: number;
 }
 
-
 export default function ParentDashboard() {
   const { isLoading: isLoadingAuth, isAuthorized, userRole } = useAuthGuard('parent');
   const user = useUser();
   const db = useFirestore();
 
+  const [isLoadingData, setIsLoadingData] = useState(true);
   const [linkedStudents, setLinkedStudents] = useState<StudentData[]>([]);
-  const [selectedStudent, setSelectedStudent] = useState<StudentData | null>(null);
+  const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
+
   const [classes, setClasses] = useState<ClassData[]>([]);
   const [attendance, setAttendance] = useState<AttendanceData[]>([]);
   const [grades, setGrades] = useState<GradeData[]>([]);
-  const [isLoadingData, setIsLoadingData] = useState(true);
 
+  // Effect to fetch the parent's linked students
   useEffect(() => {
-    if (isLoadingAuth || !isAuthorized || !user) {
-        if (!isLoadingAuth && !isAuthorized) setIsLoadingData(false);
+    if (!isAuthorized || !user || !db) {
+        if (!isLoadingAuth) setIsLoadingData(false);
         return;
-    };
-
-    // --- Placeholder Logic ---
-    // In a real application, you would fetch the parent's document,
-    // get an array of linked student UIDs, and then fetch those students' data.
-    // Since this link doesn't exist in the current schema, we'll simulate an empty state.
-    console.log("Parent Dashboard: Fetching linked student data (placeholder). No link in Firestore schema.");
-    setLinkedStudents([]);
-    setIsLoadingData(false);
-    
-    // Example of what fetching logic might look like:
-    /*
-    const parentRef = doc(db, 'users', user.uid);
-    const parentSnap = await getDoc(parentRef);
-    if (parentSnap.exists() && parentSnap.data().studentIds) {
-        const studentIds = parentSnap.data().studentIds;
-        // fetch student docs, classes, attendance, grades...
     }
-    */
 
-  }, [isLoadingAuth, isAuthorized, user, db]);
+    setIsLoadingData(true);
+    const parentRef = doc(db, 'users', user.uid);
+    const unsubscribe = onSnapshot(parentRef, async (snap) => {
+        if (snap.exists()) {
+            const studentIds = snap.data()?.studentIds || [];
+            if (studentIds.length > 0) {
+                const studentsQuery = query(collection(db, 'users'), where(documentId(), 'in', studentIds));
+                const studentSnaps = await getDocs(studentsQuery);
+                const studentsData = studentSnaps.docs.map(d => ({ id: d.id, name: d.data().fullName as string }));
+                setLinkedStudents(studentsData);
+                if (!selectedStudentId || !studentIds.includes(selectedStudentId)) {
+                    setSelectedStudentId(studentsData[0]?.id || null);
+                }
+            } else {
+                setLinkedStudents([]);
+                setSelectedStudentId(null);
+            }
+        }
+        setIsLoadingData(false);
+    });
+
+    return () => unsubscribe();
+  }, [isAuthorized, user, db]);
+
+  // Effect to fetch data for the selected student
+  useEffect(() => {
+    if (!selectedStudentId || !db) {
+      setClasses([]);
+      setAttendance([]);
+      setGrades([]);
+      return;
+    }
+
+    const unsubscribes: (() => void)[] = [];
+    
+    // Fetch classes
+    const classesQuery = query(collection(db, 'classes'), where('studentIds', 'array-contains', selectedStudentId));
+    unsubscribes.push(onSnapshot(classesQuery, (snapshot) => {
+        setClasses(snapshot.docs.map(d => ({ id: d.id, ...d.data() } as ClassData)));
+    }));
+
+    // Fetch attendance
+    const attendanceQuery = query(collection(db, 'attendance'), where('studentId', '==', selectedStudentId));
+    unsubscribes.push(onSnapshot(attendanceQuery, (snapshot) => {
+        setAttendance(snapshot.docs.map(d => d.data() as AttendanceData));
+    }));
+
+    // Fetch grades
+    const gradesQuery = query(collection(db, 'grades'), where('studentId', '==', selectedStudentId));
+    unsubscribes.push(onSnapshot(gradesQuery, (snapshot) => {
+        setGrades(snapshot.docs.map(d => d.data() as GradeData));
+    }));
+
+    return () => unsubscribes.forEach(unsub => unsub());
+  }, [selectedStudentId, db]);
 
   const attendanceSummary = attendance.reduce((acc, record) => {
     acc[record.status] = (acc[record.status] || 0) + 1;
@@ -81,6 +117,8 @@ export default function ParentDashboard() {
     if (avg >= 60) return 'text-orange-400';
     return 'text-red-400';
   }
+  
+  const selectedStudent = linkedStudents.find(s => s.id === selectedStudentId);
 
   if (isLoadingAuth || isLoadingData) {
     return (
@@ -101,10 +139,22 @@ export default function ParentDashboard() {
 
         {linkedStudents.length > 0 && selectedStudent ? (
            <>
-             {/* This part of the UI would render if students were linked */}
-             <h2 className="text-2xl font-semibold text-foreground mb-6">
-                Showing data for: <span className="text-primary">{selectedStudent.name}</span>
-             </h2>
+             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+                <h2 className="text-2xl font-semibold text-foreground">
+                    Showing data for: <span className="text-primary">{selectedStudent.name}</span>
+                </h2>
+                {linkedStudents.length > 1 && (
+                    <select
+                        value={selectedStudentId ?? ''}
+                        onChange={(e) => setSelectedStudentId(e.target.value)}
+                        className="w-full sm:w-auto px-4 py-2 appearance-none bg-background/50 text-foreground border border-secondary/30 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                    >
+                        {linkedStudents.map(student => (
+                            <option key={student.id} value={student.id}>{student.name}</option>
+                        ))}
+                    </select>
+                )}
+             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-12">
                 <div className="group p-6 bg-background/60 backdrop-blur-sm rounded-xl shadow-lg border border-green-500/30">
@@ -189,11 +239,11 @@ export default function ParentDashboard() {
             <Users className="mx-auto h-16 w-16 text-primary" />
             <h2 className="mt-6 text-2xl font-bold text-foreground">Welcome, Parent!</h2>
             <p className="mt-2 text-md text-muted-foreground max-w-prose mx-auto">
-              This is your dashboard where you will be able to see your child's classes and attendance records.
+              This is your dashboard where you will be able to see your child's classes, grades, and attendance records.
             </p>
             <div className="mt-6 p-4 bg-primary/10 rounded-lg">
                 <p className="text-primary/90">
-                    Currently, no students are linked to your account. An administrator will need to link your account to your child's profile.
+                    Currently, no students are linked to your account. An administrator must link your account to your child's profile before you can view their data.
                 </p>
             </div>
           </div>

@@ -7,9 +7,9 @@ import { firebaseConfig } from '@/firebase/config';
 import toast from 'react-hot-toast';
 
 import { initializeApp, deleteApp } from 'firebase/app';
-import { getAuth, createUserWithEmailAndPassword, signOut } from 'firebase/auth';
+import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
 import { setDoc, doc, serverTimestamp } from 'firebase/firestore';
-import { ArrowLeft, User, Mail, Lock, UserCheck, LogOut } from 'lucide-react';
+import { ArrowLeft, User, Mail, Lock, UserCheck } from 'lucide-react';
 
 export default function CreateUserPage() {
     const router = useRouter();
@@ -21,16 +21,6 @@ export default function CreateUserPage() {
     const [password, setPassword] = useState('');
     const [role, setRole] = useState('student');
     const [isLoading, setIsLoading] = useState(false);
-
-    const handleLogout = async () => {
-        try {
-          await signOut(auth);
-          router.push('/login');
-        } catch (error) {
-          console.error('Logout Error:', error);
-          toast.error('Failed to log out.');
-        }
-    };
 
     const handleCreateUser = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -56,6 +46,7 @@ export default function CreateUserPage() {
                 role: role,
                 createdAt: serverTimestamp(),
                 photoURL: null,
+                ...(role === 'parent' && { studentIds: [] })
             });
 
             toast.success('User created successfully!', { id: loadingToastId });
@@ -84,12 +75,6 @@ export default function CreateUserPage() {
                     <button onClick={() => router.back()} className="flex items-center gap-2 text-muted-foreground hover:text-foreground">
                         <ArrowLeft size={18} />
                         <span>Back</span>
-                    </button>
-                </div>
-                <div className="absolute top-8 right-8">
-                    <button onClick={handleLogout} className="flex items-center gap-2 text-muted-foreground hover:text-foreground">
-                        <LogOut size={18} />
-                        <span>Logout</span>
                     </button>
                 </div>
                 
