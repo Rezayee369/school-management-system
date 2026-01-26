@@ -13,7 +13,8 @@ import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { useAuth, useFirestore } from '@/firebase';
 import { Mail, Lock, GraduationCap } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { useTranslation, Language } from '@/i18n';
+import { useTranslation } from '@/i18n';
+import LanguageSwitcher from '@/components/LanguageSwitcher';
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="24px" height="24px" {...props}>
@@ -32,7 +33,7 @@ export default function LoginPage() {
   const router = useRouter();
   const auth = useAuth();
   const db = useFirestore();
-  const { language, setLanguage, t } = useTranslation();
+  const { t } = useTranslation();
 
   const handleSuccessfulLogin = async (user: User) => {
     try {
@@ -136,16 +137,8 @@ export default function LoginPage() {
       
       <div className="relative z-10 flex min-h-screen items-center justify-center p-4">
         <div className="w-full max-w-md animate-fade-in-slide-up space-y-8">
-            <div className="absolute top-4 start-4 end-4 flex justify-center gap-2">
-                {(['en', 'fa', 'ps'] as Language[]).map(lang => (
-                    <button 
-                        key={lang}
-                        onClick={() => setLanguage(lang)}
-                        className={`px-3 py-1 text-sm rounded-md transition-colors ${language === lang ? 'bg-primary text-primary-foreground' : 'bg-background/50 text-foreground'}`}
-                    >
-                        {lang.toUpperCase()}
-                    </button>
-                ))}
+            <div className="absolute top-4 end-4">
+                <LanguageSwitcher />
             </div>
 
           <div className="rounded-2xl bg-background/60 backdrop-blur-lg border border-secondary/20 shadow-2xl shadow-secondary/10 p-8 mt-16">
