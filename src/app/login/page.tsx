@@ -157,7 +157,7 @@ export default function LoginPage() {
 
             <form onSubmit={handleEmailLogin} className="space-y-6">
               <div className="relative">
-                <Mail className="absolute start-4 top-1/2 -translate-y-1/2 text-secondary/60 w-5 h-5" />
+                <Mail className="absolute top-1/2 -translate-y-1/2 text-secondary/60 w-5 h-5 left-4 rtl:left-auto rtl:right-4" />
                 <input
                   id="email"
                   name="email"
@@ -168,12 +168,12 @@ export default function LoginPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder={t('login.emailPlaceholder')}
                   disabled={isLoading}
-                  className="w-full ps-12 pe-4 py-3 rounded-xl bg-background/50 text-foreground placeholder-gray-400 focus:ring-2 focus:ring-ring focus:outline-none border border-secondary/30 transition-all duration-300"
+                  className="w-full py-3 rounded-xl bg-background/50 text-foreground placeholder-gray-400 focus:ring-2 focus:ring-ring focus:outline-none border border-secondary/30 transition-all duration-300 pl-12 pr-4 rtl:pr-12 rtl:pl-4"
                 />
               </div>
 
               <div className="relative">
-                <Lock className="absolute start-4 top-1/2 -translate-y-1/2 text-secondary/60 w-5 h-5" />
+                <Lock className="absolute top-1/2 -translate-y-1/2 text-secondary/60 w-5 h-5 left-4 rtl:left-auto rtl:right-4" />
                 <input
                   id="password"
                   name="password"
@@ -184,7 +184,7 @@ export default function LoginPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder={t('login.passwordPlaceholder')}
                   disabled={isLoading}
-                  className="w-full ps-12 pe-4 py-3 rounded-xl bg-background/50 text-foreground placeholder-gray-400 focus:ring-2 focus:ring-ring focus:outline-none border border-secondary/30 transition-all duration-300"
+                  className="w-full py-3 rounded-xl bg-background/50 text-foreground placeholder-gray-400 focus:ring-2 focus:ring-ring focus:outline-none border border-secondary/30 transition-all duration-300 pl-12 pr-4 rtl:pr-12 rtl:pl-4"
                 />
               </div>
 
