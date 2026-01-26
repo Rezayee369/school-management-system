@@ -7,6 +7,7 @@ import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { useState, useEffect } from 'react';
 import { BookOpen, CheckCircle, XCircle, MinusCircle } from 'lucide-react';
 import PermissionDenied from '@/components/PermissionDenied';
+import { Calendar } from '@/components/ui/calendar';
 
 interface ClassData {
   id: string;
@@ -27,6 +28,7 @@ export default function StudentDashboard() {
   const [classes, setClasses] = useState<ClassData[]>([]);
   const [attendance, setAttendance] = useState<AttendanceData[]>([]);
   const [isLoadingData, setIsLoadingData] = useState(true);
+  const [date, setDate] = useState<Date | undefined>(new Date());
 
   useEffect(() => {
     if (isLoadingAuth || !isAuthorized || !user) {
@@ -81,14 +83,17 @@ export default function StudentDashboard() {
             <div className="h-28 bg-muted/40 rounded-xl animate-pulse"></div>
           </div>
 
-          {/* My Classes Skeleton */}
-          <div className="mt-12">
-            <div className="h-8 w-48 bg-muted/40 rounded-md animate-pulse mb-6"></div>
+          {/* Schedule/Calendar Skeleton */}
+          <div className="mt-12 grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2 p-6 bg-background/60 backdrop-blur-sm border border-primary/30 rounded-xl shadow-lg flex justify-center items-center">
+                <div className="w-full h-72 bg-muted/30 rounded-lg animate-pulse"></div>
+            </div>
             <div className="p-6 bg-background/60 backdrop-blur-sm border border-secondary/30 rounded-xl shadow-lg">
-              <div className="space-y-4">
-                <div className="h-20 bg-muted/30 rounded-lg animate-pulse"></div>
-                <div className="h-20 bg-muted/30 rounded-lg animate-pulse"></div>
-              </div>
+                <div className="h-6 w-40 bg-muted/40 rounded-md animate-pulse mb-4"></div>
+                <div className="space-y-4">
+                  <div className="h-16 bg-muted/30 rounded-lg animate-pulse"></div>
+                  <div className="h-16 bg-muted/30 rounded-lg animate-pulse"></div>
+                </div>
             </div>
           </div>
         </div>
@@ -148,26 +153,35 @@ export default function StudentDashboard() {
         </div>
 
 
-        {/* My Classes */}
-        <div className="mt-12">
-             <h2 className="text-2xl font-semibold text-foreground mb-6">My Classes</h2>
-             <div className="p-6 bg-background/60 backdrop-blur-sm border border-secondary/30 rounded-xl shadow-lg">
+        {/* Schedule/Calendar Section */}
+        <div className="mt-12 grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2 p-4 sm:p-6 bg-background/60 backdrop-blur-sm border border-primary/30 rounded-xl shadow-lg flex justify-center items-center">
+                <Calendar
+                    mode="single"
+                    selected={date}
+                    onSelect={setDate}
+                    className="rounded-md"
+                />
+            </div>
+
+            <div className="p-6 bg-background/60 backdrop-blur-sm border border-secondary/30 rounded-xl shadow-lg">
+                <h3 className="text-xl font-semibold text-foreground mb-4">
+                    Today's Classes
+                </h3>
                 {classes.length > 0 ? (
-                    <div className="space-y-4">
+                    <div className="space-y-4 max-h-[40vh] overflow-y-auto pr-2">
                         {classes.map(c => (
-                            <div key={c.id} className="p-4 bg-background/30 border border-muted/20 rounded-lg flex justify-between items-center transition-all duration-300 hover:border-primary/50 hover:bg-primary/10">
-                                <div className="flex items-center gap-4">
-                                    <BookOpen className="w-5 h-5 text-secondary" />
-                                    <div>
-                                        <p className="text-lg text-foreground/90 font-semibold">{c.name}</p>
-                                        <p className="text-sm text-muted-foreground">Teacher: {c.teacherName}</p>
-                                    </div>
+                            <div key={c.id} className="p-3 bg-background/30 border border-muted/20 rounded-lg flex items-center gap-3 transition-all duration-300 hover:border-secondary/50 hover:bg-secondary/10">
+                                <BookOpen className="w-5 h-5 text-secondary flex-shrink-0" />
+                                <div>
+                                    <p className="text-md text-foreground/90 font-semibold">{c.name}</p>
+                                    <p className="text-xs text-muted-foreground">Teacher: {c.teacherName}</p>
                                 </div>
                             </div>
                         ))}
                     </div>
                 ) : (
-                    <p className="text-muted-foreground text-center py-4">You are not enrolled in any classes yet.</p>
+                    <p className="text-muted-foreground text-center py-4">You are not enrolled in any classes.</p>
                 )}
             </div>
         </div>
