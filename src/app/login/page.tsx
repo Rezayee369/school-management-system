@@ -23,13 +23,63 @@ const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
     </svg>
 );
 
+const translations = {
+    en: {
+        portalAccess: "Portal Access",
+        portalSubTitle: "Securely sign in to your account",
+        emailPlaceholder: "Email Address",
+        passwordPlaceholder: "Password",
+        signIn: "Sign In",
+        authenticating: "Authenticating...",
+        orContinueWith: "Or Continue With",
+        signInWithGoogle: "Sign in with Google",
+        signingIn: "Signing in...",
+        roleInvalid: (role: string) => `Login successful, but role ('${role || 'not set'}') is invalid. Contact admin.`,
+        noProfile: 'Login successful, but no user profile found in database. Contact admin.',
+        postLoginError: (message: string) => `Post-login error: ${message}. Signing out.`,
+    },
+    fa: {
+        portalAccess: "دسترسی به پورتال",
+        portalSubTitle: "به صورت امن وارد حساب کاربری خود شوید",
+        emailPlaceholder: "آدرس ایمیل",
+        passwordPlaceholder: "رمز عبور",
+        signIn: "ورود",
+        authenticating: "در حال احراز هویت...",
+        orContinueWith: "یا ادامه با",
+        signInWithGoogle: "ورود با گوگل",
+        signingIn: "در حال ورود...",
+        roleInvalid: (role: string) => `ورود موفقیت‌آمیز بود، اما نقش ('${role || 'تعیین نشده'}') نامعتبر است. با مدیر تماس بگیرید.`,
+        noProfile: 'ورود موفقیت‌آمیز بود، اما پروفایل کاربری در پایگاه داده یافت نشد. با مدیر تماس بگیرید.',
+        postLoginError: (message: string) => `خطا پس از ورود: ${message}. در حال خروج.`,
+    },
+    ps: {
+        portalAccess: "پورټل ته لاسرسی",
+        portalSubTitle: "په خوندي ډول خپل حساب ته ننوځئ",
+        emailPlaceholder: "برېښنالیک پته",
+        passwordPlaceholder: "پټ نوم",
+        signIn: "ننوتل",
+        authenticating: "د تصدیق په حال کې...",
+        orContinueWith: "یا سره ادامه ورکړئ",
+        signInWithGoogle: "د ګوګل سره ننوتل",
+        signingIn: "د ننوتلو په حال کې...",
+        roleInvalid: (role: string) => `ننوتل بریالي وو، خو رول ('${role || 'ندی ټاکل شوی'}') ناسم دی. له مدیر سره اړیکه ونیسئ.`,
+        noProfile: 'ننوتل بریالي وو، خو په ډیټابیس کې د کارن پروفایل ونه موندل شو. له مدیر سره اړیکه ونیسئ.',
+        postLoginError: (message: string) => `له ننوتلو وروسته تېروتنه: ${message}. د وتلو په حال کې.`,
+    }
+};
+
+type Language = keyof typeof translations;
+
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [language, setLanguage] = useState<Language>('en');
   const router = useRouter();
   const auth = useAuth();
   const db = useFirestore();
+
+  const t = translations[language];
 
   const handleSuccessfulLogin = async (user: User) => {
     try {
@@ -54,17 +104,17 @@ export default function LoginPage() {
             router.replace('/parent');
             break;
           default:
-            toast.error(`Login successful, but role ('${role || 'not set'}') is invalid. Contact admin.`);
+            toast.error(t.roleInvalid(role));
             await signOut(auth);
             break;
         }
       } else {
-        toast.error('Login successful, but no user profile found in database. Contact admin.');
+        toast.error(t.noProfile);
         await signOut(auth);
       }
     } catch (error: any) {
       console.error("Error fetching user data after login:", error);
-      toast.error(`Post-login error: ${error.message}. Signing out.`);
+      toast.error(t.postLoginError(error.message));
       await signOut(auth);
       throw error; // Re-throw to be caught by the caller's catch block
     }
@@ -84,13 +134,9 @@ export default function LoginPage() {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       await handleSuccessfulLogin(userCredential.user);
     } catch (error: any) {
-      // Log the full error to the console for detailed debugging
       console.error("Login process failed:", error);
-      
-      // Post-login errors from handleSuccessfulLogin show their own toasts.
-      // This catch block will only show a toast for direct authentication errors.
-      if (error.code && typeof error.code === 'string' && error.code.startsWith('auth/')) {
-        toast.error(error.message);
+      if (error.code && typeof error.code === 'string') {
+        toast.error(`Error: ${error.code} - ${error.message}`);
       }
     } finally {
       setIsLoading(false);
@@ -108,7 +154,6 @@ export default function LoginPage() {
       const userDoc = await getDoc(userDocRef);
 
       if (!userDoc.exists()) {
-        // If it's a new user via Google, create their student profile.
         await setDoc(userDocRef, {
           fullName: user.displayName,
           email: user.email,
@@ -118,12 +163,9 @@ export default function LoginPage() {
         });
       }
       
-      // For both new and existing users, run the full login/redirect logic.
       await handleSuccessfulLogin(user);
 
     } catch (error: any) {
-      // Post-login errors are handled in handleSuccessfulLogin.
-      // This will catch auth errors (like popup closed) or Firestore errors if they happen here.
       if (error.code !== 'auth/popup-closed-by-user') {
         console.error("Google Sign-In Error: ", error);
         toast.error(error.message || 'An error occurred during Google Sign-In.');
@@ -134,7 +176,7 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="relative min-h-screen w-full overflow-hidden bg-background">
+    <main className="relative min-h-screen w-full overflow-hidden bg-background" dir={language === 'en' ? 'ltr' : 'rtl'}>
       <div className="absolute top-0 left-0 w-full h-full z-0">
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/20 rounded-full filter blur-3xl animate-blob opacity-30"></div>
         <div className="absolute top-1/2 right-1/4 w-96 h-96 bg-secondary/20 rounded-full filter blur-3xl animate-blob animation-delay-2000 opacity-30"></div>
@@ -143,23 +185,35 @@ export default function LoginPage() {
       
       <div className="relative z-10 flex min-h-screen items-center justify-center p-4">
         <div className="w-full max-w-md animate-fade-in-slide-up space-y-8">
-          <div className="rounded-2xl bg-background/60 backdrop-blur-lg border border-secondary/20 shadow-2xl shadow-secondary/10 p-8">
+            <div className="absolute top-4 left-4 right-4 flex justify-center gap-2">
+                {(['en', 'fa', 'ps'] as Language[]).map(lang => (
+                    <button 
+                        key={lang}
+                        onClick={() => setLanguage(lang)}
+                        className={`px-3 py-1 text-sm rounded-md transition-colors ${language === lang ? 'bg-primary text-primary-foreground' : 'bg-background/50 text-foreground'}`}
+                    >
+                        {lang.toUpperCase()}
+                    </button>
+                ))}
+            </div>
+
+          <div className="rounded-2xl bg-background/60 backdrop-blur-lg border border-secondary/20 shadow-2xl shadow-secondary/10 p-8 mt-16">
 
             <div className="flex flex-col items-center mb-6">
               <div className="w-16 h-16 rounded-full bg-gradient-to-br from-secondary to-primary flex items-center justify-center mb-4 ring-2 ring-secondary/50">
                 <GraduationCap className="text-white w-8 h-8" />
               </div>
               <h1 className="text-center text-3xl font-bold text-foreground tracking-wider">
-                Portal Access
+                {t.portalAccess}
               </h1>
               <p className="text-center text-sm text-secondary/80 mt-2">
-                Securely sign in to your account
+                {t.portalSubTitle}
               </p>
             </div>
 
             <form onSubmit={handleEmailLogin} className="space-y-6">
               <div className="relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-secondary/60 w-5 h-5" />
+                <Mail className="absolute start-4 top-1/2 -translate-y-1/2 text-secondary/60 w-5 h-5" />
                 <input
                   id="email"
                   name="email"
@@ -168,14 +222,14 @@ export default function LoginPage() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Email Address"
+                  placeholder={t.emailPlaceholder}
                   disabled={isLoading}
-                  className="w-full pl-12 pr-4 py-3 rounded-xl bg-background/50 text-foreground placeholder-gray-400 focus:ring-2 focus:ring-ring focus:outline-none border border-secondary/30 transition-all duration-300"
+                  className="w-full ps-12 pe-4 py-3 rounded-xl bg-background/50 text-foreground placeholder-gray-400 focus:ring-2 focus:ring-ring focus:outline-none border border-secondary/30 transition-all duration-300"
                 />
               </div>
 
               <div className="relative">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-secondary/60 w-5 h-5" />
+                <Lock className="absolute start-4 top-1/2 -translate-y-1/2 text-secondary/60 w-5 h-5" />
                 <input
                   id="password"
                   name="password"
@@ -184,9 +238,9 @@ export default function LoginPage() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Password"
+                  placeholder={t.passwordPlaceholder}
                   disabled={isLoading}
-                  className="w-full pl-12 pr-4 py-3 rounded-xl bg-background/50 text-foreground placeholder-gray-400 focus:ring-2 focus:ring-ring focus:outline-none border border-secondary/30 transition-all duration-300"
+                  className="w-full ps-12 pe-4 py-3 rounded-xl bg-background/50 text-foreground placeholder-gray-400 focus:ring-2 focus:ring-ring focus:outline-none border border-secondary/30 transition-all duration-300"
                 />
               </div>
 
@@ -197,15 +251,15 @@ export default function LoginPage() {
                 {isLoading ? (
                     <>
                         <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                        <span>Authenticating...</span>
+                        <span>{t.authenticating}</span>
                     </>
-                ) : 'Sign In'}
+                ) : t.signIn}
               </button>
             </form>
 
             <div className="relative flex items-center py-6">
               <div className="flex-grow border-t border-secondary/20"></div>
-              <span className="mx-4 flex-shrink text-xs text-gray-400 uppercase">Or Continue With</span>
+              <span className="mx-4 flex-shrink text-xs text-gray-400 uppercase">{t.orContinueWith}</span>
               <div className="flex-grow border-t border-secondary/20"></div>
             </div>
 
@@ -218,12 +272,12 @@ export default function LoginPage() {
               {isLoading ? (
                   <>
                       <div className="w-5 h-5 border-2 border-gray-200 border-t-transparent rounded-full animate-spin"></div>
-                      <span>Signing in...</span>
+                      <span>{t.signingIn}</span>
                   </>
               ) : (
                   <>
                       <GoogleIcon />
-                      <span>Sign in with Google</span>
+                      <span>{t.signInWithGoogle}</span>
                   </>
               )}
             </button>
