@@ -19,6 +19,10 @@ service cloud.firestore {
       return request.auth != null && getUserRole(request.auth.uid) == 'teacher';
     }
 
+    function isParent() {
+      return request.auth != null && getUserRole(request.auth.uid) == 'parent';
+    }
+
     match /users/{userId} {
       // Admins can read and write any user document.
       allow read, write: if isAdmin();
@@ -49,6 +53,21 @@ service cloud.firestore {
       allow update: if isAdmin() || (isTeacher() && resource.data.teacherId == request.auth.uid);
       // Only Admins can delete records.
       allow delete: if isAdmin();
+    }
+
+    match /grades/{gradeId} {
+      // Admins can read/write any grade.
+      allow read, write: if isAdmin();
+      
+      // Teachers can create/update grades for their own classes.
+      allow create, update: if isTeacher() && request.resource.data.teacherId == request.auth.uid;
+      
+      // Teachers can read grades for their classes.
+      // Students can read their own grades.
+      // Parents can read grades for their linked children (assumes `studentIds` field on parent's user doc).
+      allow read: if (isTeacher() && resource.data.teacherId == request.auth.uid) || 
+                   (request.auth != null && resource.data.studentId == request.auth.uid) ||
+                   (isParent() && resource.data.studentId in get(/databases/$(database)/documents/users/$(request.auth.uid)).data.studentIds);
     }
   }
 }

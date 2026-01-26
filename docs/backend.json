@@ -85,6 +85,25 @@
         }
       },
       "required": ["classId", "studentId", "teacherId", "date", "status", "markedAt"]
+    },
+    "Grade": {
+      "title": "Grade",
+      "description": "Represents a grade record for a student in a specific class.",
+      "type": "object",
+      "properties": {
+        "classId": { "type": "string" },
+        "className": { "type": "string" },
+        "studentId": { "type": "string" },
+        "studentName": { "type": "string" },
+        "teacherId": { "type": "string" },
+        "examScore": { "type": "number", "minimum": 0, "maximum": 100 },
+        "assignmentScore": { "type": "number", "minimum": 0, "maximum": 100 },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["classId", "studentId", "teacherId", "examScore", "assignmentScore", "updatedAt"]
     }
   },
   "auth": {
@@ -108,6 +127,12 @@
         "$ref": "#/backend/entities/Attendance"
       },
       "description": "Stores all attendance records for all classes."
+    },
+    "/grades/{gradeId}": {
+      "schema": {
+        "$ref": "#/backend/entities/Grade"
+      },
+      "description": "Stores grade records for students. The gradeId is a composite of classId_studentId."
     }
   }
 }

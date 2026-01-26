@@ -5,7 +5,7 @@ import DashboardHeader from '@/components/DashboardHeader';
 import { useUser, useFirestore } from '@/firebase';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { useState, useEffect } from 'react';
-import { BookOpen, CheckCircle, XCircle, MinusCircle } from 'lucide-react';
+import { BookOpen, CheckCircle, XCircle, MinusCircle, ClipboardCheck } from 'lucide-react';
 import PermissionDenied from '@/components/PermissionDenied';
 import { Calendar } from '@/components/ui/calendar';
 
@@ -20,6 +20,12 @@ interface AttendanceData {
   date: string; // YYYY-MM-DD
 }
 
+interface GradeData {
+  className: string;
+  examScore: number;
+  assignmentScore: number;
+}
+
 export default function StudentDashboard() {
   const { isLoading: isLoadingAuth, isAuthorized, userRole } = useAuthGuard('student');
   const user = useUser();
@@ -27,11 +33,12 @@ export default function StudentDashboard() {
 
   const [classes, setClasses] = useState<ClassData[]>([]);
   const [attendance, setAttendance] = useState<AttendanceData[]>([]);
+  const [grades, setGrades] = useState<GradeData[]>([]);
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [date, setDate] = useState<Date | undefined>(new Date());
 
   useEffect(() => {
-    if (isLoadingAuth || !isAuthorized || !user) {
+    if (isLoadingAuth || !isAuthorized || !user || !db) {
         if (!isLoadingAuth && !isAuthorized) setIsLoadingData(false);
         return;
     };
@@ -44,10 +51,10 @@ export default function StudentDashboard() {
         ...doc.data(),
       } as ClassData));
       setClasses(classesData);
-      setIsLoadingData(false);
+      if(isLoadingData) setIsLoadingData(false);
     }, (error) => {
       console.error("Error fetching classes:", error);
-      setIsLoadingData(false);
+      if(isLoadingData) setIsLoadingData(false);
     });
 
     // Fetch attendance records for the student
@@ -57,10 +64,18 @@ export default function StudentDashboard() {
       setAttendance(attendanceData);
     });
 
+    // Fetch grades for the student
+    const gradesQuery = query(collection(db, 'grades'), where('studentId', '==', user.uid));
+    const unsubscribeGrades = onSnapshot(gradesQuery, (snapshot) => {
+        const gradesData = snapshot.docs.map(doc => doc.data() as GradeData);
+        setGrades(gradesData);
+    });
+
 
     return () => {
       unsubscribeClasses();
       unsubscribeAttendance();
+      unsubscribeGrades();
     };
   }, [isLoadingAuth, isAuthorized, user, db]);
 
@@ -76,25 +91,15 @@ export default function StudentDashboard() {
         <div className="w-full max-w-7xl">
           <DashboardHeader userRole="student" />
           
-          {/* Attendance Summary Skeleton */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-12">
             <div className="h-28 bg-muted/40 rounded-xl animate-pulse"></div>
             <div className="h-28 bg-muted/40 rounded-xl animate-pulse"></div>
             <div className="h-28 bg-muted/40 rounded-xl animate-pulse"></div>
           </div>
-
-          {/* Schedule/Calendar Skeleton */}
-          <div className="mt-12 grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2 p-6 bg-background/60 backdrop-blur-sm border border-primary/30 rounded-xl shadow-lg flex justify-center items-center">
-                <div className="w-full h-72 bg-muted/30 rounded-lg animate-pulse"></div>
-            </div>
-            <div className="p-6 bg-background/60 backdrop-blur-sm border border-secondary/30 rounded-xl shadow-lg">
-                <div className="h-6 w-40 bg-muted/40 rounded-md animate-pulse mb-4"></div>
-                <div className="space-y-4">
-                  <div className="h-16 bg-muted/30 rounded-lg animate-pulse"></div>
-                  <div className="h-16 bg-muted/30 rounded-lg animate-pulse"></div>
-                </div>
-            </div>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-12">
+            <div className="h-72 bg-muted/40 rounded-xl animate-pulse"></div>
+            <div className="h-72 bg-muted/40 rounded-xl animate-pulse"></div>
           </div>
         </div>
       </main>
@@ -105,14 +110,20 @@ export default function StudentDashboard() {
     return <PermissionDenied userRole={userRole} />;
   }
 
+  const getAverageColor = (avg: number) => {
+    if (avg >= 90) return 'text-primary';
+    if (avg >= 80) return 'text-green-400';
+    if (avg >= 70) return 'text-yellow-400';
+    if (avg >= 60) return 'text-orange-400';
+    return 'text-red-400';
+  }
+
   return (
     <main className="flex min-h-screen flex-col items-center p-8 sm:p-12 bg-background text-foreground">
       <div className="w-full max-w-7xl animate-fade-in-slide-up">
         <DashboardHeader userRole="student" />
         
-        {/* Attendance Summary */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-12">
-            {/* Present Card */}
             <div className="group p-6 bg-background/60 backdrop-blur-sm rounded-xl shadow-lg border border-green-500/30 transition-all duration-300 hover:border-green-500 hover:shadow-xl hover:shadow-green-500/20 hover:-translate-y-1">
                 <div className="flex items-start justify-between">
                     <div>
@@ -124,8 +135,6 @@ export default function StudentDashboard() {
                     </div>
                 </div>
             </div>
-            
-            {/* Absent Card */}
             <div className="group p-6 bg-background/60 backdrop-blur-sm rounded-xl shadow-lg border border-red-500/30 transition-all duration-300 hover:border-red-500 hover:shadow-xl hover:shadow-red-500/20 hover:-translate-y-1">
                 <div className="flex items-start justify-between">
                     <div>
@@ -137,8 +146,6 @@ export default function StudentDashboard() {
                     </div>
                 </div>
             </div>
-
-            {/* Leave Card */}
             <div className="group p-6 bg-background/60 backdrop-blur-sm rounded-xl shadow-lg border border-yellow-500/30 transition-all duration-300 hover:border-yellow-500 hover:shadow-xl hover:shadow-yellow-500/20 hover:-translate-y-1">
                 <div className="flex items-start justify-between">
                     <div>
@@ -152,21 +159,31 @@ export default function StudentDashboard() {
             </div>
         </div>
 
-
-        {/* Schedule/Calendar Section */}
-        <div className="mt-12 grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2 p-4 sm:p-6 bg-background/60 backdrop-blur-sm border border-primary/30 rounded-xl shadow-lg flex justify-center items-center">
-                <Calendar
-                    mode="single"
-                    selected={date}
-                    onSelect={setDate}
-                    className="rounded-md"
-                />
+        <div className="mt-12 grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="p-6 bg-background/60 backdrop-blur-sm border border-secondary/30 rounded-xl shadow-lg">
+                <div className="flex items-center gap-3 mb-4">
+                    <ClipboardCheck className="w-6 h-6 text-secondary"/>
+                    <h3 className="text-xl font-semibold text-foreground">My Grades</h3>
+                </div>
+                <div className="space-y-2 max-h-[40vh] overflow-y-auto pr-2">
+                    {grades.length > 0 ? grades.map((grade, i) => {
+                        const avg = (grade.examScore + grade.assignmentScore) / 2;
+                        return (
+                            <div key={i} className="grid grid-cols-4 items-center p-3 bg-background/30 border-b border-muted/20">
+                                <p className="col-span-2 font-medium text-foreground/90">{grade.className}</p>
+                                <p className="text-center text-muted-foreground">{grade.examScore}</p>
+                                <p className={`text-right font-bold ${getAverageColor(avg)}`}>{avg.toFixed(1)}%</p>
+                            </div>
+                        )
+                    }) : (
+                         <p className="text-muted-foreground text-center py-4">No grades have been posted yet.</p>
+                    )}
+                </div>
             </div>
 
             <div className="p-6 bg-background/60 backdrop-blur-sm border border-secondary/30 rounded-xl shadow-lg">
                 <h3 className="text-xl font-semibold text-foreground mb-4">
-                    Today's Classes
+                    My Classes
                 </h3>
                 {classes.length > 0 ? (
                     <div className="space-y-4 max-h-[40vh] overflow-y-auto pr-2">

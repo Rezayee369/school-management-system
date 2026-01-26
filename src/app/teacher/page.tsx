@@ -6,7 +6,7 @@ import DashboardHeader from '@/components/DashboardHeader';
 import Link from 'next/link';
 import { useFirestore, useUser } from '@/firebase';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
-import { BookOpen, Users, ChevronRight } from 'lucide-react';
+import { BookOpen, Users, ClipboardEdit, Calendar } from 'lucide-react';
 import PermissionDenied from '@/components/PermissionDenied';
 
 interface ClassData {
@@ -82,24 +82,30 @@ export default function TeacherDashboard() {
                 {classes.length > 0 ? (
                     <div className="space-y-4">
                         {classes.map(c => (
-                             <Link key={c.id} href={`/teacher/classes/${c.id}/attendance`} className="block group">
-                                <div className="p-4 bg-background/30 border border-muted/20 rounded-lg flex flex-col md:flex-row justify-between md:items-center gap-4 transition-all duration-300 group-hover:border-primary/50 group-hover:bg-primary/10">
-                                    <div className="flex items-center gap-4">
-                                        <BookOpen className="w-5 h-5 text-secondary" />
+                            <div key={c.id} className="p-4 bg-background/30 border border-muted/20 rounded-lg flex flex-col md:flex-row justify-between md:items-center gap-4">
+                                <div className="flex items-center gap-4">
+                                    <BookOpen className="w-5 h-5 text-secondary" />
+                                    <div>
                                         <p className="text-lg text-foreground/90 font-semibold">{c.name}</p>
-                                    </div>
-                                    <div className="flex flex-col sm:flex-row sm:items-center w-full md:w-auto justify-between gap-4">
-                                        <div className="flex items-center gap-2 text-muted-foreground">
-                                            <Users className="w-5 h-5" />
+                                        <div className="flex items-center gap-2 text-muted-foreground text-sm">
+                                            <Users className="w-4 h-4" />
                                             <span>{c.studentIds?.length || 0} Students</span>
-                                        </div>
-                                        <div className="flex items-center gap-1 text-primary opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                                            <span>Mark Attendance</span>
-                                            <ChevronRight className="w-5 h-5" />
                                         </div>
                                     </div>
                                 </div>
-                            </Link>
+                                <div className="flex items-center justify-end gap-2">
+                                    <Link href={`/teacher/classes/${c.id}/grades`}>
+                                        <button className="flex items-center gap-2 px-3 py-1.5 text-sm font-semibold text-secondary border border-secondary/50 rounded-md hover:bg-secondary/10 transition-colors">
+                                            <ClipboardEdit size={16} /> Grades
+                                        </button>
+                                    </Link>
+                                    <Link href={`/teacher/classes/${c.id}/attendance`}>
+                                        <button className="flex items-center gap-2 px-3 py-1.5 text-sm font-semibold text-primary border border-primary/50 rounded-md hover:bg-primary/10 transition-colors">
+                                            <Calendar size={16} /> Attendance
+                                        </button>
+                                    </Link>
+                                </div>
+                            </div>
                         ))}
                     </div>
                 ) : (
