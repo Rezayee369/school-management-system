@@ -32,36 +32,41 @@ export default function LoginPage() {
   const db = useFirestore();
 
   const handleSuccessfulLogin = async (user: User) => {
-    const userDocRef = doc(db, 'users', user.uid);
-    const userDoc = await getDoc(userDocRef);
+    try {
+      const userDocRef = doc(db, 'users', user.uid);
+      const userDoc = await getDoc(userDocRef);
 
-    if (userDoc.exists()) {
-      const userData = userDoc.data();
-      const role = userData.role;
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        const role = userData.role;
 
-      switch (role) {
-        case 'admin':
-          router.replace('/admin');
-          break;
-        case 'teacher':
-          router.replace('/teacher');
-          break;
-        case 'student':
-          router.replace('/student');
-          break;
-        case 'parent':
-          router.replace('/parent');
-          break;
-        default:
-          toast.error('User role not found. Please contact an administrator.');
-          await signOut(auth);
-          break;
+        switch (role) {
+          case 'admin':
+            router.replace('/admin');
+            break;
+          case 'teacher':
+            router.replace('/teacher');
+            break;
+          case 'student':
+            router.replace('/student');
+            break;
+          case 'parent':
+            router.replace('/parent');
+            break;
+          default:
+            toast.error(`Login successful, but role ('${role || 'not set'}') is invalid. Contact admin.`);
+            await signOut(auth);
+            break;
+        }
+      } else {
+        toast.error('Login successful, but no user profile found in database. Contact admin.');
+        await signOut(auth);
       }
-    } else {
-      // This case should ideally not be hit for email/pass login
-      // but is critical for Google login's auto-registration.
-      toast.error('Your account is not registered. Please contact an administrator.');
+    } catch (error: any) {
+      console.error("Error fetching user data after login:", error);
+      toast.error(`Post-login error: ${error.message}. Signing out.`);
       await signOut(auth);
+      throw error; // Re-throw to be caught by the caller's catch block
     }
   };
 
@@ -80,11 +85,13 @@ export default function LoginPage() {
       await handleSuccessfulLogin(userCredential.user);
     } catch (error: any) {
       // Log the full error to the console for detailed debugging
-      console.error("Firebase Authentication Error:", error);
+      console.error("Login process failed:", error);
       
-      // Display the specific Firebase error code and message in a toast for quick feedback
-      const errorMessage = `Error: ${error.code} - ${error.message}`;
-      toast.error(errorMessage);
+      // Post-login errors from handleSuccessfulLogin show their own toasts.
+      // This catch block will only show a toast for direct authentication errors.
+      if (error.code && typeof error.code === 'string' && error.code.startsWith('auth/')) {
+        toast.error(error.message);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -100,11 +107,8 @@ export default function LoginPage() {
       const userDocRef = doc(db, 'users', user.uid);
       const userDoc = await getDoc(userDocRef);
 
-      if (userDoc.exists()) {
-        // User exists, redirect based on their role
-        await handleSuccessfulLogin(user);
-      } else {
-        // New user, create a doc with 'student' role
+      if (!userDoc.exists()) {
+        // If it's a new user via Google, create their student profile.
         await setDoc(userDocRef, {
           fullName: user.displayName,
           email: user.email,
@@ -112,17 +116,17 @@ export default function LoginPage() {
           createdAt: serverTimestamp(),
           photoURL: user.photoURL
         });
-        // Redirect to student dashboard
-        router.replace('/student');
       }
+      
+      // For both new and existing users, run the full login/redirect logic.
+      await handleSuccessfulLogin(user);
+
     } catch (error: any) {
+      // Post-login errors are handled in handleSuccessfulLogin.
+      // This will catch auth errors (like popup closed) or Firestore errors if they happen here.
       if (error.code !== 'auth/popup-closed-by-user') {
-        // Log the full error to the console for detailed debugging
         console.error("Google Sign-In Error: ", error);
-        
-        // Display the specific Firebase error code and message in a toast
-        const errorMessage = `Google Sign-In Error: ${error.code} - ${error.message}`;
-        toast.error(errorMessage);
+        toast.error(error.message || 'An error occurred during Google Sign-In.');
       }
     } finally {
       setIsLoading(false);
