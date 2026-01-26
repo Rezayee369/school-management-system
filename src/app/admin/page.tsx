@@ -172,7 +172,7 @@ export default function AdminDashboard() {
                   </div>
                 </div>
 
-                <div onClick={() => toast('Coming soon!')} className="group cursor-pointer">
+                <Link href="/admin/reports" className="group">
                   <div className="flex flex-col h-full p-6 bg-background/60 backdrop-blur-sm rounded-xl shadow-lg transition-all duration-300 border border-primary/30 hover:border-primary hover:shadow-xl hover:shadow-primary/20 hover:-translate-y-1 hover:scale-[1.02]">
                     <div className="flex items-center gap-4 mb-3">
                       <div className="p-3 bg-primary/10 rounded-lg transition-all duration-300 group-hover:bg-primary/20 group-hover:shadow-[0_0_15px_hsl(var(--primary))]">
@@ -182,7 +182,7 @@ export default function AdminDashboard() {
                     </div>
                     <p className="text-muted-foreground">View school performance and user engagement data.</p>
                   </div>
-                </div>
+                </Link>
             </div>
         </div>
       </div>
