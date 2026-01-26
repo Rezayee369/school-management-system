@@ -129,6 +129,10 @@ export default function LoginPage() {
 
   return (
     <main className="relative min-h-screen w-full overflow-hidden bg-background">
+      <div className="absolute top-4 right-4 z-20">
+          <LanguageSwitcher />
+      </div>
+
       <div className="absolute top-0 left-0 w-full h-full z-0">
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/20 rounded-full filter blur-3xl animate-blob opacity-30"></div>
         <div className="absolute top-1/2 right-1/4 w-96 h-96 bg-secondary/20 rounded-full filter blur-3xl animate-blob animation-delay-2000 opacity-30"></div>
@@ -137,11 +141,7 @@ export default function LoginPage() {
       
       <div className="relative z-10 flex min-h-screen items-center justify-center p-4">
         <div className="w-full max-w-md animate-fade-in-slide-up space-y-8">
-            <div className="absolute top-4 end-4">
-                <LanguageSwitcher />
-            </div>
-
-          <div className="rounded-2xl bg-background/60 backdrop-blur-lg border border-secondary/20 shadow-2xl shadow-secondary/10 p-8 mt-16">
+          <div className="rounded-2xl bg-background/60 backdrop-blur-lg border border-secondary/20 shadow-2xl shadow-secondary/10 p-8">
 
             <div className="flex flex-col items-center mb-6">
               <div className="w-16 h-16 rounded-full bg-gradient-to-br from-secondary to-primary flex items-center justify-center mb-4 ring-2 ring-secondary/50">
