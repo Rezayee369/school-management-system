@@ -1,0 +1,80 @@
+{
+  "login": {
+    "title": "دسترسی به پورتال",
+    "subtitle": "به صورت امن وارد حساب کاربری خود شوید",
+    "emailPlaceholder": "آدرس ایمیل",
+    "passwordPlaceholder": "رمز عبور",
+    "signIn": "ورود",
+    "authenticating": "در حال احراز هویت...",
+    "orContinueWith": "یا ادامه با",
+    "signInWithGoogle": "ورود با گوگل",
+    "signingIn": "در حال ورود...",
+    "roleInvalid": "ورود موفقیت‌آمیز بود، اما نقش ('{{role}}') نامعتبر است. با مدیر تماس بگیرید.",
+    "noProfile": "ورود موفقیت‌آمیز بود، اما پروفایل کاربری در پایگاه داده یافت نشد. با مدیر تماس بگیرید.",
+    "postLoginError": "خطا پس از ورود: {{message}}. در حال خروج."
+  },
+  "dashboardHeader": {
+    "admin": "داشبورد ادمین",
+    "teacher": "داشبورد معلم",
+    "student": "داشبورد دانش‌آموز",
+    "parent": "داشبورد والدین",
+    "signedInAs": "وارد شده با نام",
+    "profile": "پروفایل",
+    "logout": "خروج"
+  },
+  "adminDashboard": {
+    "totalTeachers": "مجموع معلمان",
+    "totalStudents": "مجموع دانش‌آموزان",
+    "totalClasses": "مجموع کلاس‌ها",
+    "totalAdmins": "مجموع مدیران",
+    "quickActions": "دسترسی سریع",
+    "manageClasses": "مدیریت کلاس‌ها",
+    "manageClassesDesc": "افزودن، ویرایش یا مشاهده کلاس‌ها و برنامه‌های مدرسه.",
+    "manageUsers": "مدیریت کاربران",
+    "manageUsersDesc": "مدیریت حساب‌های دانش‌آموزان، معلمان و والدین.",
+    "announcements": "اطلاعیه‌ها",
+    "announcementsDesc": "ایجاد و ارسال اطلاعیه برای همه کاربران.",
+    "analyticsAndReports": "تحلیل و گزارشات",
+    "analyticsAndReportsDesc": "مشاهده عملکرد مدرسه و داده‌های تعامل کاربران."
+  },
+  "adminUsers": {
+    "userManagement": "مدیریت کاربران",
+    "createUser": "ایجاد کاربر",
+    "allUsers": "همه کاربران",
+    "noUsersFound": "کاربری یافت نشد",
+    "getStarted": "با ایجاد اولین حساب کاربری شروع کنید.",
+    "editUser": "ویرایش کاربر",
+    "editingProfileFor": "در حال ویرایش پروفایل برای",
+    "fullName": "نام کامل",
+    "role": "نقش",
+    "student": "دانش‌آموز",
+    "teacher": "معلم",
+    "parent": "والدین",
+    "cancel": "لغو",
+    "saveChanges": "ذخیره تغییرات",
+    "saving": "در حال ذخیره...",
+    "deleteUserTitle": "حذف {{user}}",
+    "deleteUserDesc": "آیا از حذف داده‌های برنامه این کاربر مطمئن هستید؟ این شامل ثبت‌نام در کلاس‌ها نیز می‌شود. توجه: این عمل حساب ورود کاربر را حذف نمی‌کند.",
+    "deleteUserConfirm": "حذف کاربر"
+  },
+  "adminClasses": {
+    "manageClasses": "مدیریت کلاس‌ها",
+    "addNewClass": "افزودن کلاس جدید",
+    "addClass": "افزودن کلاس",
+    "adding": "در حال افزودن...",
+    "classNamePlaceholder": "نام کلاس را وارد کنید",
+    "createTeacherFirst": "قبل از ایجاد کلاس باید حداقل یک معلم ایجاد کنید.",
+    "createTeacher": "ایجاد معلم",
+    "existingClasses": "کلاس‌های موجود",
+    "noClassesCreated": "هنوز کلاسی ایجاد نشده است",
+    "createFirstClass": "از فرم بالا برای ایجاد اولین کلاس و تعیین معلم استفاده کنید.",
+    "manageStudents": "مدیریت دانش‌آموزان",
+    "teacher": "معلم",
+    "deleteClassTitle": "حذف کلاس: {{class}}",
+    "deleteClassDesc": "آیا از حذف این کلاس مطمئن هستید؟ تمام ثبت‌نام‌های دانش‌آموزان برای این کلاس حذف خواهد شد. این عمل قابل بازگشت نیست.",
+    "deleteClassConfirm": "حذف کلاس"
+  },
+  "common": {
+    "back": "بازگشت"
+  }
+}

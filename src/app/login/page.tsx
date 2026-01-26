@@ -13,6 +13,7 @@ import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { useAuth, useFirestore } from '@/firebase';
 import { Mail, Lock, GraduationCap } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useTranslation, Language } from '@/i18n';
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="24px" height="24px" {...props}>
@@ -23,63 +24,15 @@ const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
     </svg>
 );
 
-const translations = {
-    en: {
-        portalAccess: "Portal Access",
-        portalSubTitle: "Securely sign in to your account",
-        emailPlaceholder: "Email Address",
-        passwordPlaceholder: "Password",
-        signIn: "Sign In",
-        authenticating: "Authenticating...",
-        orContinueWith: "Or Continue With",
-        signInWithGoogle: "Sign in with Google",
-        signingIn: "Signing in...",
-        roleInvalid: (role: string) => `Login successful, but role ('${role || 'not set'}') is invalid. Contact admin.`,
-        noProfile: 'Login successful, but no user profile found in database. Contact admin.',
-        postLoginError: (message: string) => `Post-login error: ${message}. Signing out.`,
-    },
-    fa: {
-        portalAccess: "دسترسی به پورتال",
-        portalSubTitle: "به صورت امن وارد حساب کاربری خود شوید",
-        emailPlaceholder: "آدرس ایمیل",
-        passwordPlaceholder: "رمز عبور",
-        signIn: "ورود",
-        authenticating: "در حال احراز هویت...",
-        orContinueWith: "یا ادامه با",
-        signInWithGoogle: "ورود با گوگل",
-        signingIn: "در حال ورود...",
-        roleInvalid: (role: string) => `ورود موفقیت‌آمیز بود، اما نقش ('${role || 'تعیین نشده'}') نامعتبر است. با مدیر تماس بگیرید.`,
-        noProfile: 'ورود موفقیت‌آمیز بود، اما پروفایل کاربری در پایگاه داده یافت نشد. با مدیر تماس بگیرید.',
-        postLoginError: (message: string) => `خطا پس از ورود: ${message}. در حال خروج.`,
-    },
-    ps: {
-        portalAccess: "پورټل ته لاسرسی",
-        portalSubTitle: "په خوندي ډول خپل حساب ته ننوځئ",
-        emailPlaceholder: "برېښنالیک پته",
-        passwordPlaceholder: "پټ نوم",
-        signIn: "ننوتل",
-        authenticating: "د تصدیق په حال کې...",
-        orContinueWith: "یا سره ادامه ورکړئ",
-        signInWithGoogle: "د ګوګل سره ننوتل",
-        signingIn: "د ننوتلو په حال کې...",
-        roleInvalid: (role: string) => `ننوتل بریالي وو، خو رول ('${role || 'ندی ټاکل شوی'}') ناسم دی. له مدیر سره اړیکه ونیسئ.`,
-        noProfile: 'ننوتل بریالي وو، خو په ډیټابیس کې د کارن پروفایل ونه موندل شو. له مدیر سره اړیکه ونیسئ.',
-        postLoginError: (message: string) => `له ننوتلو وروسته تېروتنه: ${message}. د وتلو په حال کې.`,
-    }
-};
-
-type Language = keyof typeof translations;
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [language, setLanguage] = useState<Language>('en');
   const router = useRouter();
   const auth = useAuth();
   const db = useFirestore();
-
-  const t = translations[language];
+  const { language, setLanguage, t } = useTranslation();
 
   const handleSuccessfulLogin = async (user: User) => {
     try {
@@ -104,19 +57,19 @@ export default function LoginPage() {
             router.replace('/parent');
             break;
           default:
-            toast.error(t.roleInvalid(role));
+            toast.error(t('login.roleInvalid', { role: role || 'not set'}));
             await signOut(auth);
             break;
         }
       } else {
-        toast.error(t.noProfile);
+        toast.error(t('login.noProfile'));
         await signOut(auth);
       }
     } catch (error: any) {
       console.error("Error fetching user data after login:", error);
-      toast.error(t.postLoginError(error.message));
+      toast.error(t('login.postLoginError', { message: error.message }));
       await signOut(auth);
-      throw error; // Re-throw to be caught by the caller's catch block
+      throw error;
     }
   };
 
@@ -135,9 +88,7 @@ export default function LoginPage() {
       await handleSuccessfulLogin(userCredential.user);
     } catch (error: any) {
       console.error("Login process failed:", error);
-      if (error.code && typeof error.code === 'string') {
-        toast.error(`Error: ${error.code} - ${error.message}`);
-      }
+      toast.error(`Error: ${error.code} - ${error.message}`);
     } finally {
       setIsLoading(false);
     }
@@ -168,7 +119,7 @@ export default function LoginPage() {
     } catch (error: any) {
       if (error.code !== 'auth/popup-closed-by-user') {
         console.error("Google Sign-In Error: ", error);
-        toast.error(error.message || 'An error occurred during Google Sign-In.');
+        toast.error(`${error.code}: ${error.message}` || 'An error occurred during Google Sign-In.');
       }
     } finally {
       setIsLoading(false);
@@ -176,7 +127,7 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="relative min-h-screen w-full overflow-hidden bg-background" dir={language === 'en' ? 'ltr' : 'rtl'}>
+    <main className="relative min-h-screen w-full overflow-hidden bg-background">
       <div className="absolute top-0 left-0 w-full h-full z-0">
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/20 rounded-full filter blur-3xl animate-blob opacity-30"></div>
         <div className="absolute top-1/2 right-1/4 w-96 h-96 bg-secondary/20 rounded-full filter blur-3xl animate-blob animation-delay-2000 opacity-30"></div>
@@ -185,7 +136,7 @@ export default function LoginPage() {
       
       <div className="relative z-10 flex min-h-screen items-center justify-center p-4">
         <div className="w-full max-w-md animate-fade-in-slide-up space-y-8">
-            <div className="absolute top-4 left-4 right-4 flex justify-center gap-2">
+            <div className="absolute top-4 start-4 end-4 flex justify-center gap-2">
                 {(['en', 'fa', 'ps'] as Language[]).map(lang => (
                     <button 
                         key={lang}
@@ -204,10 +155,10 @@ export default function LoginPage() {
                 <GraduationCap className="text-white w-8 h-8" />
               </div>
               <h1 className="text-center text-3xl font-bold text-foreground tracking-wider">
-                {t.portalAccess}
+                {t('login.title')}
               </h1>
               <p className="text-center text-sm text-secondary/80 mt-2">
-                {t.portalSubTitle}
+                {t('login.subtitle')}
               </p>
             </div>
 
@@ -222,7 +173,7 @@ export default function LoginPage() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder={t.emailPlaceholder}
+                  placeholder={t('login.emailPlaceholder')}
                   disabled={isLoading}
                   className="w-full ps-12 pe-4 py-3 rounded-xl bg-background/50 text-foreground placeholder-gray-400 focus:ring-2 focus:ring-ring focus:outline-none border border-secondary/30 transition-all duration-300"
                 />
@@ -238,7 +189,7 @@ export default function LoginPage() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder={t.passwordPlaceholder}
+                  placeholder={t('login.passwordPlaceholder')}
                   disabled={isLoading}
                   className="w-full ps-12 pe-4 py-3 rounded-xl bg-background/50 text-foreground placeholder-gray-400 focus:ring-2 focus:ring-ring focus:outline-none border border-secondary/30 transition-all duration-300"
                 />
@@ -251,15 +202,15 @@ export default function LoginPage() {
                 {isLoading ? (
                     <>
                         <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                        <span>{t.authenticating}</span>
+                        <span>{t('login.authenticating')}</span>
                     </>
-                ) : t.signIn}
+                ) : t('login.signIn')}
               </button>
             </form>
 
             <div className="relative flex items-center py-6">
               <div className="flex-grow border-t border-secondary/20"></div>
-              <span className="mx-4 flex-shrink text-xs text-gray-400 uppercase">{t.orContinueWith}</span>
+              <span className="mx-4 flex-shrink text-xs text-gray-400 uppercase">{t('login.orContinueWith')}</span>
               <div className="flex-grow border-t border-secondary/20"></div>
             </div>
 
@@ -272,12 +223,12 @@ export default function LoginPage() {
               {isLoading ? (
                   <>
                       <div className="w-5 h-5 border-2 border-gray-200 border-t-transparent rounded-full animate-spin"></div>
-                      <span>{t.signingIn}</span>
+                      <span>{t('login.signingIn')}</span>
                   </>
               ) : (
                   <>
                       <GoogleIcon />
-                      <span>{t.signInWithGoogle}</span>
+                      <span>{t('login.signInWithGoogle')}</span>
                   </>
               )}
             </button>

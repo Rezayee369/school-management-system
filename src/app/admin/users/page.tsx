@@ -9,6 +9,7 @@ import { UserPlus, Users, Briefcase, UserCircle, ArrowLeft, Trash2, Pencil } fro
 import toast from 'react-hot-toast';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import { SkeletonListRow } from '@/components/Skeleton';
+import { useTranslation } from '@/i18n';
 
 interface UserData {
   id: string;
@@ -20,6 +21,8 @@ interface UserData {
 export default function AdminUsersPage() {
   const db = useFirestore();
   const router = useRouter();
+  const { t } = useTranslation();
+  
   const [users, setUsers] = useState<UserData[]>([]);
   const [isLoadingUsers, setIsLoadingUsers] = useState(true);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
@@ -32,7 +35,6 @@ export default function AdminUsersPage() {
   const [userToDelete, setUserToDelete] = useState<UserData | null>(null);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
-  // For parent linking
   const [allStudents, setAllStudents] = useState<UserData[]>([]);
   const [linkedStudentIds, setLinkedStudentIds] = useState<Set<string>>(new Set());
 
@@ -237,27 +239,34 @@ export default function AdminUsersPage() {
     }
   };
 
+  const getRoleName = (role: string) => {
+    const roleKey = `adminUsers.${role.toLowerCase()}`;
+    const translatedRole = t(roleKey);
+    // If translation doesn't exist, fallback to the role itself.
+    return translatedRole === roleKey ? role : translatedRole;
+  }
+
   return (
     <main className="flex min-h-screen flex-col items-center p-4 sm:p-8 bg-background">
       <div className="w-full max-w-6xl animate-fade-in-slide-up">
         <div className="flex justify-between items-center mb-8">
             <button onClick={() => router.back()} className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
                 <ArrowLeft size={18} />
-                <span>Back</span>
+                <span>{t('common.back')}</span>
             </button>
         </div>
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-            <h1 className="text-4xl font-bold text-foreground">User Management</h1>
+            <h1 className="text-4xl font-bold text-foreground">{t('adminUsers.userManagement')}</h1>
             <Link href="/admin/users/create">
                 <button className="flex items-center gap-2 px-5 py-2.5 font-semibold text-primary-foreground bg-gradient-to-r from-secondary to-primary rounded-lg shadow-md hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background active:scale-95 transition-transform">
                     <UserPlus className="w-5 h-5" />
-                    <span>Create User</span>
+                    <span>{t('adminUsers.createUser')}</span>
                 </button>
             </Link>
         </div>
 
         <div className="p-6 bg-background/60 backdrop-blur-sm border border-secondary/30 rounded-xl shadow-lg">
-          <h2 className="text-2xl font-semibold text-foreground mb-4">All Users</h2>
+          <h2 className="text-2xl font-semibold text-foreground mb-4">{t('adminUsers.allUsers')}</h2>
           <div className="space-y-3">
             {users.length > 0 ? (
               users.map((user) => (
@@ -266,7 +275,7 @@ export default function AdminUsersPage() {
                   <div className="text-muted-foreground truncate">{user.email}</div>
                   <div className="flex items-center gap-2">
                     {getRoleIcon(user.role)}
-                    <span className="text-sm font-semibold capitalize">{user.role}</span>
+                    <span className="text-sm font-semibold capitalize">{getRoleName(user.role)}</span>
                   </div>
                   <div className="flex justify-end items-center gap-2">
                     <button
@@ -291,13 +300,13 @@ export default function AdminUsersPage() {
             ) : (
                 <div className="text-center py-16">
                     <Users className="mx-auto h-12 w-12 text-muted-foreground" />
-                    <h3 className="mt-4 text-lg font-semibold text-foreground">No Users Found</h3>
-                    <p className="mt-2 text-sm text-muted-foreground">Get started by creating the first user account.</p>
+                    <h3 className="mt-4 text-lg font-semibold text-foreground">{t('adminUsers.noUsersFound')}</h3>
+                    <p className="mt-2 text-sm text-muted-foreground">{t('adminUsers.getStarted')}</p>
                     <div className="mt-6">
                         <Link href="/admin/users/create">
                             <button className="inline-flex items-center gap-2 px-5 py-2.5 font-semibold text-primary-foreground bg-gradient-to-r from-secondary to-primary rounded-lg shadow-md hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background active:scale-95 transition-transform">
                                 <UserPlus className="w-5 h-5" />
-                                <span>Create User</span>
+                                <span>{t('adminUsers.createUser')}</span>
                             </button>
                         </Link>
                     </div>
@@ -310,12 +319,12 @@ export default function AdminUsersPage() {
       {editingUser && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex justify-center items-center z-50 animate-fade-in-scale">
           <div className="bg-background/80 border border-secondary/30 p-8 rounded-2xl shadow-2xl shadow-primary/10 w-full max-w-lg m-4">
-            <h2 className="text-2xl font-bold text-foreground mb-1">Edit User</h2>
-            <p className="text-muted-foreground mb-6">Editing profile for <span className="font-semibold text-secondary">{editingUser.fullName}</span></p>
+            <h2 className="text-2xl font-bold text-foreground mb-1">{t('adminUsers.editUser')}</h2>
+            <p className="text-muted-foreground mb-6">{t('adminUsers.editingProfileFor')} <span className="font-semibold text-secondary">{editingUser.fullName}</span></p>
             
             <form onSubmit={handleUpdateUser} className="space-y-6">
               <div>
-                <label htmlFor="fullName" className="block text-sm font-medium text-muted-foreground mb-2">Full Name</label>
+                <label htmlFor="fullName" className="block text-sm font-medium text-muted-foreground mb-2">{t('adminUsers.fullName')}</label>
                 <input
                   id="fullName"
                   type="text"
@@ -326,16 +335,16 @@ export default function AdminUsersPage() {
                 />
               </div>
               <div>
-                <label htmlFor="role" className="block text-sm font-medium text-muted-foreground mb-2">Role</label>
+                <label htmlFor="role" className="block text-sm font-medium text-muted-foreground mb-2">{t('adminUsers.role')}</label>
                 <select
                   id="role"
                   value={updatedRole}
                   onChange={(e) => setUpdatedRole(e.target.value)}
                   className="w-full appearance-none px-4 py-2 bg-background/50 text-foreground border border-secondary/30 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
                 >
-                  <option value="student">Student</option>
-                  <option value="teacher">Teacher</option>
-                  <option value="parent">Parent</option>
+                  <option value="student">{t('adminUsers.student')}</option>
+                  <option value="teacher">{t('adminUsers.teacher')}</option>
+                  <option value="parent">{t('adminUsers.parent')}</option>
                 </select>
               </div>
 
@@ -367,7 +376,7 @@ export default function AdminUsersPage() {
                   onClick={() => setEditingUser(null)}
                   className="px-6 py-2 font-semibold text-muted-foreground bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors"
                 >
-                  Cancel
+                  {t('adminUsers.cancel')}
                 </button>
                 <button
                   type="submit"
@@ -377,10 +386,10 @@ export default function AdminUsersPage() {
                   {isUpdating ? (
                       <>
                           <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                          <span>Saving...</span>
+                          <span>{t('adminUsers.saving')}</span>
                       </>
                   ) : (
-                      'Save Changes'
+                      t('adminUsers.saveChanges')
                   )}
                 </button>
               </div>
@@ -391,11 +400,11 @@ export default function AdminUsersPage() {
 
     <ConfirmDialog
         open={isConfirmOpen}
-        title={`Delete ${userToDelete?.fullName || 'User'}`}
-        description="Are you sure you want to delete this user's application data? This includes class enrollments. Note: This does not delete their login account."
+        title={t('adminUsers.deleteUserTitle', { user: userToDelete?.fullName || 'User' })}
+        description={t('adminUsers.deleteUserDesc')}
         onConfirm={handleConfirmDelete}
         onCancel={handleCancelDelete}
-        confirmText="Delete User"
+        confirmText={t('adminUsers.deleteUserConfirm')}
         isLoading={isDeleting === userToDelete?.id}
     />
     </main>

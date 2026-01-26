@@ -1,0 +1,80 @@
+{
+  "login": {
+    "title": "Portal Access",
+    "subtitle": "Securely sign in to your account",
+    "emailPlaceholder": "Email Address",
+    "passwordPlaceholder": "Password",
+    "signIn": "Sign In",
+    "authenticating": "Authenticating...",
+    "orContinueWith": "Or Continue With",
+    "signInWithGoogle": "Sign in with Google",
+    "signingIn": "Signing in...",
+    "roleInvalid": "Login successful, but role ('{{role}}') is invalid. Contact admin.",
+    "noProfile": "Login successful, but no user profile found in database. Contact admin.",
+    "postLoginError": "Post-login error: {{message}}. Signing out."
+  },
+  "dashboardHeader": {
+    "admin": "Admin Dashboard",
+    "teacher": "Teacher Dashboard",
+    "student": "Student Dashboard",
+    "parent": "Parent Dashboard",
+    "signedInAs": "Signed in as",
+    "profile": "Profile",
+    "logout": "Logout"
+  },
+  "adminDashboard": {
+    "totalTeachers": "Total Teachers",
+    "totalStudents": "Total Students",
+    "totalClasses": "Total Classes",
+    "totalAdmins": "Total Admins",
+    "quickActions": "Quick Actions",
+    "manageClasses": "Manage Classes",
+    "manageClassesDesc": "Add, edit, or view school classes and schedules.",
+    "manageUsers": "Manage Users",
+    "manageUsersDesc": "Administer student, teacher, and parent accounts.",
+    "announcements": "Announcements",
+    "announcementsDesc": "Create and send announcements to all users.",
+    "analyticsAndReports": "Analytics & Reports",
+    "analyticsAndReportsDesc": "View school performance and user engagement data."
+  },
+  "adminUsers": {
+    "userManagement": "User Management",
+    "createUser": "Create User",
+    "allUsers": "All Users",
+    "noUsersFound": "No Users Found",
+    "getStarted": "Get started by creating the first user account.",
+    "editUser": "Edit User",
+    "editingProfileFor": "Editing profile for",
+    "fullName": "Full Name",
+    "role": "Role",
+    "student": "Student",
+    "teacher": "Teacher",
+    "parent": "Parent",
+    "cancel": "Cancel",
+    "saveChanges": "Save Changes",
+    "saving": "Saving...",
+    "deleteUserTitle": "Delete {{user}}",
+    "deleteUserDesc": "Are you sure you want to delete this user's application data? This includes class enrollments. Note: This does not delete their login account.",
+    "deleteUserConfirm": "Delete User"
+  },
+  "adminClasses": {
+    "manageClasses": "Manage Classes",
+    "addNewClass": "Add New Class",
+    "addClass": "Add Class",
+    "adding": "Adding...",
+    "classNamePlaceholder": "Enter class name",
+    "createTeacherFirst": "You must create at least one teacher before you can create a class.",
+    "createTeacher": "Create Teacher",
+    "existingClasses": "Existing Classes",
+    "noClassesCreated": "No Classes Created Yet",
+    "createFirstClass": "Use the form above to create the first class and assign a teacher.",
+    "manageStudents": "Manage Students",
+    "teacher": "Teacher",
+    "deleteClassTitle": "Delete Class: {{class}}",
+    "deleteClassDesc": "Are you sure you want to delete this class? All student enrollments for this class will be removed. This action cannot be undone.",
+    "deleteClassConfirm": "Delete Class"
+  },
+  "common": {
+    "back": "Back"
+  }
+}

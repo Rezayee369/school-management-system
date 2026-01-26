@@ -4,6 +4,7 @@ import "./globals.css";
 import { FirebaseClientProvider } from "@/firebase";
 import { Toaster } from 'react-hot-toast';
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { LanguageProvider } from "@/i18n";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -18,35 +19,37 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="fa" dir="rtl" suppressHydrationWarning>
       <body className={inter.className}>
-        <ThemeProvider>
-          <FirebaseClientProvider>
-            {children}
-            <Toaster 
-              position="top-right"
-              toastOptions={{
-                style: {
-                  background: 'hsl(var(--background))',
-                  color: 'hsl(var(--foreground))',
-                  border: '1px solid hsl(var(--secondary) / 0.3)',
-                },
-                success: {
-                  iconTheme: {
-                    primary: 'hsl(var(--secondary))',
-                    secondary: 'hsl(var(--background))',
+        <LanguageProvider>
+          <ThemeProvider>
+            <FirebaseClientProvider>
+              {children}
+              <Toaster 
+                position="top-right"
+                toastOptions={{
+                  style: {
+                    background: 'hsl(var(--background))',
+                    color: 'hsl(var(--foreground))',
+                    border: '1px solid hsl(var(--secondary) / 0.3)',
                   },
-                },
-                error: {
-                  iconTheme: {
-                    primary: 'hsl(var(--destructive))',
-                    secondary: 'hsl(var(--foreground))',
+                  success: {
+                    iconTheme: {
+                      primary: 'hsl(var(--secondary))',
+                      secondary: 'hsl(var(--background))',
+                    },
                   },
-                },
-              }}
-            />
-            </FirebaseClientProvider>
-          </ThemeProvider>
+                  error: {
+                    iconTheme: {
+                      primary: 'hsl(var(--destructive))',
+                      secondary: 'hsl(var(--foreground))',
+                    },
+                  },
+                }}
+              />
+              </FirebaseClientProvider>
+            </ThemeProvider>
+        </LanguageProvider>
       </body>
     </html>
   );

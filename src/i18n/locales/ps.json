@@ -1,0 +1,80 @@
+{
+  "login": {
+    "title": "پورټل ته لاسرسی",
+    "subtitle": "په خوندي ډول خپل حساب ته ننوځئ",
+    "emailPlaceholder": "برېښنالیک پته",
+    "passwordPlaceholder": "پټ نوم",
+    "signIn": "ننوتل",
+    "authenticating": "د تصدیق په حال کې...",
+    "orContinueWith": "یا سره ادامه ورکړئ",
+    "signInWithGoogle": "د ګوګل سره ننوتل",
+    "signingIn": "د ننوتلو په حال کې...",
+    "roleInvalid": "ننوتل بریالي وو، خو رول ('{{role}}') ناسم دی. له مدیر سره اړیکه ونیسئ.",
+    "noProfile": "ننوتل بریالي وو، خو په ډیټابیس کې د کارن پروفایل ونه موندل شو. له مدیر سره اړیکه ونیسئ.",
+    "postLoginError": "له ننوتلو وروسته تېروتنه: {{message}}. د وتلو په حال کې."
+  },
+  "dashboardHeader": {
+    "admin": "د مدیر ډشبورډ",
+    "teacher": "د ښوونکي ډشبورډ",
+    "student": "د زده‌کوونکي ډشبورډ",
+    "parent": "د والدینو ډشبورډ",
+    "signedInAs": "په نوم ننوتل",
+    "profile": "پروفایل",
+    "logout": "وتل"
+  },
+  "adminDashboard": {
+    "totalTeachers": "ټول ښوونکي",
+    "totalStudents": "ټول زده‌کوونکي",
+    "totalClasses": "ټول ټولګي",
+    "totalAdmins": "ټول مدیران",
+    "quickActions": "چټک اقدامات",
+    "manageClasses": "د ټولګیو مدیریت",
+    "manageClassesDesc": "د ښوونځي ټولګي او مهالوېشونه اضافه، سمون یا لیدل.",
+    "manageUsers": "د کاروونکو مدیریت",
+    "manageUsersDesc": "د زده‌کوونکو، ښوونکو او والدینو حسابونه اداره کړئ.",
+    "announcements": "اعلانونه",
+    "announcementsDesc": "ټولو کاروونکو ته اعلانونه جوړ او واستوئ.",
+    "analyticsAndReports": "تحلیل او راپورونه",
+    "analyticsAndReportsDesc": "د ښوونځي فعالیت او د کاروونکو د ښکیلتیا ډیټا وګورئ."
+  },
+  "adminUsers": {
+    "userManagement": "د کاروونکو مدیریت",
+    "createUser": "کارن جوړول",
+    "allUsers": "ټول کاروونکي",
+    "noUsersFound": "هیڅ کارن ونه موندل شو",
+    "getStarted": "د لومړي کارن حساب په جوړولو سره پیل کړئ.",
+    "editUser": "د کارن سمون",
+    "editingProfileFor": "د پروفایل سمون لپاره",
+    "fullName": "بشپړ نوم",
+    "role": "رول",
+    "student": "زده‌کوونکی",
+    "teacher": "ښوونکی",
+    "parent": "والدین",
+    "cancel": "لغوه کول",
+    "saveChanges": "بدلونونه خوندي کړئ",
+    "saving": "د خوندي کولو په حال کې...",
+    "deleteUserTitle": "د {{user}} حذف کول",
+    "deleteUserDesc": "ایا تاسو ډاډه یاست چې د دې کارن د اپلیکیشن ډیټا حذف کړئ؟ پدې کې د ټولګي نوم لیکنه شامله ده. یادونه: دا د کارن د ننوتلو حساب نه حذف کوي.",
+    "deleteUserConfirm": "کارن حذف کړئ"
+  },
+  "adminClasses": {
+    "manageClasses": "د ټولګیو مدیریت",
+    "addNewClass": "نوی ټولګی اضافه کړئ",
+    "addClass": "ټولګی اضافه کړئ",
+    "adding": "د اضافه کولو په حال کې...",
+    "classNamePlaceholder": "د ټولګي نوم دننه کړئ",
+    "createTeacherFirst": "تاسو باید لږترلږه یو ښوونکی جوړ کړئ مخکې لدې چې تاسو یو ټولګی جوړ کړئ.",
+    "createTeacher": "ښوونکی جوړ کړئ",
+    "existingClasses": "موجوده ټولګي",
+    "noClassesCreated": "تر اوسه کوم ټولګی نه دی جوړ شوی",
+    "createFirstClass": "د لومړي ټولګي جوړولو او د ښوونکي ټاکلو لپاره پورته فورمه وکاروئ.",
+    "manageStudents": "د زده‌کوونکو مدیریت",
+    "teacher": "ښوونکی",
+    "deleteClassTitle": "د ټولګي حذف کول: {{class}}",
+    "deleteClassDesc": "ایا تاسو ډاډه یاست چې دا ټولګی حذف کړئ؟ د دې ټولګي لپاره د زده‌کوونکو ټول نوم لیکنه به لیرې شي. دا عمل بیرته نشي اخیستل کیدی.",
+    "deleteClassConfirm": "ټولګی حذف کړئ"
+  },
+  "common": {
+    "back": "شاته"
+  }
+}
