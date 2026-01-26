@@ -144,14 +144,14 @@ export default function AdminClassesPage() {
 
   if (isLoadingTeachers || isLoadingClasses) {
     return (
-      <main className="flex min-h-screen flex-col items-center p-4 sm:p-8 bg-background">
+      <main className="flex min-h-screen flex-col items-center p-4 sm:p-8 bg-transparent">
         <div className="w-full max-w-4xl">
           <div className="flex justify-between items-center mb-8">
             <Skeleton className="h-6 w-24" />
           </div>
           <Skeleton className="h-10 w-64 mb-8" />
 
-          <div className="mb-8 p-6 bg-background/60 backdrop-blur-sm border border-primary/30 rounded-xl shadow-lg animate-pulse">
+          <div className="mb-8 p-6 bg-background/60 backdrop-blur-sm border border-border rounded-xl shadow-lg animate-pulse">
             <Skeleton className="h-8 w-48 mb-4" />
             <div className="flex flex-col gap-4">
               <div className='flex flex-col sm:flex-row gap-4'>
@@ -162,7 +162,7 @@ export default function AdminClassesPage() {
             </div>
           </div>
 
-          <div className="p-6 bg-background/60 backdrop-blur-sm border border-secondary/30 rounded-xl shadow-lg">
+          <div className="p-6 bg-background/60 backdrop-blur-sm border border-border rounded-xl shadow-lg">
             <Skeleton className="h-8 w-56 mb-4" />
             <div className="space-y-4">
               <Skeleton className="h-20" />
@@ -176,7 +176,7 @@ export default function AdminClassesPage() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center p-4 sm:p-8 bg-background">
+    <main className="flex min-h-screen flex-col items-center p-4 sm:p-8 bg-transparent">
       <div className="w-full max-w-4xl animate-fade-in-slide-up">
         <div className="flex justify-between items-center mb-8">
             <button onClick={() => router.back()} className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
@@ -186,7 +186,7 @@ export default function AdminClassesPage() {
         </div>
         <h1 className="text-4xl font-bold text-foreground mb-8">{t('adminClasses.manageClasses')}</h1>
 
-        <div className="mb-8 p-6 bg-background/60 backdrop-blur-sm border border-primary/30 rounded-xl shadow-lg">
+        <div className="mb-8 p-6 bg-background/60 backdrop-blur-sm border border-border rounded-xl shadow-lg">
           <h2 className="text-2xl font-semibold text-foreground mb-4">{t('adminClasses.addNewClass')}</h2>
           
           {isLoadingTeachers ? (
@@ -199,12 +199,12 @@ export default function AdminClassesPage() {
                       value={newClassName}
                       onChange={(e) => setNewClassName(e.target.value)}
                       placeholder={t('adminClasses.classNamePlaceholder')}
-                      className="flex-grow px-4 py-2 bg-background/50 text-foreground placeholder-gray-400 border border-secondary/30 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                      className="flex-grow px-4 py-2 bg-background/50 text-foreground placeholder-muted-foreground border border-input rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
                     />
                     <select
                         value={selectedTeacherId}
                         onChange={(e) => setSelectedTeacherId(e.target.value)}
-                        className="flex-grow px-4 py-2 appearance-none bg-background/50 text-foreground border border-secondary/30 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                        className="flex-grow px-4 py-2 appearance-none bg-background/50 text-foreground border border-input rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
                         >
                         {teachers.map(teacher => (
                             <option key={teacher.id} value={teacher.id}>{teacher.fullName}</option>
@@ -239,7 +239,7 @@ export default function AdminClassesPage() {
           )}
         </div>
 
-        <div className="p-6 bg-background/60 backdrop-blur-sm border border-secondary/30 rounded-xl shadow-lg">
+        <div className="p-6 bg-background/60 backdrop-blur-sm border border-border rounded-xl shadow-lg">
           <h2 className="text-2xl font-semibold text-foreground mb-4">{t('adminClasses.existingClasses')}</h2>
           <div className="space-y-4">
             {classes.length > 0 ? (
@@ -251,7 +251,7 @@ export default function AdminClassesPage() {
                   </div>
                   <div className="flex w-full sm:w-auto justify-end items-center gap-4">
                     <Link href={`/admin/classes/${c.id}`}>
-                      <div className="flex items-center text-secondary hover:text-primary cursor-pointer">
+                      <div className="flex items-center text-primary hover:text-primary/80 cursor-pointer">
                         <span>{t('adminClasses.manageStudents')}</span>
                         <ChevronRight className="w-5 h-5" />
                       </div>
@@ -259,10 +259,10 @@ export default function AdminClassesPage() {
                     <button
                       onClick={() => handleDeleteClick(c)}
                       disabled={isDeleting === c.id}
-                      className="p-2 text-red-400 hover:bg-red-400/10 rounded-full transition-colors active:scale-95 disabled:opacity-50 disabled:cursor-wait"
+                      className="p-2 text-destructive hover:bg-destructive/10 rounded-full transition-colors active:scale-95 disabled:opacity-50 disabled:cursor-wait"
                       aria-label={`Delete class ${c.name}`}
                     >
-                      {isDeleting === c.id ? <div className="w-5 h-5 border-2 border-red-400 border-t-transparent rounded-full animate-spin"></div> : <Trash2 size={18} />}
+                      {isDeleting === c.id ? <div className="w-5 h-5 border-2 border-destructive border-t-transparent rounded-full animate-spin"></div> : <Trash2 size={18} />}
                     </button>
                   </div>
                 </div>

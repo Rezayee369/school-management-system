@@ -70,7 +70,6 @@ export default function LoginPage() {
       console.error("Error fetching user data after login:", error);
       toast.error(t('login.postLoginError', { message: error.message }));
       await signOut(auth);
-      throw error;
     }
   };
 
@@ -128,104 +127,96 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="relative min-h-screen w-full overflow-hidden bg-background">
-      <div className="absolute top-4 right-4 z-20">
+    <main className="flex min-h-screen w-full items-center justify-center p-4 bg-transparent">
+      <div className="absolute top-4 end-4 z-20">
           <LanguageSwitcher />
       </div>
-
-      <div className="absolute top-0 left-0 w-full h-full z-0">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/20 rounded-full filter blur-3xl animate-blob opacity-30"></div>
-        <div className="absolute top-1/2 right-1/4 w-96 h-96 bg-secondary/20 rounded-full filter blur-3xl animate-blob animation-delay-2000 opacity-30"></div>
-        <div className="absolute bottom-1/4 left-1/3 w-96 h-96 bg-accent/20 rounded-full filter blur-3xl animate-blob animation-delay-4000 opacity-30"></div>
-      </div>
       
-      <div className="relative z-10 flex min-h-screen items-center justify-center p-4">
-        <div className="w-full max-w-md animate-fade-in-slide-up space-y-8">
-          <div className="rounded-2xl bg-background/60 backdrop-blur-lg border border-secondary/20 shadow-2xl shadow-secondary/10 p-8">
+      <div className="w-full max-w-md animate-fade-in-scale">
+        <div className="rounded-2xl bg-background/60 backdrop-blur-lg border border-border p-8 shadow-2xl shadow-primary/10">
 
-            <div className="flex flex-col items-center mb-6">
-              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-secondary to-primary flex items-center justify-center mb-4 ring-2 ring-secondary/50">
-                <GraduationCap className="text-white w-8 h-8" />
-              </div>
-              <h1 className="text-center text-3xl font-bold text-foreground tracking-wider">
-                {t('login.title')}
-              </h1>
-              <p className="text-center text-sm text-secondary/80 mt-2">
-                {t('login.subtitle')}
-              </p>
+          <div className="flex flex-col items-center mb-6">
+            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center mb-4">
+              <GraduationCap className="text-white w-8 h-8" />
+            </div>
+            <h1 className="text-center text-3xl font-bold text-foreground tracking-wider">
+              {t('login.title')}
+            </h1>
+            <p className="text-center text-sm text-primary/80 mt-2">
+              {t('login.subtitle')}
+            </p>
+          </div>
+
+          <form onSubmit={handleEmailLogin} className="space-y-6">
+            <div className="relative">
+              <Mail className="absolute inset-y-0 start-4 my-auto h-5 w-5 text-primary/60" />
+              <input
+                id="email"
+                name="email"
+                type="email"
+                autoComplete="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder={t('login.emailPlaceholder')}
+                disabled={isLoading}
+                className="w-full py-3 rounded-lg bg-background/50 text-foreground placeholder-muted-foreground focus:ring-2 focus:ring-ring focus:outline-none border border-input transition-all duration-300 ps-12 pe-4"
+              />
             </div>
 
-            <form onSubmit={handleEmailLogin} className="space-y-6">
-              <div className="relative">
-                <Mail className="absolute top-1/2 -translate-y-1/2 text-secondary/60 w-5 h-5 left-4 rtl:left-auto rtl:right-4" />
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder={t('login.emailPlaceholder')}
-                  disabled={isLoading}
-                  className="w-full py-3 rounded-xl bg-background/50 text-foreground placeholder-gray-400 focus:ring-2 focus:ring-ring focus:outline-none border border-secondary/30 transition-all duration-300 pl-12 pr-4 rtl:pr-12 rtl:pl-4"
-                />
-              </div>
-
-              <div className="relative">
-                <Lock className="absolute top-1/2 -translate-y-1/2 text-secondary/60 w-5 h-5 left-4 rtl:left-auto rtl:right-4" />
-                <input
-                  id="password"
-                  name="password"
-                  type="password"
-                  autoComplete="current-password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder={t('login.passwordPlaceholder')}
-                  disabled={isLoading}
-                  className="w-full py-3 rounded-xl bg-background/50 text-foreground placeholder-gray-400 focus:ring-2 focus:ring-ring focus:outline-none border border-secondary/30 transition-all duration-300 pl-12 pr-4 rtl:pr-12 rtl:pl-4"
-                />
-              </div>
-
-              <button
-                type="submit"
+            <div className="relative">
+              <Lock className="absolute inset-y-0 start-4 my-auto h-5 w-5 text-primary/60" />
+              <input
+                id="password"
+                name="password"
+                type="password"
+                autoComplete="current-password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder={t('login.passwordPlaceholder')}
                 disabled={isLoading}
-                className="w-full py-3 rounded-xl bg-gradient-to-r from-secondary to-primary text-primary-foreground font-bold tracking-wider uppercase flex items-center justify-center gap-3 hover:scale-105 hover:shadow-lg hover:shadow-secondary/30 transition-all duration-300 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">
-                {isLoading ? (
-                    <>
-                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                        <span>{t('login.authenticating')}</span>
-                    </>
-                ) : t('login.signIn')}
-              </button>
-            </form>
-
-            <div className="relative flex items-center py-6">
-              <div className="flex-grow border-t border-secondary/20"></div>
-              <span className="mx-4 flex-shrink text-xs text-gray-400 uppercase">{t('login.orContinueWith')}</span>
-              <div className="flex-grow border-t border-secondary/20"></div>
+                className="w-full py-3 rounded-lg bg-background/50 text-foreground placeholder-muted-foreground focus:ring-2 focus:ring-ring focus:outline-none border border-input transition-all duration-300 ps-12 pe-4"
+              />
             </div>
 
             <button
-              type="button"
-              onClick={handleGoogleLogin}
+              type="submit"
               disabled={isLoading}
-              className="w-full flex items-center justify-center gap-3 rounded-xl bg-background/50 py-3 font-semibold text-gray-200 transition duration-300 ease-in-out border border-secondary/30 hover:bg-secondary/20 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
+              className="w-full py-3 rounded-lg bg-gradient-to-r from-primary to-secondary text-white font-bold tracking-wider uppercase flex items-center justify-center gap-3 hover:shadow-lg hover:shadow-primary/30 transition-all duration-300 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">
               {isLoading ? (
                   <>
-                      <div className="w-5 h-5 border-2 border-gray-200 border-t-transparent rounded-full animate-spin"></div>
-                      <span>{t('login.signingIn')}</span>
+                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      <span>{t('login.authenticating')}</span>
                   </>
-              ) : (
-                  <>
-                      <GoogleIcon />
-                      <span>{t('login.signInWithGoogle')}</span>
-                  </>
-              )}
+              ) : t('login.signIn')}
             </button>
+          </form>
+
+          <div className="relative flex items-center py-6">
+            <div className="flex-grow border-t border-border"></div>
+            <span className="mx-4 flex-shrink text-xs text-muted-foreground uppercase">{t('login.orContinueWith')}</span>
+            <div className="flex-grow border-t border-border"></div>
           </div>
+
+          <button
+            type="button"
+            onClick={handleGoogleLogin}
+            disabled={isLoading}
+            className="w-full flex items-center justify-center gap-3 rounded-lg bg-transparent py-3 font-semibold text-foreground transition duration-300 ease-in-out border border-input hover:bg-accent active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isLoading ? (
+                <>
+                    <div className="w-5 h-5 border-2 border-foreground border-t-transparent rounded-full animate-spin"></div>
+                    <span>{t('login.signingIn')}</span>
+                </>
+            ) : (
+                <>
+                    <GoogleIcon />
+                    <span>{t('login.signInWithGoogle')}</span>
+                </>
+            )}
+          </button>
         </div>
       </div>
     </main>

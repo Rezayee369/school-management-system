@@ -206,18 +206,18 @@ export default function AdminUsersPage() {
 
   if (isLoadingUsers) {
     return (
-      <main className="flex min-h-screen flex-col items-center p-4 sm:p-8 bg-background">
+      <main className="flex min-h-screen flex-col items-center p-4 sm:p-8 bg-transparent">
         <div className="w-full max-w-6xl">
           <div className="flex justify-between items-center mb-8">
-            <div className="h-6 w-40 bg-muted/40 rounded-md animate-pulse"></div>
+            <div className="h-6 w-40 bg-muted rounded-md animate-pulse"></div>
           </div>
           <div className="flex justify-between items-center mb-8">
-            <div className="h-10 w-72 bg-muted/40 rounded-md animate-pulse"></div>
-            <div className="h-12 w-36 bg-muted/40 rounded-lg animate-pulse"></div>
+            <div className="h-10 w-72 bg-muted rounded-md animate-pulse"></div>
+            <div className="h-12 w-36 bg-muted rounded-lg animate-pulse"></div>
           </div>
 
-          <div className="p-6 bg-background/60 backdrop-blur-sm border border-secondary/30 rounded-xl shadow-lg">
-            <div className="h-8 w-40 bg-muted/40 rounded-md animate-pulse mb-4"></div>
+          <div className="p-6 bg-background/60 backdrop-blur-sm border border-border rounded-xl shadow-lg">
+            <div className="h-8 w-40 bg-muted rounded-md animate-pulse mb-4"></div>
             <div className="space-y-3">
               <SkeletonListRow />
               <SkeletonListRow />
@@ -232,9 +232,10 @@ export default function AdminUsersPage() {
   
   const getRoleIcon = (role: string) => {
     switch (role) {
-      case 'admin': return <Briefcase className="w-5 h-5 text-primary" />;
-      case 'teacher': return <Users className="w-5 h-5 text-secondary" />;
+      case 'admin': return <Briefcase className="w-5 h-5 text-secondary" />;
+      case 'teacher': return <Users className="w-5 h-5 text-primary" />;
       case 'student': return <UserCircle className="w-5 h-5 text-accent" />;
+      case 'parent': return <UserCircle className="w-5 h-5 text-green-400" />;
       default: return <UserCircle className="w-5 h-5 text-muted-foreground" />;
     }
   };
@@ -242,12 +243,11 @@ export default function AdminUsersPage() {
   const getRoleName = (role: string) => {
     const roleKey = `adminUsers.${role.toLowerCase()}`;
     const translatedRole = t(roleKey);
-    // If translation doesn't exist, fallback to the role itself.
     return translatedRole === roleKey ? role : translatedRole;
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center p-4 sm:p-8 bg-background">
+    <main className="flex min-h-screen flex-col items-center p-4 sm:p-8 bg-transparent">
       <div className="w-full max-w-6xl animate-fade-in-slide-up">
         <div className="flex justify-between items-center mb-8">
             <button onClick={() => router.back()} className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
@@ -265,7 +265,7 @@ export default function AdminUsersPage() {
             </Link>
         </div>
 
-        <div className="p-6 bg-background/60 backdrop-blur-sm border border-secondary/30 rounded-xl shadow-lg">
+        <div className="p-6 bg-background/60 backdrop-blur-sm border border-border rounded-xl shadow-lg">
           <h2 className="text-2xl font-semibold text-foreground mb-4">{t('adminUsers.allUsers')}</h2>
           <div className="space-y-3">
             {users.length > 0 ? (
@@ -289,10 +289,10 @@ export default function AdminUsersPage() {
                     <button
                         onClick={() => handleDeleteClick(user)}
                         disabled={isDeleting === user.id || user.role === 'admin'}
-                        className="p-2 text-red-400 hover:bg-red-400/10 rounded-full transition-colors active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="p-2 text-destructive hover:bg-destructive/10 rounded-full transition-colors active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                         aria-label={`Delete ${user.fullName}`}
                     >
-                        {isDeleting === user.id ? <div className="w-5 h-5 border-2 border-red-400 border-t-transparent rounded-full animate-spin"></div> : <Trash2 size={18} />}
+                        {isDeleting === user.id ? <div className="w-5 h-5 border-2 border-destructive border-t-transparent rounded-full animate-spin"></div> : <Trash2 size={18} />}
                     </button>
                   </div>
                 </div>
@@ -318,7 +318,7 @@ export default function AdminUsersPage() {
 
       {editingUser && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex justify-center items-center z-50 animate-fade-in-scale">
-          <div className="bg-background/80 border border-secondary/30 p-8 rounded-2xl shadow-2xl shadow-primary/10 w-full max-w-lg m-4">
+          <div className="bg-background/80 border border-border p-8 rounded-2xl shadow-2xl shadow-primary/10 w-full max-w-lg m-4">
             <h2 className="text-2xl font-bold text-foreground mb-1">{t('adminUsers.editUser')}</h2>
             <p className="text-muted-foreground mb-6">{t('adminUsers.editingProfileFor')} <span className="font-semibold text-secondary">{editingUser.fullName}</span></p>
             
@@ -330,7 +330,7 @@ export default function AdminUsersPage() {
                   type="text"
                   value={updatedFullName}
                   onChange={(e) => setUpdatedFullName(e.target.value)}
-                  className="w-full px-4 py-2 bg-background/50 text-foreground placeholder-gray-400 border border-secondary/30 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                  className="w-full px-4 py-2 bg-background/50 text-foreground placeholder-muted-foreground border border-input rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
                   required
                 />
               </div>
@@ -340,7 +340,7 @@ export default function AdminUsersPage() {
                   id="role"
                   value={updatedRole}
                   onChange={(e) => setUpdatedRole(e.target.value)}
-                  className="w-full appearance-none px-4 py-2 bg-background/50 text-foreground border border-secondary/30 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                  className="w-full appearance-none px-4 py-2 bg-background/50 text-foreground border border-input rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
                 >
                   <option value="student">{t('adminUsers.student')}</option>
                   <option value="teacher">{t('adminUsers.teacher')}</option>
@@ -351,7 +351,7 @@ export default function AdminUsersPage() {
               {updatedRole === 'parent' && (
                 <div>
                     <label className="block text-sm font-medium text-muted-foreground mb-2">Linked Students</label>
-                    <div className="max-h-48 overflow-y-auto space-y-2 p-3 bg-background/70 border border-secondary/30 rounded-md">
+                    <div className="max-h-48 overflow-y-auto space-y-2 p-3 bg-background/70 border border-input rounded-md">
                         {allStudents.length > 0 ? allStudents.map(student => (
                             <div key={student.id} className="flex items-center gap-3">
                                 <input

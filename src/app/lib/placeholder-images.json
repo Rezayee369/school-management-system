@@ -4,5 +4,53 @@
     "width": 800,
     "height": 1200,
     "hint": "school classroom"
+  },
+  "salamkarLogo": {
+    "src": "https://picsum.photos/seed/salamkarlogo/120/40",
+    "width": 120,
+    "height": 30,
+    "hint": "company logo"
+  },
+  "salamkarLogoFooter": {
+    "src": "https://picsum.photos/seed/salamkarlogofooter/120/40",
+    "width": 120,
+    "height": 30,
+    "hint": "company logo dark"
+  },
+  "heroCenter": {
+    "src": "https://picsum.photos/seed/heroCenter/250/350",
+    "width": 250,
+    "height": 350,
+    "hint": "office meeting"
+  },
+  "heroLeft": {
+    "src": "https://picsum.photos/seed/heroLeft/200/300",
+    "width": 200,
+    "height": 300,
+    "hint": "woman office"
+  },
+  "heroRight": {
+    "src": "https://picsum.photos/seed/heroRight/200/300",
+    "width": 200,
+    "height": 300,
+    "hint": "man computer"
+  },
+  "companyAtoma": {
+    "src": "https://picsum.photos/seed/atoma/40/40",
+    "width": 40,
+    "height": 40,
+    "hint": "company logo"
+  },
+  "companyBabaei": {
+    "src": "https://picsum.photos/seed/babaei/40/40",
+    "width": 40,
+    "height": 40,
+    "hint": "company logo"
+  },
+  "companySalamkar": {
+    "src": "https://picsum.photos/seed/salamkar/40/40",
+    "width": 40,
+    "height": 40,
+    "hint": "company logo"
   }
 }

@@ -3,7 +3,6 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { FirebaseClientProvider } from "@/firebase";
 import { Toaster } from 'react-hot-toast';
-import { ThemeProvider } from "@/components/ThemeProvider";
 import { LanguageProvider } from "@/i18n";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -19,10 +18,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="fa" dir="rtl" suppressHydrationWarning>
-      <body className={inter.className}>
-        <LanguageProvider>
-          <ThemeProvider>
+    <html lang="fa" dir="rtl" className="dark" suppressHydrationWarning>
+      <body className={`${inter.className} bg-background`}>
+        <div className="absolute top-0 left-0 w-full h-full z-0 overflow-hidden">
+            <div className="absolute top-1/4 -left-32 w-96 h-96 bg-primary/10 rounded-full filter blur-3xl animate-blob opacity-50"></div>
+            <div className="absolute bottom-1/4 -right-32 w-96 h-96 bg-secondary/10 rounded-full filter blur-3xl animate-blob animation-delay-2000 opacity-50"></div>
+        </div>
+        <div className="relative z-10">
+          <LanguageProvider>
             <FirebaseClientProvider>
               {children}
               <Toaster 
@@ -31,11 +34,11 @@ export default function RootLayout({
                   style: {
                     background: 'hsl(var(--background))',
                     color: 'hsl(var(--foreground))',
-                    border: '1px solid hsl(var(--secondary) / 0.3)',
+                    border: '1px solid hsl(var(--border))',
                   },
                   success: {
                     iconTheme: {
-                      primary: 'hsl(var(--secondary))',
+                      primary: 'hsl(var(--primary))',
                       secondary: 'hsl(var(--background))',
                     },
                   },
@@ -48,8 +51,8 @@ export default function RootLayout({
                 }}
               />
               </FirebaseClientProvider>
-            </ThemeProvider>
-        </LanguageProvider>
+          </LanguageProvider>
+        </div>
       </body>
     </html>
   );

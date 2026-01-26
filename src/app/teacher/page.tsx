@@ -49,16 +49,16 @@ export default function TeacherDashboard() {
 
   if (isLoadingAuth || isLoadingClasses) {
     return (
-      <main className="flex min-h-screen flex-col items-center p-8 sm:p-12 bg-background text-foreground">
+      <main className="flex min-h-screen flex-col items-center p-8 sm:p-12 bg-transparent text-foreground">
         <div className="w-full max-w-4xl">
           <DashboardHeader userRole="teacher" />
           
           <div className="mt-12">
-              <div className="h-8 w-48 bg-muted/50 rounded-md animate-pulse mb-6"></div>
-              <div className="p-6 bg-background/60 backdrop-blur-sm border border-secondary/30 rounded-xl shadow-lg">
+              <div className="h-8 w-48 bg-muted rounded-md animate-pulse mb-6"></div>
+              <div className="p-6 bg-background/60 backdrop-blur-sm border border-border rounded-xl shadow-lg">
                   <div className="space-y-4">
-                      <div className="h-20 bg-muted/30 rounded-lg animate-pulse"></div>
-                      <div className="h-20 bg-muted/30 rounded-lg animate-pulse"></div>
+                      <div className="h-20 bg-muted rounded-lg animate-pulse"></div>
+                      <div className="h-20 bg-muted rounded-lg animate-pulse"></div>
                   </div>
               </div>
           </div>
@@ -72,19 +72,21 @@ export default function TeacherDashboard() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center p-8 sm:p-12 bg-background text-foreground">
+    <main className="flex min-h-screen flex-col items-center p-8 sm:p-12 bg-transparent text-foreground">
       <div className="w-full max-w-4xl animate-fade-in-slide-up">
         <DashboardHeader userRole="teacher" />
         
         <div className="mt-12">
             <h2 className="text-2xl font-semibold text-foreground mb-6">My Classes</h2>
-            <div className="p-6 bg-background/60 backdrop-blur-sm border border-secondary/30 rounded-xl shadow-lg">
+            <div className="p-6 bg-background/60 backdrop-blur-sm border border-border rounded-xl shadow-lg">
                 {classes.length > 0 ? (
                     <div className="space-y-4">
                         {classes.map(c => (
                             <div key={c.id} className="p-4 bg-background/30 border border-muted/20 rounded-lg flex flex-col md:flex-row justify-between md:items-center gap-4">
                                 <div className="flex items-center gap-4">
-                                    <BookOpen className="w-5 h-5 text-secondary" />
+                                    <div className="p-3 bg-secondary/10 rounded-lg">
+                                        <BookOpen className="w-5 h-5 text-secondary" />
+                                    </div>
                                     <div>
                                         <p className="text-lg text-foreground/90 font-semibold">{c.name}</p>
                                         <div className="flex items-center gap-2 text-muted-foreground text-sm">
