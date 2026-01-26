@@ -79,12 +79,12 @@ export default function LoginPage() {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       await handleSuccessfulLogin(userCredential.user);
     } catch (error: any) {
-      if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
-        toast.error('Invalid email or password.');
-      } else {
-        console.error("Email/Pass Sign-In Error: ", error);
-        toast.error('An unexpected error occurred. Please try again.');
-      }
+      // Log the full error to the console for detailed debugging
+      console.error("Firebase Authentication Error:", error);
+      
+      // Display the specific Firebase error code and message in a toast for quick feedback
+      const errorMessage = `Error: ${error.code} - ${error.message}`;
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -117,8 +117,12 @@ export default function LoginPage() {
       }
     } catch (error: any) {
       if (error.code !== 'auth/popup-closed-by-user') {
-        toast.error('Failed to sign in with Google. Please try again.');
+        // Log the full error to the console for detailed debugging
         console.error("Google Sign-In Error: ", error);
+        
+        // Display the specific Firebase error code and message in a toast
+        const errorMessage = `Google Sign-In Error: ${error.code} - ${error.message}`;
+        toast.error(errorMessage);
       }
     } finally {
       setIsLoading(false);
