@@ -1,8 +1,8 @@
 export const firebaseConfig = {
-  apiKey: "AIzaSyCQQz7FsObV3lonSNv690WOYKQWLalD2ZM",
-  authDomain: "school-management-system-db7e9.firebaseapp.com",
-  projectId: "school-management-system-db7e9",
-  storageBucket: "school-management-system-db7e9.firebasestorage.app",
-  messagingSenderId: "81487464452",
-  appId: "1:81487464452:web:79b0a8f48ef9ba9d26cd51"
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID
 };
