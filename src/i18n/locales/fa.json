@@ -37,7 +37,9 @@
     "announcements": "اعلانات",
     "announcementsDesc": "ایجاد و ارسال اعلانات به تمام کاربران سیستم.",
     "analyticsAndReports": "تحلیل و گزارشات",
-    "analyticsAndReportsDesc": "مشاهده گزارشات کارکرد مکتب و فعالیت کاربران."
+    "analyticsAndReportsDesc": "مشاهده گزارشات کارکرد مکتب و فعالیت کاربران.",
+    "financeReport": "گزارش مالی",
+    "financeReportDesc": "مشاهده خلاصه‌ی ماهانه‌ی دریافت شهریه و باقی‌مانده‌ها."
   },
   "adminUsers": {
     "userManagement": "مدیریت کاربران",
@@ -75,6 +77,16 @@
     "deleteClassTitle": "حذف صنف: {{class}}",
     "deleteClassDesc": "آیا از حذف این صنف مطمئن هستید؟ تمام ثبت نام‌های شاگردان برای این صنف حذف خواهد شد. این عمل قابل بازگشت نیست.",
     "deleteClassConfirm": "حذف صنف"
+  },
+  "financeReport": {
+    "title": "گزارش مالی ماهانه",
+    "selectMonth": "انتخاب ماه",
+    "totalExpected": "مجموع شهریه مورد انتظار",
+    "totalCollected": "مجموع مبالغ دریافت شده",
+    "totalUnpaid": "مجموع مبالغ پرداخت نشده",
+    "loadError": "بارگیری اطلاعات مالی برای ماه انتخاب شده با مشکل مواجه شد.",
+    "noDataTitle": "هیچ اطلاعات مالی وجود ندارد",
+    "noDataDesc": "برای ماه انتخاب شده هیچ سابقه شهریه‌ای برای ایجاد گزارش وجود ندارد."
   },
   "common": {
     "back": "بازگشت"

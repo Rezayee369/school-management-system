@@ -37,7 +37,9 @@
     "announcements": "Announcements",
     "announcementsDesc": "Create and send announcements to all users.",
     "analyticsAndReports": "Analytics & Reports",
-    "analyticsAndReportsDesc": "View school performance and user engagement data."
+    "analyticsAndReportsDesc": "View school performance and user engagement data.",
+    "financeReport": "Financial Report",
+    "financeReportDesc": "View monthly fee collection and outstanding balances."
   },
   "adminUsers": {
     "userManagement": "User Management",
@@ -75,6 +77,16 @@
     "deleteClassTitle": "Delete Class: {{class}}",
     "deleteClassDesc": "Are you sure you want to delete this class? All student enrollments for this class will be removed. This action cannot be undone.",
     "deleteClassConfirm": "Delete Class"
+  },
+  "financeReport": {
+    "title": "Monthly Financial Report",
+    "selectMonth": "Select Month",
+    "totalExpected": "Total Expected Fees",
+    "totalCollected": "Total Collected",
+    "totalUnpaid": "Total Unpaid",
+    "loadError": "Could not load financial data for the selected month.",
+    "noDataTitle": "No Financial Data",
+    "noDataDesc": "There are no fee records for the selected month to generate a report."
   },
   "common": {
     "back": "Back"
