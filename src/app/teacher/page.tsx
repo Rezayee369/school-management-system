@@ -77,7 +77,14 @@ export default function TeacherDashboard() {
         <DashboardHeader userRole="teacher" />
         
         <div className="mt-12">
-            <h2 className="text-2xl font-semibold text-foreground mb-6">My Classes</h2>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-semibold text-foreground">My Classes</h2>
+              <Link href="/teacher/attendance">
+                  <button className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-primary-foreground bg-primary rounded-lg shadow-md hover:bg-primary/90 transition-colors">
+                      <Calendar size={16} /> Mark Attendance
+                  </button>
+              </Link>
+            </div>
             <div className="p-6 bg-background/60 backdrop-blur-sm border border-border rounded-xl shadow-lg">
                 {classes.length > 0 ? (
                     <div className="space-y-4">
@@ -99,11 +106,6 @@ export default function TeacherDashboard() {
                                     <Link href={`/teacher/classes/${c.id}/grades`}>
                                         <button className="flex items-center gap-2 px-3 py-1.5 text-sm font-semibold text-secondary border border-secondary/50 rounded-md hover:bg-secondary/10 transition-colors">
                                             <ClipboardEdit size={16} /> Grades
-                                        </button>
-                                    </Link>
-                                    <Link href={`/teacher/classes/${c.id}/attendance`}>
-                                        <button className="flex items-center gap-2 px-3 py-1.5 text-sm font-semibold text-primary border border-primary/50 rounded-md hover:bg-primary/10 transition-colors">
-                                            <Calendar size={16} /> Attendance
                                         </button>
                                     </Link>
                                 </div>
