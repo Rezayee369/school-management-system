@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import DashboardHeader from '@/components/DashboardHeader';
-import { BookOpen, Users, Briefcase, Shield, Megaphone, BarChart2, UserCheck, CreditCard } from 'lucide-react';
+import { BookOpen, Users, Briefcase, Shield, Megaphone, BarChart2, UserCheck, CreditCard, ListX } from 'lucide-react';
 import { useFirestore } from '@/firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import toast from 'react-hot-toast';
@@ -187,6 +187,18 @@ export default function AdminDashboard() {
                       <h2 className="text-xl font-semibold text-foreground">Manage Fees</h2>
                     </div>
                     <p className="text-muted-foreground">Record and track student fee payments.</p>
+                  </div>
+                </Link>
+
+                <Link href="/admin/fees/unpaid" className="group">
+                  <div className="flex flex-col h-full p-6 bg-background/60 backdrop-blur-sm rounded-xl shadow-lg transition-all duration-300 border border-border hover:border-destructive hover:shadow-xl hover:shadow-destructive/20 hover:-translate-y-1 hover:scale-[1.02]">
+                    <div className="flex items-center gap-4 mb-3">
+                      <div className="p-3 bg-destructive/10 rounded-lg transition-all duration-300 group-hover:bg-destructive/20 group-hover:shadow-[0_0_15px_hsl(var(--destructive))]">
+                        <ListX className="w-6 h-6 text-destructive" />
+                      </div>
+                      <h2 className="text-xl font-semibold text-foreground">Unpaid Fees</h2>
+                    </div>
+                    <p className="text-muted-foreground">View a list of all outstanding student fee payments.</p>
                   </div>
                 </Link>
                 
