@@ -1,7 +1,9 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { collection, query, onSnapshot, orderBy, doc, writeBatch, where, getDocs, getDoc, arrayRemove, deleteField } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
 import { UserPlus, Users, Briefcase, UserCircle, Trash2, Pencil, GraduationCap, Shield, HardHat } from 'lucide-react';
@@ -21,8 +23,10 @@ interface UserData {
 export default function AdminUsersPage() {
   const db = useFirestore();
   const { t } = useTranslation();
+  const searchParams = useSearchParams();
+  const roleParam = searchParams.get('role');
   
-  const [filter, setFilter] = useState('all');
+  const [filter, setFilter] = useState(roleParam || 'all');
   const [users, setUsers] = useState<UserData[]>([]);
   const [isLoadingUsers, setIsLoadingUsers] = useState(true);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
@@ -37,6 +41,11 @@ export default function AdminUsersPage() {
 
   const [allStudents, setAllStudents] = useState<UserData[]>([]);
   const [linkedStudentIds, setLinkedStudentIds] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    // Sync filter state with URL parameter
+    setFilter(roleParam || 'all');
+  }, [roleParam]);
 
   useEffect(() => {
     setIsLoadingUsers(true);

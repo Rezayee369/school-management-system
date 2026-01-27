@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -99,7 +100,7 @@ export default function AdminDashboard() {
             {teacherCount === null ? (
               <SkeletonCard />
             ) : (
-              <Link href="/admin/users" className="block group">
+              <Link href="/admin/users?role=teacher" className="block group">
                 <div className="p-6 h-full bg-background/60 backdrop-blur-sm rounded-xl shadow-lg border border-border transition-all duration-300 hover:border-secondary hover:shadow-xl hover:shadow-secondary/20 hover:-translate-y-1 hover:scale-[1.02]">
                     <div className="flex items-start justify-between">
                         <div>
@@ -117,7 +118,7 @@ export default function AdminDashboard() {
             {studentCount === null ? (
               <SkeletonCard />
             ) : (
-              <Link href="/admin/users" className="block group">
+              <Link href="/admin/users?role=student" className="block group">
                 <div className="p-6 h-full bg-background/60 backdrop-blur-sm rounded-xl shadow-lg border border-border transition-all duration-300 hover:border-primary hover:shadow-xl hover:shadow-primary/20 hover:-translate-y-1 hover:scale-[1.02]">
                     <div className="flex items-start justify-between">
                         <div>
@@ -135,7 +136,7 @@ export default function AdminDashboard() {
             {staffCount === null ? (
               <SkeletonCard />
             ) : (
-              <Link href="/admin/staff" className="block group">
+              <Link href="/admin/users?role=staff" className="block group">
                   <div className="p-6 h-full bg-background/60 backdrop-blur-sm rounded-xl shadow-lg border border-border transition-all duration-300 hover:border-accent hover:shadow-xl hover:shadow-accent/20 hover:-translate-y-1 hover:scale-[1.02]">
                       <div className="flex items-start justify-between">
                           <div>
@@ -171,17 +172,19 @@ export default function AdminDashboard() {
             {adminCount === null ? (
               <SkeletonCard />
             ) : (
-              <div className="group p-6 bg-background/60 backdrop-blur-sm rounded-xl shadow-lg border border-border transition-all duration-300 hover:border-destructive hover:shadow-xl hover:shadow-destructive/20 hover:-translate-y-1 hover:scale-[1.02]">
-                <div className="flex items-start justify-between">
-                    <div>
-                        <p className="text-sm text-muted-foreground">{t('adminDashboard.totalAdmins')}</p>
-                        <p className="text-4xl font-bold text-foreground mt-2 transition-all duration-300 group-hover:text-destructive">{adminCount}</p>
-                    </div>
-                    <div className="p-3 bg-destructive/10 rounded-lg transition-all duration-300 group-hover:bg-destructive/20 group-hover:shadow-[0_0_20px_hsl(var(--destructive))]">
-                        <Shield className="w-6 h-6 text-destructive transition-transform duration-300 group-hover:scale-110" />
-                    </div>
+              <Link href="/admin/users?role=admin" className="group">
+                <div className="p-6 bg-background/60 backdrop-blur-sm rounded-xl shadow-lg border border-border transition-all duration-300 hover:border-destructive hover:shadow-xl hover:shadow-destructive/20 hover:-translate-y-1 hover:scale-[1.02]">
+                  <div className="flex items-start justify-between">
+                      <div>
+                          <p className="text-sm text-muted-foreground">{t('adminDashboard.totalAdmins')}</p>
+                          <p className="text-4xl font-bold text-foreground mt-2 transition-all duration-300 group-hover:text-destructive">{adminCount}</p>
+                      </div>
+                      <div className="p-3 bg-destructive/10 rounded-lg transition-all duration-300 group-hover:bg-destructive/20 group-hover:shadow-[0_0_20px_hsl(var(--destructive))]">
+                          <Shield className="w-6 h-6 text-destructive transition-transform duration-300 group-hover:scale-110" />
+                      </div>
+                  </div>
                 </div>
-              </div>
+              </Link>
             )}
         </div>
 
@@ -211,7 +214,7 @@ export default function AdminDashboard() {
                     <p className="text-muted-foreground">{t('adminDashboard.manageUsersDesc')}</p>
                   </div>
                 </Link>
-                 <Link href="/admin/staff" className="group">
+                 <Link href="/admin/users?role=staff" className="group">
                   <div className="flex flex-col h-full p-6 bg-background/60 backdrop-blur-sm rounded-xl shadow-lg transition-all duration-300 border border-border hover:border-accent hover:shadow-xl hover:shadow-accent/20 hover:-translate-y-1 hover:scale-[1.02]">
                     <div className="flex items-center gap-4 mb-3">
                       <div className="p-3 bg-accent/10 rounded-lg transition-all duration-300 group-hover:bg-accent/20 group-hover:shadow-[0_0_15px_hsl(var(--accent))]">
@@ -300,7 +303,3 @@ export default function AdminDashboard() {
     </main>
   );
 }
-
-    
-
-    
