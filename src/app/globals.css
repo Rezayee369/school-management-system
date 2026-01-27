@@ -4,48 +4,48 @@
 
 @layer base {
   :root {
+    --background: 0 0% 100%;
+    --foreground: 224 71.4% 4.1%;
+    --card: 0 0% 100%;
+    --card-foreground: 224 71.4% 4.1%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 224 71.4% 4.1%;
+    --primary: 221.2 83.2% 53.3%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
+    --radius: 0.75rem;
+  }
+
+  .dark {
     --background: 222 47% 11%;
     --foreground: 210 40% 98%;
     --card: 222 47% 13%;
     --card-foreground: 210 40% 98%;
     --popover: 222 47% 11%;
     --popover-foreground: 210 40% 98%;
-    --primary: 190 80% 50%;
-    --primary-foreground: 222 47% 11%;
-    --secondary: 260 80% 60%;
+    --primary: 210 90% 60%; /* A modern blue instead of neon cyan */
+    --primary-foreground: 210 40% 98%; /* White text on blue buttons */
+    --secondary: 280 70% 65%; /* A softer violet instead of neon purple */
     --secondary-foreground: 210 40% 98%;
     --muted: 217 33% 17%;
     --muted-foreground: 215 20% 65%;
     --accent: 217 33% 17%;
     --accent-foreground: 210 40% 98%;
-    --destructive: 0 63% 51%;
+    --destructive: 0 72% 51%; /* A more standard, strong red */
     --destructive-foreground: 210 40% 98%;
     --border: 215 30% 25%;
     --input: 215 30% 25%;
-    --ring: 190 80% 50%;
-    --radius: 0.75rem;
-  }
-
-  .dark {
-    --background: 222 47% 11%; /* bg-slate-900 */
-    --foreground: 210 40% 98%; /* text-slate-50 */
-    --card: 222 47% 13%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222 47% 11%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 190 80% 50%; /* neon cyan */
-    --primary-foreground: 222 47% 11%; /* dark text for bright cyan buttons */
-    --secondary: 260 80% 60%; /* neon purple */
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217 33% 17%;
-    --muted-foreground: 215 20% 65%;
-    --accent: 217 33% 17%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 63% 51%; /* neon-ish red */
-    --destructive-foreground: 210 40% 98%;
-    --border: 215 30% 25%;
-    --input: 215 30% 25%;
-    --ring: 190 80% 50%;
+    --ring: 210 90% 60%; /* Match the new primary blue */
   }
 }
 
