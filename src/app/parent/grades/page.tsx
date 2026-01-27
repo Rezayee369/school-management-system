@@ -4,11 +4,15 @@ import { useState, useEffect, useMemo } from 'react';
 import { useAuthGuard } from '@/hooks/useAuthGuard';
 import PermissionDenied from '@/components/PermissionDenied';
 import { useUser, useFirestore } from '@/firebase';
-import { collection, doc, onSnapshot, query, where, documentId, getDocs, orderBy } from 'firebase/firestore';
+import { collection, doc, onSnapshot, query, where, documentId, getDocs, getDoc, orderBy } from 'firebase/firestore';
 import BackButton from '@/components/BackButton';
-import { Award, ClipboardList, TrendingUp } from 'lucide-react';
+import { Award, ClipboardList, TrendingUp, Download } from 'lucide-react';
 import { Skeleton } from '@/components/Skeleton';
 import { format } from 'date-fns';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import { vazirmatnFont } from '@/lib/vazir-font';
+
 
 // Interfaces
 interface StudentData {
@@ -21,6 +25,7 @@ interface ExamData {
   subject: string;
   type: string;
   date: string;
+  classId: string;
 }
 
 interface ExamGradeData {
@@ -45,6 +50,9 @@ export default function ParentGradesPage() {
   const [linkedStudents, setLinkedStudents] = useState<StudentData[]>([]);
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
   const [reportCardItems, setReportCardItems] = useState<ReportCardItem[]>([]);
+  const [className, setClassName] = useState<string>('');
+  const [isLoadingClassName, setIsLoadingClassName] = useState(true);
+
 
   // Fetch parent's linked students
   useEffect(() => {
@@ -122,6 +130,31 @@ export default function ParentGradesPage() {
 
     return () => unsubscribeGrades();
   }, [selectedStudentId, db]);
+  
+  // Fetch class name for the report card
+    useEffect(() => {
+        if (reportCardItems.length > 0 && db) {
+            setIsLoadingClassName(true);
+            const firstClassId = reportCardItems[0].classId;
+            if (firstClassId) {
+                const classRef = doc(db, 'classes', firstClassId);
+                getDoc(classRef).then(docSnap => {
+                    if (docSnap.exists()) {
+                        setClassName(docSnap.data().name);
+                    }
+                    setIsLoadingClassName(false);
+                }).catch(() => setIsLoadingClassName(false));
+            } else {
+                setIsLoadingClassName(false);
+            }
+        } else {
+            setClassName('');
+            if (reportCardItems.length === 0 && !isLoading) {
+                setIsLoadingClassName(false);
+            }
+        }
+    }, [reportCardItems, db, isLoading]);
+
 
   const overallAverage = useMemo(() => {
     if (reportCardItems.length === 0) return null;
@@ -138,6 +171,94 @@ export default function ParentGradesPage() {
   };
 
   const selectedStudent = linkedStudents.find(s => s.id === selectedStudentId);
+
+  const handleDownloadPdf = () => {
+    if (!selectedStudent || reportCardItems.length === 0 || isLoadingClassName) return;
+
+    const doc = new jsPDF();
+    
+    // Add Vazirmatn font for Persian support
+    doc.addFileToVFS('Vazirmatn-Regular.ttf', vazirmatnFont);
+    doc.addFont('Vazirmatn-Regular.ttf', 'Vazirmatn', 'normal');
+    doc.setFont('Vazirmatn');
+    doc.setR2L(true);
+
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const margin = 15;
+    const contentWidth = pageWidth - margin * 2;
+    let y = 20;
+
+    // Header
+    doc.setFontSize(16);
+    doc.text('دبیرستان سلام‌کار', pageWidth / 2, y, { align: 'center' });
+    y += 8;
+    doc.setFontSize(12);
+    doc.text('کارنامه تحصیلی', pageWidth / 2, y, { align: 'center' });
+    y += 15;
+    
+    // Student Info
+    doc.setFontSize(11);
+    doc.text(`نام دانش‌آموز: ${selectedStudent.name}`, pageWidth - margin, y, { align: 'right' });
+    y += 7;
+    doc.text(`صنف: ${className}`, pageWidth - margin, y, { align: 'right' });
+    doc.text(`تاریخ صدور: ${format(new Date(), 'yyyy/MM/dd')}`, margin, y, { align: 'left' });
+    y += 10;
+
+    // Grades Table
+    const tableHead = [['درصد', 'حداکثر نمره', 'نمره', 'موضوع امتحان']];
+    const tableBody = reportCardItems.map(item => [
+      `%${item.percentage.toFixed(1)}`,
+      item.maxScore,
+      item.score,
+      `${item.subject} (${item.type})`
+    ]);
+
+    autoTable(doc, {
+        head: tableHead,
+        body: tableBody,
+        startY: y,
+        theme: 'grid',
+        styles: {
+            font: 'Vazirmatn',
+            halign: 'center',
+            cellPadding: 2,
+        },
+        headStyles: {
+            fillColor: [45, 55, 72], // a neutral dark color
+            textColor: 255,
+            fontStyle: 'bold',
+        },
+        alternateRowStyles: {
+            fillColor: [247, 250, 252] // light gray for rows, but will be white on pdf
+        },
+        didParseCell: function (data) {
+            // Right align body cells for RTL
+            if (data.section === 'body') {
+                data.cell.styles.halign = 'right';
+            }
+        }
+    });
+
+    y = (doc as any).lastAutoTable.finalY + 15;
+
+    // Summary
+    const totalScore = reportCardItems.reduce((sum, item) => sum + item.score, 0);
+    const totalMaxScore = reportCardItems.reduce((sum, item) => sum + item.maxScore, 0);
+    
+    doc.setFontSize(12);
+    doc.setFont('Vazirmatn', 'bold');
+    doc.text('خلاصه عملکرد', pageWidth - margin, y, { align: 'right' });
+    y += 8;
+    doc.setFontSize(11);
+    doc.setFont('Vazirmatn', 'normal');
+    doc.text(`مجموع نمرات: ${totalScore} از ${totalMaxScore}`, pageWidth - margin, y, { align: 'right' });
+    y += 7;
+    if (overallAverage !== null) {
+        doc.text(`اوسط کل نمرات (فیصدی): %${overallAverage.toFixed(1)}`, pageWidth - margin, y, { align: 'right' });
+    }
+
+    doc.save(`کارنامه-${selectedStudent.name.replace(/ /g, '_')}.pdf`);
+  };
 
   if (isLoadingAuth) {
     return <main className="flex min-h-screen items-center justify-center p-8 bg-background"><p>Loading...</p></main>;
@@ -180,6 +301,14 @@ export default function ParentGradesPage() {
             <div className="w-full max-w-4xl animate-fade-in-slide-up">
                 <div className="flex justify-between items-center mb-8">
                     <BackButton />
+                    <button
+                        onClick={handleDownloadPdf}
+                        disabled={reportCardItems.length === 0 || isLoadingClassName || isLoading}
+                        className="inline-flex items-center gap-2 px-4 py-2 font-semibold text-primary-foreground bg-primary rounded-lg shadow-md hover:opacity-90 active:scale-95 transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <Download size={18} />
+                        <span>دانلود کارنامه (PDF)</span>
+                    </button>
                 </div>
                 <h1 className="text-4xl font-bold text-foreground mb-2">Report Card</h1>
                 {linkedStudents.length > 0 && selectedStudent && (
