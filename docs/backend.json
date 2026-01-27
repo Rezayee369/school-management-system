@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "UserProfile": {
@@ -172,6 +173,28 @@
         "maxScore",
         "submittedAt"
       ]
+    },
+    "Announcement": {
+      "title": "Announcement",
+      "description": "Represents a broadcasted message sent by an admin.",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "message": { "type": "string" },
+        "targetType": {
+          "type": "string",
+          "enum": ["all_parents", "class", "student"]
+        },
+        "targetId": { 
+            "type": ["string", "null"],
+            "description": "The UID of the class or student if targetType is not 'all_parents'."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["title", "message", "targetType", "createdAt"]
     }
   },
   "auth": {
@@ -219,6 +242,12 @@
         "$ref": "#/backend/entities/ExamGrade"
       },
       "description": "Stores individual student scores for specific exams. The document ID is a composite of {examId}_{studentId}."
+    },
+    "/announcements/{announcementId}": {
+        "schema": {
+            "$ref": "#/backend/entities/Announcement"
+        },
+        "description": "Stores all announcements sent by administrators."
     }
   }
 }

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -175,6 +176,18 @@ export default function AdminDashboard() {
                       <h2 className="text-xl font-semibold text-foreground">{t('adminDashboard.manageUsers')}</h2>
                     </div>
                     <p className="text-muted-foreground">{t('adminDashboard.manageUsersDesc')}</p>
+                  </div>
+                </Link>
+
+                <Link href="/admin/announcements" className="group">
+                  <div className="flex flex-col h-full p-6 bg-background/60 backdrop-blur-sm rounded-xl shadow-lg transition-all duration-300 border border-border hover:border-secondary hover:shadow-xl hover:shadow-secondary/20 hover:-translate-y-1 hover:scale-[1.02]">
+                    <div className="flex items-center gap-4 mb-3">
+                      <div className="p-3 bg-secondary/10 rounded-lg transition-all duration-300 group-hover:bg-secondary/20 group-hover:shadow-[0_0_15px_hsl(var(--secondary))]">
+                        <Megaphone className="w-6 h-6 text-secondary transition-transform duration-300 group-hover:scale-110" />
+                      </div>
+                      <h2 className="text-xl font-semibold text-foreground">{t('adminDashboard.announcements')}</h2>
+                    </div>
+                    <p className="text-muted-foreground">{t('adminDashboard.announcementsDesc')}</p>
                   </div>
                 </Link>
 

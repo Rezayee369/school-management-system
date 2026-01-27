@@ -1,3 +1,4 @@
+
 rules_version = '2';
 
 service cloud.firestore {
@@ -134,6 +135,11 @@ service cloud.firestore {
       allow read: if (isTeacher() && resource.data.teacherId == request.auth.uid) ||
                    (request.auth != null && resource.data.studentId == request.auth.uid) ||
                    (isParent() && resource.data.studentId in get(/databases/$(database)/documents/users/$(request.auth.uid)).data.studentIds);
+    }
+    
+    match /announcements/{announcementId} {
+      // Only admins can create, read, update or delete announcements.
+      allow read, write: if isAdmin();
     }
   }
 }
