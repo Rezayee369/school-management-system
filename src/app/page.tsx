@@ -151,10 +151,6 @@ export default function HomePage() {
     }
   };
 
-  if (user === undefined) {
-    return <main className="flex min-h-screen w-full items-center justify-center p-4 bg-transparent" />;
-  }
-
   return (
     <main className="flex min-h-screen w-full items-center justify-center p-4 bg-transparent">
       <div className="absolute top-4 end-4 z-20 flex items-center gap-2">
