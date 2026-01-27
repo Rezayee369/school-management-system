@@ -4,7 +4,7 @@
 import { useAuthGuard } from '@/hooks/useAuthGuard';
 import DashboardHeader from '@/components/DashboardHeader';
 import { useUser, useFirestore } from '@/firebase';
-import { collection, query, where, onSnapshot, doc, setDoc, arrayUnion, Timestamp } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, doc, setDoc, arrayUnion, Timestamp, orderBy } from 'firebase/firestore';
 import { useState, useEffect, useMemo } from 'react';
 import { BookOpen, CheckCircle, XCircle, MinusCircle, ClipboardCheck, Megaphone, MessageSquare } from 'lucide-react';
 import PermissionDenied from '@/components/PermissionDenied';
@@ -85,10 +85,10 @@ export default function StudentDashboard() {
     }));
     
     // Fetch notifications
-    const notifQuery = query(collection(db, 'notifications'), where('targetRole', 'in', ['all', 'student']));
+    const notifQuery = query(collection(db, 'notifications'), where('targetRole', 'in', ['all', 'student']), orderBy('createdAt', 'desc'));
     unsubscribes.push(onSnapshot(notifQuery, (snapshot) => {
         const notifData = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as NotificationData));
-        setNotifications(notifData.sort((a, b) => b.createdAt.toDate().getTime() - a.createdAt.toDate().getTime()));
+        setNotifications(notifData);
     }));
 
     // Fetch read status
