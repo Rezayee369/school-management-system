@@ -1,14 +1,14 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
 import { useAuthGuard } from '@/hooks/useAuthGuard';
 import { useFirestore } from '@/firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
-import { ArrowLeft, ListX, DollarSign, Filter, TrendingDown } from 'lucide-react';
+import { ListX, DollarSign, Filter, TrendingDown } from 'lucide-react';
 import PermissionDenied from '@/components/PermissionDenied';
 import { SkeletonListRow } from '@/components/Skeleton';
 import { Skeleton } from '@/components/Skeleton';
+import BackButton from '@/components/BackButton';
 
 interface FeeData {
   id: string;
@@ -50,7 +50,6 @@ const getMonthOptions = () => {
 export default function UnpaidFeesPage() {
   const { isLoading: isLoadingAuth, isAuthorized, userRole } = useAuthGuard('admin');
   const db = useFirestore();
-  const router = useRouter();
 
   const [reportItems, setReportItems] = useState<UnpaidFeeReportItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -129,10 +128,7 @@ export default function UnpaidFeesPage() {
     <main className="flex min-h-screen flex-col items-center p-4 sm:p-8 bg-transparent">
       <div className="w-full max-w-6xl animate-fade-in-slide-up">
         <div className="flex justify-between items-center mb-8">
-          <button onClick={() => router.back()} className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
-            <ArrowLeft size={18} />
-            <span>Back</span>
-          </button>
+          <BackButton />
         </div>
         <h1 className="text-4xl font-bold text-foreground mb-8">Unpaid Fees Report</h1>
         

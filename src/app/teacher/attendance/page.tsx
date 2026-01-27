@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useAuthGuard } from '@/hooks/useAuthGuard';
 import { useFirestore, useUser } from '@/firebase';
 import { collection, query, where, onSnapshot, getDocs, setDoc, doc, serverTimestamp, documentId } from 'firebase/firestore';
-import { Calendar as CalendarIcon, Check, X, Minus, ArrowLeft } from 'lucide-react';
+import { Calendar as CalendarIcon, Check, X, Minus } from 'lucide-react';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
 import PermissionDenied from '@/components/PermissionDenied';
@@ -16,7 +16,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import { cn } from '@/lib/utils';
-import Link from 'next/link';
+import BackButton from '@/components/BackButton';
 
 // Data Interfaces
 interface ClassData {
@@ -187,10 +187,7 @@ export default function TeacherAttendancePage() {
     <main className="flex min-h-screen flex-col items-center p-4 sm:p-8 bg-background">
       <div className="w-full max-w-5xl animate-fade-in-slide-up">
         <div className="mb-8">
-            <Link href="/teacher" className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
-                <ArrowLeft size={18} />
-                <span>Back to Dashboard</span>
-            </Link>
+            <BackButton />
         </div>
         <h1 className="text-4xl font-bold text-foreground mb-8">Mark Attendance</h1>
 

@@ -1,11 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { useAuthGuard } from '@/hooks/useAuthGuard';
 import { useFirestore } from '@/firebase';
 import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestore';
-import { Calendar as CalendarIcon, ArrowLeft, Users } from 'lucide-react';
+import { Calendar as CalendarIcon, Users } from 'lucide-react';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
 import PermissionDenied from '@/components/PermissionDenied';
@@ -14,6 +13,7 @@ import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { cn } from '@/lib/utils';
 import { SkeletonListRow } from '@/components/Skeleton';
+import BackButton from '@/components/BackButton';
 
 interface ClassData {
   id: string;
@@ -29,7 +29,6 @@ interface AttendanceData {
 export default function AdminAttendancePage() {
   const { isLoading: isLoadingAuth, isAuthorized, userRole } = useAuthGuard('admin');
   const db = useFirestore();
-  const router = useRouter();
 
   const [classes, setClasses] = useState<ClassData[]>([]);
   const [attendanceRecords, setAttendanceRecords] = useState<AttendanceData[]>([]);
@@ -113,10 +112,7 @@ export default function AdminAttendancePage() {
     <main className="flex min-h-screen flex-col items-center p-4 sm:p-8 bg-transparent">
       <div className="w-full max-w-5xl animate-fade-in-slide-up">
         <div className="flex justify-between items-center mb-8">
-            <button onClick={() => router.back()} className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
-                <ArrowLeft size={18} />
-                <span>Back</span>
-            </button>
+            <BackButton />
         </div>
         <h1 className="text-4xl font-bold text-foreground mb-8">Attendance History</h1>
 

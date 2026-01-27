@@ -1,13 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { useAuthGuard } from '@/hooks/useAuthGuard';
 import { useFirestore } from '@/firebase';
 import { collection, query, where, getDocs, doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
-import { ArrowLeft, DollarSign, Loader2 } from 'lucide-react';
+import { DollarSign, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import PermissionDenied from '@/components/PermissionDenied';
+import BackButton from '@/components/BackButton';
 
 interface Student {
   id: string;
@@ -30,7 +30,6 @@ const getMonthOptions = () => {
 export default function AdminFeesPage() {
   const { isLoading: isLoadingAuth, isAuthorized, userRole } = useAuthGuard('admin');
   const db = useFirestore();
-  const router = useRouter();
 
   const [students, setStudents] = useState<Student[]>([]);
   const [isLoadingStudents, setIsLoadingStudents] = useState(true);
@@ -132,10 +131,7 @@ export default function AdminFeesPage() {
     <main className="flex min-h-screen flex-col items-center p-4 sm:p-8 bg-transparent">
       <div className="w-full max-w-2xl animate-fade-in-slide-up">
         <div className="flex justify-between items-center mb-8">
-          <button onClick={() => router.back()} className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
-            <ArrowLeft size={18} />
-            <span>Back</span>
-          </button>
+          <BackButton />
         </div>
         <h1 className="text-4xl font-bold text-foreground mb-8">Manage Student Fees</h1>
         

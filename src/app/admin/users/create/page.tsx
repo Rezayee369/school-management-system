@@ -9,7 +9,8 @@ import toast from 'react-hot-toast';
 import { initializeApp, deleteApp } from 'firebase/app';
 import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
 import { setDoc, doc, serverTimestamp } from 'firebase/firestore';
-import { ArrowLeft, User, Mail, Lock, UserCheck } from 'lucide-react';
+import { User, Mail, Lock, UserCheck } from 'lucide-react';
+import BackButton from '@/components/BackButton';
 
 export default function CreateUserPage() {
     const router = useRouter();
@@ -72,10 +73,7 @@ export default function CreateUserPage() {
         <main className="flex min-h-screen flex-col items-center justify-center p-4 sm:p-8 bg-background">
              <div className="w-full max-w-md animate-fade-in-slide-up space-y-8">
                 <div className="absolute top-8 left-8">
-                    <button onClick={() => router.back()} className="flex items-center gap-2 text-muted-foreground hover:text-foreground">
-                        <ArrowLeft size={18} />
-                        <span>Back</span>
-                    </button>
+                    <BackButton />
                 </div>
                 
                 <div className="rounded-2xl bg-background/60 backdrop-blur-lg border border-secondary/20 shadow-2xl shadow-secondary/10 p-6 md:p-8">

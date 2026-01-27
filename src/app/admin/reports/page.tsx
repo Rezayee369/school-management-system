@@ -1,11 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { useFirestore } from '@/firebase';
 import { collection, getDocs } from 'firebase/firestore';
-import { ArrowLeft, TrendingUp, UserX } from 'lucide-react';
+import { TrendingUp, UserX } from 'lucide-react';
 import toast from 'react-hot-toast';
+import BackButton from '@/components/BackButton';
 
 // Data interfaces
 interface ClassData {
@@ -44,7 +44,6 @@ const HIGH_ABSENCE_THRESHOLD = 3; // Let's set a threshold
 
 export default function AdminReportsPage() {
     const db = useFirestore();
-    const router = useRouter();
 
     const [classReport, setClassReport] = useState<ClassReport[]>([]);
     const [highAbsenceReport, setHighAbsenceReport] = useState<HighAbsenceReport[]>([]);
@@ -162,10 +161,7 @@ export default function AdminReportsPage() {
         <main className="flex min-h-screen flex-col items-center p-4 sm:p-8 bg-background">
             <div className="w-full max-w-7xl animate-fade-in-slide-up">
                 <div className="flex justify-between items-center mb-8">
-                    <button onClick={() => router.back()} className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
-                        <ArrowLeft size={18} />
-                        <span>Back</span>
-                    </button>
+                    <BackButton />
                 </div>
                 <h1 className="text-4xl font-bold text-foreground mb-12">Analytics & Reports</h1>
 

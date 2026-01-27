@@ -4,10 +4,11 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useFirestore } from '@/firebase';
 import { collection, doc, onSnapshot, query, where, updateDoc, arrayUnion, arrayRemove, documentId } from 'firebase/firestore';
-import { ArrowLeft, UserPlus, Trash2, Users, UserCheck } from 'lucide-react';
+import { UserPlus, Trash2, Users, UserCheck } from 'lucide-react';
 import toast from 'react-hot-toast';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import { Skeleton } from '@/components/Skeleton';
+import BackButton from '@/components/BackButton';
 
 interface Student {
   id: string;
@@ -178,10 +179,7 @@ export default function ManageStudentsPage() {
     <main className="flex min-h-screen flex-col items-center p-4 sm:p-8 bg-background">
       <div className="w-full max-w-6xl animate-fade-in-slide-up">
         <div className="flex justify-between items-center mb-8">
-            <button onClick={() => router.back()} className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
-                <ArrowLeft size={18} />
-                <span>Back</span>
-            </button>
+            <BackButton />
         </div>
         <h1 className="text-4xl font-bold text-foreground mb-2">Manage Students for {classData.name}</h1>
         <p className="text-muted-foreground mb-8">Teacher: {classData.teacherName}</p>

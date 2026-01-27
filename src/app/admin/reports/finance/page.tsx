@@ -1,13 +1,13 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
 import { useFirestore } from '@/firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
-import { ArrowLeft, DollarSign, TrendingUp, TrendingDown, AlertCircle } from 'lucide-react';
+import { DollarSign, TrendingUp, TrendingDown, AlertCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useTranslation } from '@/i18n';
 import { Skeleton } from '@/components/Skeleton';
+import BackButton from '@/components/BackButton';
 
 
 const getMonthOptions = () => {
@@ -34,7 +34,6 @@ interface ReportData {
 
 export default function FinanceReportPage() {
     const db = useFirestore();
-    const router = useRouter();
     const { t } = useTranslation();
 
     const monthOptions = useMemo(getMonthOptions, []);
@@ -113,10 +112,7 @@ export default function FinanceReportPage() {
         <main className="flex min-h-screen flex-col items-center p-4 sm:p-8 bg-transparent">
             <div className="w-full max-w-5xl animate-fade-in-slide-up">
                 <div className="flex justify-between items-center mb-8">
-                    <button onClick={() => router.back()} className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
-                        <ArrowLeft size={18} />
-                        <span>{t('common.back')}</span>
-                    </button>
+                    <BackButton />
                 </div>
                 <h1 className="text-4xl font-bold text-foreground mb-8">{t('financeReport.title')}</h1>
 

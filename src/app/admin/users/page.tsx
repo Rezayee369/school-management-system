@@ -2,14 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { collection, query, onSnapshot, orderBy, doc, writeBatch, where, getDocs, getDoc, arrayRemove, deleteField } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
-import { UserPlus, Users, Briefcase, UserCircle, ArrowLeft, Trash2, Pencil } from 'lucide-react';
+import { UserPlus, Users, Briefcase, UserCircle, Trash2, Pencil } from 'lucide-react';
 import toast from 'react-hot-toast';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import { SkeletonListRow } from '@/components/Skeleton';
 import { useTranslation } from '@/i18n';
+import BackButton from '@/components/BackButton';
 
 interface UserData {
   id: string;
@@ -20,7 +20,6 @@ interface UserData {
 
 export default function AdminUsersPage() {
   const db = useFirestore();
-  const router = useRouter();
   const { t } = useTranslation();
   
   const [users, setUsers] = useState<UserData[]>([]);
@@ -250,10 +249,7 @@ export default function AdminUsersPage() {
     <main className="flex min-h-screen flex-col items-center p-4 sm:p-8 bg-transparent">
       <div className="w-full max-w-6xl animate-fade-in-slide-up">
         <div className="flex justify-between items-center mb-8">
-            <button onClick={() => router.back()} className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
-                <ArrowLeft size={18} />
-                <span>{t('common.back')}</span>
-            </button>
+            <BackButton />
         </div>
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
             <h1 className="text-4xl font-bold text-foreground">{t('adminUsers.userManagement')}</h1>

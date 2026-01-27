@@ -2,13 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
-import Link from 'next/link';
 import { useAuthGuard } from '@/hooks/useAuthGuard';
 import { useFirestore, useUser } from '@/firebase';
 import { collection, query, where, onSnapshot, setDoc, doc, serverTimestamp, documentId, getDocs } from 'firebase/firestore';
-import { ArrowLeft, ClipboardEdit, Save } from 'lucide-react';
+import { ClipboardEdit, Save } from 'lucide-react';
 import toast from 'react-hot-toast';
 import PermissionDenied from '@/components/PermissionDenied';
+import BackButton from '@/components/BackButton';
 
 // Interfaces
 interface ClassData {
@@ -181,10 +181,7 @@ export default function ManageGradesPage() {
     <main className="flex min-h-screen flex-col items-center p-4 sm:p-8 bg-background">
       <div className="w-full max-w-6xl animate-fade-in-slide-up">
         <div className="mb-8">
-          <Link href="/teacher" className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
-            <ArrowLeft size={18} />
-            <span>Back to Dashboard</span>
-          </Link>
+          <BackButton />
         </div>
         <h1 className="text-4xl font-bold text-foreground mb-2">{classData?.name || 'Grades'}</h1>
         <p className="text-muted-foreground mb-8">Manage student grades for this class.</p>
