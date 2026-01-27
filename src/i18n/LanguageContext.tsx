@@ -18,9 +18,11 @@ interface LanguageContextType {
 export const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 const translations = { en, fa, ps };
+const defaultLanguage: Language = 'fa';
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [language, setLanguageState] = useState<Language>('fa'); // Default to Persian
+  const [language, setLanguageState] = useState<Language>(defaultLanguage);
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
     const storedLang = localStorage.getItem('app-lang') as Language;
@@ -29,9 +31,10 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
       document.documentElement.lang = storedLang;
       document.documentElement.dir = ['fa', 'ps'].includes(storedLang) ? 'rtl' : 'ltr';
     } else {
-        document.documentElement.lang = 'fa';
-        document.documentElement.dir = 'rtl';
+        document.documentElement.lang = defaultLanguage;
+        document.documentElement.dir = ['fa', 'ps'].includes(defaultLanguage) ? 'rtl' : 'ltr';
     }
+    setIsMounted(true);
   }, []);
 
   const setLanguage = (lang: Language) => {
@@ -42,8 +45,10 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   };
   
   const t = (key: string, replacements?: Record<string, string>): string => {
+    // On server or before mount, use default language to prevent mismatch.
+    const effectiveLanguage = isMounted ? language : defaultLanguage;
     const keys = key.split('.');
-    let result: any = translations[language];
+    let result: any = translations[effectiveLanguage];
 
     for (const k of keys) {
         result = result?.[k];
