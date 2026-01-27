@@ -200,6 +200,7 @@ export default function ParentGradesPage() {
     doc.text(`نام دانش‌آموز: ${selectedStudent.name}`, pageWidth - margin, y, { align: 'right' });
     y += 7;
     doc.text(`صنف: ${className}`, pageWidth - margin, y, { align: 'right' });
+    y += 7;
     doc.text(`تاریخ صدور: ${format(new Date(), 'yyyy/MM/dd')}`, pageWidth - margin, y, { align: 'right' });
     y += 12;
 
@@ -239,21 +240,40 @@ export default function ParentGradesPage() {
 
     y = (doc as any).lastAutoTable.finalY + 15;
 
-    // Summary
-    const totalScore = reportCardItems.reduce((sum, item) => sum + item.score, 0);
-    const totalMaxScore = reportCardItems.reduce((sum, item) => sum + item.maxScore, 0);
-    
+    // Summary Section
     doc.setFontSize(12);
     doc.setFont('Vazirmatn', 'bold');
     doc.text('خلاصه عملکرد', pageWidth - margin, y, { align: 'right' });
     y += 8;
+
     doc.setFontSize(11);
     doc.setFont('Vazirmatn', 'normal');
+
+    const totalScore = reportCardItems.reduce((sum, item) => sum + item.score, 0);
+    const totalMaxScore = reportCardItems.reduce((sum, item) => sum + item.maxScore, 0);
     doc.text(`مجموع نمرات: ${totalScore} از ${totalMaxScore}`, pageWidth - margin, y, { align: 'right' });
     y += 7;
-    if (overallAverage !== null) {
-        doc.text(`اوسط کل نمرات (فیصدی): %${overallAverage.toFixed(1)}`, pageWidth - margin, y, { align: 'right' });
+
+    if (totalMaxScore > 0) {
+        const finalPercentage = (totalScore / totalMaxScore) * 100;
+        doc.text(`فیصدی کل: %${finalPercentage.toFixed(1)}`, pageWidth - margin, y, { align: 'right' });
+        y += 7;
+
+        let resultLabel = '';
+        if (finalPercentage >= 85) {
+            resultLabel = 'عالی';
+        } else if (finalPercentage >= 70) {
+            resultLabel = 'خوب';
+        } else if (finalPercentage >= 50) {
+            resultLabel = 'قابل قبول';
+        } else {
+            resultLabel = 'نیاز به تلاش بیشتر';
+        }
+        
+        doc.setFont('Vazirmatn', 'bold');
+        doc.text(`نتیجه: ${resultLabel}`, pageWidth - margin, y, { align: 'right' });
     }
+
 
     doc.save(`کارنامه-${selectedStudent.name.replace(/ /g, '_')}.pdf`);
   };
