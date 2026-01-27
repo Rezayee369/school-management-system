@@ -1,13 +1,10 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useAuthGuard } from '@/hooks/useAuthGuard';
 import { useFirestore } from '@/firebase';
 import { collection, query, where, getDocs, doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { DollarSign, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import PermissionDenied from '@/components/PermissionDenied';
 import BackButton from '@/components/BackButton';
 import { useTranslation } from '@/i18n';
 
@@ -30,7 +27,6 @@ const getMonthOptions = () => {
 };
 
 export default function AdminFeesPage() {
-  const { isLoading: isLoadingAuth, isAuthorized, userRole } = useAuthGuard('admin');
   const db = useFirestore();
   const { t } = useTranslation();
 
@@ -47,7 +43,7 @@ export default function AdminFeesPage() {
   const monthOptions = getMonthOptions();
 
   useEffect(() => {
-    if (!isAuthorized || !db) return;
+    if (!db) return;
     
     const fetchStudents = async () => {
       setIsLoadingStudents(true);
@@ -68,7 +64,7 @@ export default function AdminFeesPage() {
     };
 
     fetchStudents();
-  }, [isAuthorized, db, t]);
+  }, [db, t]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -121,14 +117,6 @@ export default function AdminFeesPage() {
       setIsSaving(false);
     }
   };
-
-  if (isLoadingAuth) {
-    return <main className="flex min-h-screen items-center justify-center p-8 bg-background"><p>Loading...</p></main>;
-  }
-
-  if (!isAuthorized) {
-    return <PermissionDenied userRole={userRole} />;
-  }
 
   return (
     <main className="flex min-h-screen flex-col items-center p-4 sm:p-8 bg-transparent">

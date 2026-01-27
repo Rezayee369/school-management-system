@@ -11,12 +11,9 @@ import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
 import { setDoc, doc, serverTimestamp } from 'firebase/firestore';
 import { User, Mail, Lock, Phone, HardHat } from 'lucide-react';
 import BackButton from '@/components/BackButton';
-import { useAuthGuard } from '@/hooks/useAuthGuard';
-import PermissionDenied from '@/components/PermissionDenied';
 import { useTranslation } from '@/i18n';
 
 export default function CreateStaffPage() {
-    const { isLoading: isLoadingAuth, isAuthorized } = useAuthGuard('admin');
     const router = useRouter();
     const db = useFirestore();
     const { t } = useTranslation();
@@ -76,14 +73,6 @@ export default function CreateStaffPage() {
         }
     };
     
-    if (isLoadingAuth) {
-      return <main className="flex min-h-screen items-center justify-center p-8 bg-background"><p>Loading...</p></main>;
-    }
-  
-    if (!isAuthorized) {
-      return <PermissionDenied />;
-    }
-
     return (
         <main className="flex min-h-screen flex-col items-center justify-center p-4 sm:p-8 bg-background">
              <div className="w-full max-w-md animate-fade-in-slide-up">

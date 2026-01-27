@@ -1,12 +1,9 @@
-
 'use client';
 
 import { useState } from 'react';
-import { useAuthGuard } from '@/hooks/useAuthGuard';
 import { useFirestore } from '@/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import toast from 'react-hot-toast';
-import PermissionDenied from '@/components/PermissionDenied';
 import BackButton from '@/components/BackButton';
 import { Megaphone, Loader2 } from 'lucide-react';
 import { dispatchNotification } from '@/services/notificationService';
@@ -15,7 +12,6 @@ import { useTranslation } from '@/i18n';
 type TargetRole = 'all' | 'parent' | 'teacher' | 'student' | 'staff';
 
 export default function AdminNotificationsPage() {
-  const { isLoading: isLoadingAuth, isAuthorized } = useAuthGuard('admin');
   const db = useFirestore();
   const { t } = useTranslation();
 
@@ -71,14 +67,6 @@ export default function AdminNotificationsPage() {
       setIsSaving(false);
     }
   };
-
-  if (isLoadingAuth) {
-    return <main className="flex min-h-screen items-center justify-center p-8 bg-background"><p>Loading...</p></main>;
-  }
-
-  if (!isAuthorized) {
-    return <PermissionDenied />;
-  }
 
   return (
     <main className="flex min-h-screen flex-col items-center p-4 sm:p-8 bg-transparent">

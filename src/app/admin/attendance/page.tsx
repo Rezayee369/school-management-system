@@ -1,14 +1,11 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useAuthGuard } from '@/hooks/useAuthGuard';
 import { useFirestore } from '@/firebase';
 import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestore';
 import { Calendar as CalendarIcon, Users } from 'lucide-react';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
-import PermissionDenied from '@/components/PermissionDenied';
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
@@ -28,7 +25,6 @@ interface AttendanceData {
 }
 
 export default function AdminAttendancePage() {
-  const { isLoading: isLoadingAuth, isAuthorized, userRole } = useAuthGuard('admin');
   const db = useFirestore();
 
   const [classes, setClasses] = useState<ClassData[]>([]);
@@ -41,7 +37,7 @@ export default function AdminAttendancePage() {
   const [isLoadingAttendance, setIsLoadingAttendance] = useState(false);
 
   useEffect(() => {
-    if (!isAuthorized || !db) return;
+    if (!db) return;
     
     setIsLoadingClasses(true);
     const classesQuery = query(collection(db, 'classes'), orderBy('name'));
@@ -59,7 +55,7 @@ export default function AdminAttendancePage() {
     });
 
     return () => unsubscribe();
-  }, [isAuthorized, db]);
+  }, [db]);
 
   useEffect(() => {
     if (!selectedClassId || !date || !db) {
@@ -100,14 +96,6 @@ export default function AdminAttendancePage() {
       default: return 'bg-muted/20 text-muted-foreground border-muted/50';
     }
   };
-
-  if (isLoadingAuth) {
-    return <main className="flex min-h-screen items-center justify-center p-8 bg-background"><p>Loading...</p></main>;
-  }
-
-  if (!isAuthorized) {
-    return <PermissionDenied userRole={userRole} />;
-  }
 
   return (
     <main className="flex min-h-screen flex-col items-center p-4 sm:p-8 bg-transparent">

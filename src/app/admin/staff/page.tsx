@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -11,8 +10,6 @@ import ConfirmDialog from '@/components/ConfirmDialog';
 import { SkeletonListRow } from '@/components/Skeleton';
 import { useTranslation } from '@/i18n';
 import BackButton from '@/components/BackButton';
-import { useAuthGuard } from '@/hooks/useAuthGuard';
-import PermissionDenied from '@/components/PermissionDenied';
 
 
 interface StaffData {
@@ -24,7 +21,6 @@ interface StaffData {
 }
 
 export default function AdminStaffPage() {
-  const { isLoading: isLoadingAuth, isAuthorized } = useAuthGuard('admin');
   const db = useFirestore();
   const { t } = useTranslation();
   
@@ -36,8 +32,8 @@ export default function AdminStaffPage() {
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
   useEffect(() => {
-    if (!isAuthorized) {
-        if (!isLoadingAuth) setIsLoadingStaff(false);
+    if (!db) {
+        setIsLoadingStaff(false);
         return;
     }
     const q = query(collection(db, 'users'), where('role', '==', 'staff'), orderBy('createdAt', 'desc'));
@@ -55,7 +51,7 @@ export default function AdminStaffPage() {
     });
 
     return () => unsubscribe();
-  }, [db, isAuthorized, isLoadingAuth]);
+  }, [db]);
 
   const handleDeleteClick = (user: StaffData) => {
     setStaffToDelete(user);
@@ -90,7 +86,7 @@ export default function AdminStaffPage() {
     }
   };
 
-  if (isLoadingAuth || isLoadingStaff) {
+  if (isLoadingStaff) {
     return (
       <main className="flex min-h-screen flex-col items-center p-4 sm:p-8 bg-transparent">
         <div className="w-full max-w-6xl">
@@ -112,10 +108,6 @@ export default function AdminStaffPage() {
         </div>
       </main>
     );
-  }
-
-  if (!isAuthorized) {
-    return <PermissionDenied />;
   }
 
   return (
