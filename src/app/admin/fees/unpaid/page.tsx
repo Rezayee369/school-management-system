@@ -4,10 +4,11 @@ import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthGuard } from '@/hooks/useAuthGuard';
 import { useFirestore } from '@/firebase';
-import { collection, query, where, onSnapshot, getDocs } from 'firebase/firestore';
-import { ArrowLeft, ListX, DollarSign, Filter } from 'lucide-react';
+import { collection, query, where, getDocs } from 'firebase/firestore';
+import { ArrowLeft, ListX, DollarSign, Filter, TrendingDown } from 'lucide-react';
 import PermissionDenied from '@/components/PermissionDenied';
 import { SkeletonListRow } from '@/components/Skeleton';
+import { Skeleton } from '@/components/Skeleton';
 
 interface FeeData {
   id: string;
@@ -53,7 +54,7 @@ export default function UnpaidFeesPage() {
 
   const [reportItems, setReportItems] = useState<UnpaidFeeReportItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedMonth, setSelectedMonth] = useState<string>(new Date().toISOString().slice(0, 7)); // Default to current month YYYY-MM
+  const [selectedMonth, setSelectedMonth] = useState<string>('all');
   
   const monthOptions = useMemo(getMonthOptions, []);
 
@@ -81,7 +82,6 @@ export default function UnpaidFeesPage() {
             classesSnap.forEach(doc => {
                 const classData = doc.data() as ClassData;
                 classData.studentIds?.forEach(studentId => {
-                    // For simplicity, we'll just show the first class found for a student.
                     if (!studentClassMap.has(studentId)) {
                         studentClassMap.set(studentId, classData.name);
                     }
@@ -107,10 +107,15 @@ export default function UnpaidFeesPage() {
   
   const filteredItems = useMemo(() => {
     if (selectedMonth === 'all') {
-      return reportItems.sort((a,b) => a.fee.month.localeCompare(b.fee.month));
+      return reportItems.sort((a,b) => b.fee.month.localeCompare(a.fee.month));
     }
     return reportItems.filter(item => item.fee.month === selectedMonth);
   }, [reportItems, selectedMonth]);
+
+  const totalUnpaid = useMemo(() => {
+    return filteredItems.reduce((total, item) => total + item.amountDue, 0);
+  }, [filteredItems]);
+
 
   if (isLoadingAuth) {
     return <main className="flex min-h-screen items-center justify-center p-8 bg-background"><p>Loading...</p></main>;
@@ -122,24 +127,37 @@ export default function UnpaidFeesPage() {
 
   return (
     <main className="flex min-h-screen flex-col items-center p-4 sm:p-8 bg-transparent">
-      <div className="w-full max-w-5xl animate-fade-in-slide-up">
+      <div className="w-full max-w-6xl animate-fade-in-slide-up">
         <div className="flex justify-between items-center mb-8">
           <button onClick={() => router.back()} className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
             <ArrowLeft size={18} />
             <span>Back</span>
           </button>
         </div>
-        <h1 className="text-4xl font-bold text-foreground mb-8">Unpaid Fees</h1>
+        <h1 className="text-4xl font-bold text-foreground mb-8">Unpaid Fees Report</h1>
         
         <div className="p-6 bg-background/60 backdrop-blur-sm border border-secondary/30 rounded-xl shadow-lg">
-            <div className="flex flex-col sm:flex-row gap-4 mb-6">
-                <div className="flex-1">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div className="p-6 bg-destructive/10 border border-destructive/30 rounded-xl">
+                    <p className="text-sm text-destructive-foreground/80 flex items-center gap-2">
+                        <TrendingDown size={16}/>
+                        Total Unpaid Amount
+                    </p>
+                     {isLoading ? (
+                        <Skeleton className="h-10 w-48 mt-2"/>
+                     ) : (
+                        <p className="text-4xl font-bold text-destructive mt-1">
+                            ${totalUnpaid.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </p>
+                     )}
+                </div>
+                <div>
                     <label htmlFor="month-filter" className="text-sm font-medium text-muted-foreground flex items-center gap-2 mb-2"><Filter size={14}/> Filter by Month</label>
                     <select
                         id="month-filter"
                         value={selectedMonth}
                         onChange={(e) => setSelectedMonth(e.target.value)}
-                        className="w-full appearance-none px-4 py-2.5 bg-background/50 text-foreground border border-input rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
+                        className="w-full appearance-none px-4 py-3 bg-background/50 text-foreground border border-input rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
                     >
                         <option value="all">All Months</option>
                         {monthOptions.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
@@ -162,6 +180,8 @@ export default function UnpaidFeesPage() {
                                   <th className="p-3 text-sm font-semibold text-muted-foreground">Student Name</th>
                                   <th className="p-3 text-sm font-semibold text-muted-foreground">Class</th>
                                   <th className="p-3 text-sm font-semibold text-muted-foreground">Fee Month</th>
+                                  <th className="p-3 text-sm font-semibold text-muted-foreground text-right">Fee Amount</th>
+                                  <th className="p-3 text-sm font-semibold text-muted-foreground text-right">Discount</th>
                                   <th className="p-3 text-sm font-semibold text-muted-foreground text-right">Amount Due</th>
                               </tr>
                           </thead>
@@ -171,6 +191,8 @@ export default function UnpaidFeesPage() {
                                     <td className="p-3 font-medium text-foreground/90">{fee.studentName}</td>
                                     <td className="p-3 text-muted-foreground">{className}</td>
                                     <td className="p-3 text-muted-foreground">{fee.month}</td>
+                                    <td className="p-3 text-right text-muted-foreground">${fee.amount.toFixed(2)}</td>
+                                    <td className="p-3 text-right text-muted-foreground">${fee.discount.toFixed(2)}</td>
                                     <td className="p-3 text-right font-semibold text-destructive">
                                         <div className='flex items-center justify-end gap-1.5'>
                                           <DollarSign size={14} />
