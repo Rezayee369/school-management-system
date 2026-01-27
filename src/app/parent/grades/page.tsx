@@ -7,7 +7,7 @@ import PermissionDenied from '@/components/PermissionDenied';
 import { useUser, useFirestore } from '@/firebase';
 import { collection, doc, onSnapshot, query, where, documentId, getDocs, getDoc, orderBy } from 'firebase/firestore';
 import BackButton from '@/components/BackButton';
-import { Award, ClipboardList, TrendingUp, Download } from 'lucide-react';
+import { Award, ClipboardList, TrendingUp, Download, Loader2 } from 'lucide-react';
 import { Skeleton } from '@/components/Skeleton';
 import { format } from 'date-fns';
 import jsPDF from 'jspdf';
@@ -32,6 +32,7 @@ interface ExamData {
 
 interface ExamGradeData {
   examId: string;
+  classId: string;
   score: number;
   maxScore: number;
   submittedAt: { toDate: () => Date };
@@ -54,7 +55,6 @@ export default function ParentGradesPage() {
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
   const [reportCardItems, setReportCardItems] = useState<ReportCardItem[]>([]);
   const [className, setClassName] = useState<string>('');
-  const [isLoadingClassName, setIsLoadingClassName] = useState(true);
 
 
   // Fetch parent's linked students
@@ -93,25 +93,34 @@ export default function ParentGradesPage() {
   useEffect(() => {
     if (!selectedStudentId || !db) {
         setReportCardItems([]);
-        if (selectedStudentId === null) setIsLoading(false); // Only set loading to false if we know there are no students
+        setClassName('');
+        if (selectedStudentId === null) setIsLoading(false);
         return;
     }
     
     setIsLoading(true);
 
     const gradesQuery = query(collection(db, 'examGrades'), where('studentId', '==', selectedStudentId), orderBy('submittedAt', 'desc'));
+    
     const unsubscribeGrades = onSnapshot(gradesQuery, async (gradesSnap) => {
         const gradesData = gradesSnap.docs.map(doc => doc.data() as ExamGradeData);
         if (gradesData.length === 0) {
             setReportCardItems([]);
+            setClassName('');
             setIsLoading(false);
             return;
         }
 
         const examIds = [...new Set(gradesData.map(g => g.examId))];
-        const examsQuery = query(collection(db, 'exams'), where(documentId(), 'in', examIds));
-        const examsSnap = await getDocs(examsQuery);
+        const classIds = [...new Set(gradesData.map(g => g.classId))];
+
+        const [examsSnap, classesSnap] = await Promise.all([
+            getDocs(query(collection(db, 'exams'), where(documentId(), 'in', examIds))),
+            getDocs(query(collection(db, 'classes'), where(documentId(), 'in', classIds))),
+        ]);
+
         const examsMap = new Map(examsSnap.docs.map(doc => [doc.id, { id: doc.id, ...doc.data() } as ExamData]));
+        const classesMap = new Map(classesSnap.docs.map(doc => [doc.id, doc.data().name as string]));
 
         const items: ReportCardItem[] = gradesData.map(grade => {
             const exam = examsMap.get(grade.examId);
@@ -125,38 +134,23 @@ export default function ParentGradesPage() {
         }).filter((item): item is ReportCardItem => item !== null);
         
         setReportCardItems(items);
+
+        // Set class name from the first available classId
+        if (items.length > 0 && items[0].classId) {
+            setClassName(classesMap.get(items[0].classId) || '');
+        } else {
+            setClassName('');
+        }
+
         setIsLoading(false);
 
-    }, () => {
+    }, (error) => {
+        console.error("Error fetching grades:", error);
         setIsLoading(false);
     });
 
     return () => unsubscribeGrades();
   }, [selectedStudentId, db]);
-  
-  // Fetch class name for the report card
-    useEffect(() => {
-        if (reportCardItems.length > 0 && db) {
-            setIsLoadingClassName(true);
-            const firstClassId = reportCardItems[0].classId;
-            if (firstClassId) {
-                const classRef = doc(db, 'classes', firstClassId);
-                getDoc(classRef).then(docSnap => {
-                    if (docSnap.exists()) {
-                        setClassName(docSnap.data().name);
-                    }
-                    setIsLoadingClassName(false);
-                }).catch(() => setIsLoadingClassName(false));
-            } else {
-                setIsLoadingClassName(false);
-            }
-        } else {
-            setClassName('');
-            if (reportCardItems.length === 0 && !isLoading) {
-                setIsLoadingClassName(false);
-            }
-        }
-    }, [reportCardItems, db, isLoading]);
 
 
   const overallAverage = useMemo(() => {
@@ -176,11 +170,10 @@ export default function ParentGradesPage() {
   const selectedStudent = linkedStudents.find(s => s.id === selectedStudentId);
 
   const handleDownloadPdf = () => {
-    if (!selectedStudent || reportCardItems.length === 0 || isLoadingClassName) return;
+    if (!selectedStudent || reportCardItems.length === 0 || isLoading) return;
 
     const doc = new jsPDF();
     
-    // Add Vazirmatn font for Persian support. This is required for RTL languages.
     doc.addFileToVFS('Vazirmatn-Regular.ttf', vazirmatnFont);
     doc.addFont('Vazirmatn-Regular.ttf', 'Vazirmatn', 'normal');
     doc.setFont('Vazirmatn');
@@ -190,7 +183,6 @@ export default function ParentGradesPage() {
     const margin = 15;
     let y = 20;
 
-    // Header
     doc.setFontSize(16);
     doc.text(t('pdfReport.schoolName'), pageWidth / 2, y, { align: 'center' });
     y += 8;
@@ -198,7 +190,6 @@ export default function ParentGradesPage() {
     doc.text(t('pdfReport.title'), pageWidth / 2, y, { align: 'center' });
     y += 15;
     
-    // Student Info
     doc.setFontSize(11);
     doc.text(`${t('pdfReport.studentName')}: ${selectedStudent.name}`, pageWidth - margin, y, { align: 'right' });
     y += 7;
@@ -207,7 +198,6 @@ export default function ParentGradesPage() {
     doc.text(`${t('pdfReport.issueDate')}: ${format(new Date(), 'yyyy/MM/dd')}`, pageWidth - margin, y, { align: 'right' });
     y += 12;
 
-    // Grades Table
     const tableHead = [[
         t('pdfReport.subjectHeader'),
         t('pdfReport.scoreHeader'),
@@ -246,7 +236,6 @@ export default function ParentGradesPage() {
 
     y = (doc as any).lastAutoTable.finalY + 15;
 
-    // Summary Section
     doc.setFontSize(12);
     doc.setFont('Vazirmatn', 'bold');
     doc.text(t('pdfReport.summaryTitle'), pageWidth - margin, y, { align: 'right' });
@@ -321,7 +310,7 @@ export default function ParentGradesPage() {
                     <BackButton />
                     <button
                         onClick={handleDownloadPdf}
-                        disabled={reportCardItems.length === 0 || isLoadingClassName || isLoading}
+                        disabled={reportCardItems.length === 0 || isLoading}
                         className="inline-flex items-center gap-2 px-4 py-2 font-semibold text-primary-foreground bg-primary rounded-lg shadow-md hover:opacity-90 active:scale-95 transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <Download size={18} />

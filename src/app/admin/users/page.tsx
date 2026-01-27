@@ -18,6 +18,7 @@ interface UserData {
   fullName: string;
   email: string;
   role: string;
+  studentIds?: string[];
 }
 
 export default function AdminUsersPage() {
@@ -56,6 +57,7 @@ export default function AdminUsersPage() {
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
       const usersData: UserData[] = [];
       querySnapshot.forEach((doc) => {
+        // Fetch all data including studentIds for potential editing
         usersData.push({ id: doc.id, ...doc.data() } as UserData);
       });
       setUsers(usersData);
@@ -78,17 +80,16 @@ export default function AdminUsersPage() {
     setEditingUser(user);
     setUpdatedFullName(user.fullName);
     setUpdatedRole(user.role);
+    setLinkedStudentIds(new Set(user.studentIds || [])); // Use pre-fetched data
 
     if (user.role === 'parent' || updatedRole === 'parent') {
+        // Fetch student list only if it's not already loaded
         if (allStudents.length === 0) {
             const studentsQuery = query(collection(db, 'users'), where('role', '==', 'student'));
             const querySnapshot = await getDocs(studentsQuery);
             setAllStudents(querySnapshot.docs.map(d => ({ id: d.id, ...d.data() } as UserData)));
         }
     }
-    
-    const userDoc = await getDoc(doc(db, 'users', user.id));
-    setLinkedStudentIds(new Set(userDoc.data()?.studentIds || []));
   };
 
   const handleStudentLinkToggle = (studentId: string) => {
@@ -444,5 +445,3 @@ export default function AdminUsersPage() {
     </main>
   );
 }
-
-    

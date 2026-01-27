@@ -5,7 +5,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useAuthGuard } from '@/hooks/useAuthGuard';
 import { useFirestore } from '@/firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
-import { ListX, DollarSign, Filter, TrendingDown } from 'lucide-react';
+import { ListX, DollarSign, Filter, TrendingDown, Loader2 } from 'lucide-react';
 import PermissionDenied from '@/components/PermissionDenied';
 import { SkeletonListRow } from '@/components/Skeleton';
 import { Skeleton } from '@/components/Skeleton';
@@ -29,7 +29,7 @@ interface ClassData {
 
 interface UnpaidFeeReportItem {
     fee: FeeData;
-    className: string;
+    className: string | null; // Allow null for loading state
     amountDue: number;
 }
 
@@ -70,15 +70,22 @@ export default function UnpaidFeesPage() {
 
     const fetchData = async () => {
         try {
+            // 1. Fetch unpaid fees first and render them immediately
             const feesQuery = query(collection(db, 'fees'), where('status', '==', 'unpaid'));
-            const classesQuery = collection(db, 'classes');
-            
-            const [feesSnap, classesSnap] = await Promise.all([
-                getDocs(feesQuery),
-                getDocs(classesQuery)
-            ]);
-
+            const feesSnap = await getDocs(feesQuery);
             const unpaidFees = feesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as FeeData));
+
+            const initialItems: UnpaidFeeReportItem[] = unpaidFees.map(fee => ({
+                fee,
+                className: null, // Set class name to null initially (loading state)
+                amountDue: fee.amount - (fee.discount || 0)
+            }));
+            setReportItems(initialItems);
+            setIsLoading(false);
+
+            // 2. Asynchronously fetch class data and update the state
+            const classesQuery = collection(db, 'classes');
+            const classesSnap = await getDocs(classesQuery);
             
             const studentClassMap = new Map<string, string>();
             classesSnap.forEach(doc => {
@@ -90,16 +97,14 @@ export default function UnpaidFeesPage() {
                 });
             });
 
-            const items: UnpaidFeeReportItem[] = unpaidFees.map(fee => ({
-                fee,
-                className: studentClassMap.get(fee.studentId) || 'N/A',
-                amountDue: fee.amount - (fee.discount || 0)
-            }));
+            // 3. Update report items with the fetched class names
+            setReportItems(prevItems => prevItems.map(item => ({
+                ...item,
+                className: studentClassMap.get(item.fee.studentId) || 'N/A',
+            })));
 
-            setReportItems(items);
         } catch (error) {
             console.error("Failed to fetch unpaid fees report:", error);
-        } finally {
             setIsLoading(false);
         }
     };
@@ -188,7 +193,13 @@ export default function UnpaidFeesPage() {
                             {filteredItems.map(({ fee, className, amountDue }) => (
                                 <tr key={fee.id} className="border-b border-muted/20 hover:bg-muted/10">
                                     <td className="p-3 font-medium text-foreground/90">{fee.studentName}</td>
-                                    <td className="p-3 text-muted-foreground">{className}</td>
+                                    <td className="p-3 text-muted-foreground">
+                                        {className === null ? (
+                                            <div className="flex justify-center items-center">
+                                                <Loader2 className="w-4 h-4 animate-spin"/>
+                                            </div>
+                                        ) : className}
+                                    </td>
                                     <td className="p-3 text-muted-foreground">{fee.month}</td>
                                     <td className="p-3 text-right text-muted-foreground">${fee.amount.toFixed(2)}</td>
                                     <td className="p-3 text-right text-muted-foreground">${fee.discount.toFixed(2)}</td>
