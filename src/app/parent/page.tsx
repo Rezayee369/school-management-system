@@ -5,7 +5,7 @@ import { useAuthGuard } from '@/hooks/useAuthGuard';
 import DashboardHeader from '@/components/DashboardHeader';
 import PermissionDenied from '@/components/PermissionDenied';
 import { useUser, useFirestore } from '@/firebase';
-import { collection, doc, onSnapshot, query, where, documentId, getDocs } from 'firebase/firestore';
+import { collection, doc, onSnapshot, query, where, documentId, getDocs, orderBy } from 'firebase/firestore';
 import { BookOpen, Users, ClipboardCheck, Percent, CalendarDays, Wallet, CalendarClock } from 'lucide-react';
 import { format, parse } from 'date-fns';
 
@@ -32,6 +32,8 @@ interface GradeData {
 }
 
 interface FeeData {
+    id: string;
+    month: string;
     status: 'paid' | 'unpaid';
     amount: number;
     discount?: number;
@@ -63,7 +65,7 @@ export default function ParentDashboard() {
   const [classes, setClasses] = useState<ClassData[]>([]);
   const [grades, setGrades] = useState<GradeData[]>([]);
   const [allAttendance, setAllAttendance] = useState<AttendanceData[]>([]);
-  const [feeStatus, setFeeStatus] = useState<FeeData | null>(null);
+  const [allFees, setAllFees] = useState<FeeData[]>([]);
 
   // State for attendance history filtering
   const [selectedMonth, setSelectedMonth] = useState<string>(format(new Date(), 'yyyy-MM'));
@@ -103,7 +105,7 @@ export default function ParentDashboard() {
   // Fetch data for the selected student
   useEffect(() => {
     if (!selectedStudentId || !db) {
-      setClasses([]); setGrades([]); setAllAttendance([]); setFeeStatus(null);
+      setClasses([]); setGrades([]); setAllAttendance([]); setAllFees([]);
       return;
     }
 
@@ -124,26 +126,32 @@ export default function ParentDashboard() {
         setAllAttendance(records);
     }));
 
-    // Fees for the CURRENT month
-    const currentMonthForFee = format(new Date(), 'yyyy-MM');
-    const feeId = `${selectedStudentId}_${currentMonthForFee}`;
-    const feeRef = doc(db, 'fees', feeId);
-    unsubscribes.push(onSnapshot(feeRef, snap => setFeeStatus(snap.exists() ? snap.data() as FeeData : null)));
+    // Fetch all fees for the student
+    const feesQuery = query(collection(db, 'fees'), where('studentId', '==', selectedStudentId), orderBy('month', 'desc'));
+    unsubscribes.push(onSnapshot(feesQuery, snap => {
+        const feeData = snap.docs.map(d => ({id: d.id, ...d.data()}) as FeeData);
+        setAllFees(feeData);
+    }));
 
     return () => unsubscribes.forEach(unsub => unsub());
   }, [selectedStudentId, db]);
   
+  const feeStatus = useMemo(() => {
+    const currentMonthForFee = format(new Date(), 'yyyy-MM');
+    return allFees.find(fee => fee.month === currentMonthForFee) || null;
+  }, [allFees]);
+  
+  const feeHistory = allFees;
+
   // Derived state for summary cards and history list
   const { attendanceToday, monthlyAttendance, filteredAttendanceHistory } = useMemo(() => {
     const todayStr = format(new Date(), 'yyyy-MM-dd');
     const monthStartStr = format(new Date(), 'yyyy-MM');
     
-    // Summary data
     const todayRecord = allAttendance.find(a => a.date === todayStr) || null;
     const monthlyRecords = allAttendance.filter(a => a.date.startsWith(monthStartStr));
     const presentCount = monthlyRecords.filter(a => a.status === 'present').length;
     
-    // History data
     const historyRecords = allAttendance.filter(a => a.date.startsWith(selectedMonth));
 
     return {
@@ -245,8 +253,8 @@ export default function ParentDashboard() {
               />
             </div>
 
-            <div className="mt-12 grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div className="lg:col-span-2 grid grid-cols-1 gap-8 content-start">
+            <div className="mt-12 grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div className="grid grid-cols-1 gap-8 content-start">
                     <div className="p-6 bg-background/60 backdrop-blur-sm border border-border rounded-xl shadow-lg">
                         <div className="flex items-center gap-3 mb-4">
                             <ClipboardCheck className="w-6 h-6 text-secondary"/>
@@ -267,7 +275,41 @@ export default function ParentDashboard() {
                             )}
                         </div>
                     </div>
-
+                    <div className="p-6 bg-background/60 backdrop-blur-sm border border-border rounded-xl shadow-lg">
+                        <div className="flex items-center gap-3 mb-4">
+                            <Wallet className="w-6 h-6 text-secondary"/>
+                            <h3 className="text-xl font-semibold text-foreground">Fee History</h3>
+                        </div>
+                        <div className="space-y-2 max-h-[40vh] overflow-y-auto pr-2">
+                            {feeHistory.length > 0 ? feeHistory.map((fee) => {
+                                const amountDue = fee.amount - (fee.discount || 0);
+                                return (
+                                    <div key={fee.id} className="grid grid-cols-3 items-center p-3 bg-background/30 border-b border-muted/20">
+                                        <div>
+                                            <p className="font-medium text-foreground/90">{format(parse(fee.month, 'yyyy-MM', new Date()), 'MMMM yyyy')}</p>
+                                            <p className="text-xs text-muted-foreground">Due: ${amountDue.toFixed(2)}</p>
+                                        </div>
+                                        <div className="text-center text-muted-foreground">
+                                            <p className="text-xs">Fee: ${fee.amount.toFixed(2)}</p>
+                                            {fee.discount && fee.discount > 0 ? <p className="text-xs">Disc: ${fee.discount.toFixed(2)}</p> : null}
+                                        </div>
+                                        <div className="text-right">
+                                            <span className={`px-3 py-1 text-xs font-bold uppercase rounded-full border ${
+                                                fee.status === 'paid' ? 'bg-green-500/20 text-green-300 border-green-500/50' : 'bg-red-500/20 text-red-300 border-red-500/50'
+                                            }`}>
+                                                {fee.status}
+                                            </span>
+                                        </div>
+                                    </div>
+                                )
+                            }) : (
+                                <p className="text-muted-foreground text-center py-4">No fee history found.</p>
+                            )}
+                        </div>
+                    </div>
+                </div>
+                
+                <div className="grid grid-cols-1 gap-8 content-start">
                     <div className="p-6 bg-background/60 backdrop-blur-sm border border-border rounded-xl shadow-lg">
                         <h3 className="text-xl font-semibold text-foreground mb-4">Enrolled Classes</h3>
                         {classes.length > 0 ? (
@@ -286,33 +328,32 @@ export default function ParentDashboard() {
                             <p className="text-muted-foreground text-center py-4">Student not enrolled in any classes.</p>
                         )}
                     </div>
-                </div>
-                
-                <div className="p-6 bg-background/60 backdrop-blur-sm border border-border rounded-xl shadow-lg">
-                    <div className="flex justify-between items-center gap-3 mb-4">
-                        <div className='flex items-center gap-3'>
-                            <CalendarClock className="w-6 h-6 text-secondary"/>
-                            <h3 className="text-xl font-semibold text-foreground">Attendance History</h3>
-                        </div>
-                        <select
-                            value={selectedMonth}
-                            onChange={(e) => setSelectedMonth(e.target.value)}
-                            className="text-sm px-2 py-1 appearance-none bg-background/50 text-foreground border border-input rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                        >
-                            {monthOptions.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-                        </select>
-                    </div>
-                     <div className="space-y-2 max-h-[60vh] overflow-y-auto pr-2">
-                        {filteredAttendanceHistory.length > 0 ? filteredAttendanceHistory.map((record, i) => (
-                            <div key={i} className="flex items-center justify-between p-3 bg-background/30 border-b border-muted/20">
-                                <p className="font-medium text-foreground/90">{format(parse(record.date, 'yyyy-MM-dd', new Date()), 'MMMM dd, yyyy')}</p>
-                                <span className={`px-3 py-1 text-xs font-bold uppercase rounded-full border ${getStatusBadge(record.status)}`}>
-                                    {record.status}
-                                </span>
+                    <div className="p-6 bg-background/60 backdrop-blur-sm border border-border rounded-xl shadow-lg">
+                        <div className="flex justify-between items-center gap-3 mb-4">
+                            <div className='flex items-center gap-3'>
+                                <CalendarClock className="w-6 h-6 text-secondary"/>
+                                <h3 className="text-xl font-semibold text-foreground">Attendance History</h3>
                             </div>
-                        )) : (
-                             <p className="text-muted-foreground text-center py-4">No attendance records for this month.</p>
-                        )}
+                            <select
+                                value={selectedMonth}
+                                onChange={(e) => setSelectedMonth(e.target.value)}
+                                className="text-sm px-2 py-1 appearance-none bg-background/50 text-foreground border border-input rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                            >
+                                {monthOptions.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+                            </select>
+                        </div>
+                         <div className="space-y-2 max-h-[60vh] overflow-y-auto pr-2">
+                            {filteredAttendanceHistory.length > 0 ? filteredAttendanceHistory.map((record, i) => (
+                                <div key={i} className="flex items-center justify-between p-3 bg-background/30 border-b border-muted/20">
+                                    <p className="font-medium text-foreground/90">{format(parse(record.date, 'yyyy-MM-dd', new Date()), 'MMMM dd, yyyy')}</p>
+                                    <span className={`px-3 py-1 text-xs font-bold uppercase rounded-full border ${getStatusBadge(record.status)}`}>
+                                        {record.status}
+                                    </span>
+                                </div>
+                            )) : (
+                                 <p className="text-muted-foreground text-center py-4">No attendance records for this month.</p>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>
