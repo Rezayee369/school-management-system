@@ -11,11 +11,13 @@ import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
 import { setDoc, doc, serverTimestamp } from 'firebase/firestore';
 import { User, Mail, Lock, UserCheck } from 'lucide-react';
 import BackButton from '@/components/BackButton';
+import { useTranslation } from '@/i18n';
 
 export default function CreateUserPage() {
     const router = useRouter();
     const db = useFirestore();
     const auth = useAuth();
+    const { t } = useTranslation();
 
     const [fullName, setFullName] = useState('');
     const [email, setEmail] = useState('');
@@ -34,7 +36,7 @@ export default function CreateUserPage() {
         const tempAppName = `temp-user-creation-${Date.now()}`;
         const tempApp = initializeApp(firebaseConfig, tempAppName);
         
-        const loadingToastId = toast.loading('Creating user...');
+        const loadingToastId = toast.loading(t('adminUsers.creating'));
 
         try {
             const tempAuth = getAuth(tempApp);
@@ -50,16 +52,16 @@ export default function CreateUserPage() {
                 ...(role === 'parent' && { studentIds: [] })
             });
 
-            toast.success('User created successfully!', { id: loadingToastId });
+            toast.success(t('adminUsers.createUserSuccess'), { id: loadingToastId });
             router.push('/admin/users');
 
         } catch (error: any) {
             console.error('Error creating user:', error);
-            let errorMessage = 'Failed to create user. Please check the console for details.';
+            let errorMessage = t('adminUsers.createUserError');
             if (error.code === 'auth/email-already-in-use') {
-                errorMessage = 'This email is already registered.';
+                errorMessage = t('adminUsers.emailInUseError');
             } else if (error.code === 'auth/weak-password') {
-                errorMessage = 'Password should be at least 6 characters.';
+                errorMessage = t('adminUsers.weakPasswordError');
             }
             toast.error(errorMessage, { id: loadingToastId });
         } finally {
@@ -70,7 +72,7 @@ export default function CreateUserPage() {
 
 
     return (
-        <main className="flex min-h-screen flex-col items-center p-4 sm:p-8 bg-background">
+        <main className="flex min-h-screen flex-col items-center p-4 sm:p-8 bg-transparent">
              <div className="w-full max-w-md animate-fade-in-slide-up">
                 <div className="mb-8">
                     <BackButton />
@@ -79,10 +81,10 @@ export default function CreateUserPage() {
                 <div className="rounded-2xl bg-background/60 backdrop-blur-lg border border-secondary/20 shadow-2xl shadow-secondary/10 p-6 md:p-8">
                     <div className="flex flex-col items-center mb-6">
                         <h1 className="text-center text-3xl font-bold text-foreground tracking-wider">
-                            Create New User
+                            {t('adminUsers.createUserTitle')}
                         </h1>
                         <p className="text-center text-sm text-secondary/80 mt-2">
-                            Add a new member to the system
+                            {t('adminUsers.createUserSubtitle')}
                         </p>
                     </div>
 
@@ -93,7 +95,7 @@ export default function CreateUserPage() {
                                 type="text"
                                 value={fullName}
                                 onChange={(e) => setFullName(e.target.value)}
-                                placeholder="Full Name"
+                                placeholder={t('adminUsers.fullName')}
                                 className="w-full pl-12 pr-4 py-3 rounded-xl bg-background/50 text-foreground placeholder-gray-400 focus:ring-2 focus:ring-ring focus:outline-none border border-secondary/30"
                             />
                         </div>
@@ -103,7 +105,7 @@ export default function CreateUserPage() {
                                 type="email"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
-                                placeholder="Email Address"
+                                placeholder={t('adminUsers.email')}
                                 className="w-full pl-12 pr-4 py-3 rounded-xl bg-background/50 text-foreground placeholder-gray-400 focus:ring-2 focus:ring-ring focus:outline-none border border-secondary/30"
                             />
                         </div>
@@ -113,7 +115,7 @@ export default function CreateUserPage() {
                                 type="password"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
-                                placeholder="Password"
+                                placeholder={t('adminUsers.password')}
                                 className="w-full pl-12 pr-4 py-3 rounded-xl bg-background/50 text-foreground placeholder-gray-400 focus:ring-2 focus:ring-ring focus:outline-none border border-secondary/30"
                             />
                         </div>
@@ -124,9 +126,9 @@ export default function CreateUserPage() {
                                 onChange={(e) => setRole(e.target.value)}
                                 className="w-full pl-12 pr-4 py-3 appearance-none rounded-xl bg-background/50 text-foreground focus:ring-2 focus:ring-ring focus:outline-none border border-secondary/30"
                             >
-                                <option value="student">Student</option>
-                                <option value="teacher">Teacher</option>
-                                <option value="parent">Parent</option>
+                                <option value="student">{t('adminUsers.student')}</option>
+                                <option value="teacher">{t('adminUsers.teacher')}</option>
+                                <option value="parent">{t('adminUsers.parent')}</option>
                             </select>
                         </div>
                         
@@ -138,9 +140,9 @@ export default function CreateUserPage() {
                             {isLoading ? (
                                 <>
                                     <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                                    <span>Creating...</span>
+                                    <span>{t('adminUsers.creating')}</span>
                                 </>
-                            ) : 'Create User'}
+                            ) : t('adminUsers.createUser')}
                         </button>
                     </form>
                 </div>

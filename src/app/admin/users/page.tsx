@@ -64,16 +64,16 @@ export default function AdminUsersPage() {
       setIsLoadingUsers(false);
     }, (err) => {
       console.error("Error fetching users:", err);
-      toast.error("Failed to fetch users. Check Firestore permissions.");
+      toast.error(t('adminUsers.fetchError'));
       setIsLoadingUsers(false);
     });
 
     return () => unsubscribe();
-  }, [db, filter]);
+  }, [db, filter, t]);
 
   const handleEditClick = async (user: UserData) => {
     if (user.role === 'admin') {
-      toast.error("Admin users cannot be edited from this interface for security reasons.");
+      toast.error(t('adminUsers.editAdminError'));
       return;
     }
     
@@ -109,7 +109,7 @@ export default function AdminUsersPage() {
     if (!editingUser) return;
     
     setIsUpdating(true);
-    const updateToast = toast.loading('Updating user...');
+    const updateToast = toast.loading(t('adminUsers.saving'));
 
     try {
         const batch = writeBatch(db);
@@ -153,11 +153,11 @@ export default function AdminUsersPage() {
         }
 
         await batch.commit();
-        toast.success(`User updated successfully.`, { id: updateToast });
+        toast.success(t('adminUsers.updateSuccess'), { id: updateToast });
         setEditingUser(null);
     } catch (err: any) {
         console.error('Error updating user:', err);
-        toast.error(`Failed to update user: ${err.message}.`, { id: updateToast });
+        toast.error(`${t('adminUsers.updateError')}: ${err.message}.`, { id: updateToast });
     } finally {
         setIsUpdating(false);
     }
@@ -165,7 +165,7 @@ export default function AdminUsersPage() {
 
   const handleDeleteClick = (user: UserData) => {
     if (user.role === 'admin') {
-        toast.error("Admins cannot be deleted from the user interface for security reasons.");
+        toast.error(t('adminUsers.deleteAdminError'));
         return;
     }
     setUserToDelete(user);
@@ -182,7 +182,7 @@ export default function AdminUsersPage() {
 
     setIsConfirmOpen(false);
     setIsDeleting(userToDelete.id);
-    const deletionToast = toast.loading(`Deleting ${userToDelete.fullName}...`);
+    const deletionToast = toast.loading(t('adminUsers.deleting', { user: userToDelete.fullName }));
 
     try {
         const batch = writeBatch(db);
@@ -207,11 +207,11 @@ export default function AdminUsersPage() {
         batch.delete(userDocRef);
         
         await batch.commit();
-        toast.success(`User data for ${userToDelete.fullName} deleted successfully.`, { id: deletionToast });
+        toast.success(t('adminUsers.deleteSuccess', { user: userToDelete.fullName }), { id: deletionToast });
 
     } catch (err: any) {
         console.error("Error deleting user:", err);
-        toast.error(`Failed to delete user: ${err.message || 'Please check permissions.'}`, { id: deletionToast });
+        toast.error(`${t('adminUsers.deleteError')}: ${err.message || 'Please check permissions.'}`, { id: deletionToast });
     } finally {
         setIsDeleting(null);
         setUserToDelete(null);
@@ -391,7 +391,7 @@ export default function AdminUsersPage() {
 
               {updatedRole === 'parent' && (
                 <div>
-                    <label className="block text-sm font-medium text-muted-foreground mb-2">Linked Students</label>
+                    <label className="block text-sm font-medium text-muted-foreground mb-2">{t('adminUsers.linkedStudents')}</label>
                     <div className="max-h-48 overflow-y-auto space-y-2 p-3 bg-background/70 border border-input rounded-md">
                         {allStudents.length > 0 ? allStudents.map(student => (
                             <div key={student.id} className="flex items-center gap-3">
@@ -406,7 +406,7 @@ export default function AdminUsersPage() {
                                     {student.fullName}
                                 </label>
                             </div>
-                        )) : <p className="text-sm text-muted-foreground">No students available to link.</p>}
+                        )) : <p className="text-sm text-muted-foreground">{t('adminUsers.noStudentsToLink')}</p>}
                     </div>
                 </div>
               )}

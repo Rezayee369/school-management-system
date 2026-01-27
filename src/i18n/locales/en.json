@@ -60,6 +60,8 @@
     "editUser": "Edit User",
     "editingProfileFor": "Editing profile for",
     "fullName": "Full Name",
+    "email": "Email Address",
+    "password": "Password",
     "role": "Role",
     "all": "All",
     "student": "Student",
@@ -69,9 +71,26 @@
     "cancel": "Cancel",
     "saveChanges": "Save Changes",
     "saving": "Saving...",
+    "deleting": "Deleting {{user}}...",
     "deleteUserTitle": "Delete {{user}}",
     "deleteUserDesc": "Are you sure you want to delete this user's application data? This includes class enrollments. Note: This does not delete their login account.",
-    "deleteUserConfirm": "Delete User"
+    "deleteUserConfirm": "Delete User",
+    "createUserTitle": "Create New User",
+    "createUserSubtitle": "Add a new member to the system",
+    "creating": "Creating...",
+    "createUserSuccess": "User created successfully!",
+    "createUserError": "Failed to create user. Please check the console.",
+    "emailInUseError": "This email is already registered.",
+    "weakPasswordError": "Password should be at least 6 characters.",
+    "fetchError": "Failed to fetch users. Check Firestore permissions.",
+    "editAdminError": "Admin users cannot be edited from this interface for security reasons.",
+    "deleteAdminError": "Admins cannot be deleted from the user interface for security reasons.",
+    "updateSuccess": "User updated successfully.",
+    "updateError": "Failed to update user",
+    "deleteSuccess": "User data for {{user}} deleted successfully.",
+    "deleteError": "Failed to delete user",
+    "linkedStudents": "Linked Students",
+    "noStudentsToLink": "No students available to link."
   },
   "adminClasses": {
     "manageClasses": "Manage Classes",
@@ -358,11 +377,12 @@
     "saveError": "Failed to save grade. It might already exist.",
     "saveGradeFor": "Save grade for {{name}}"
   },
+  "teacherClassAttendance": {
+    "pageMovedTitle": "Page Moved",
+    "pageMovedDesc": "The attendance marking system has been moved to a new central page. You will be redirected shortly.",
+    "goToNewPage": "Go to New Attendance Page"
+  },
   "common": {
     "back": "Back"
   }
 }
-
-    
-
-    
