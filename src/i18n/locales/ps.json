@@ -24,6 +24,7 @@
     "logout": "وتل"
   },
   "adminDashboard": {
+    "studentsPresentToday": "نن حاضر زده‌کوونکي",
     "totalTeachers": "ټول ښوونکي",
     "totalStudents": "ټول زده‌کوونکي",
     "totalClasses": "ټول ټولګي",

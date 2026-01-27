@@ -24,6 +24,7 @@
     "logout": "خروج"
   },
   "adminDashboard": {
+    "studentsPresentToday": "شاگردان حاضر امروز",
     "totalTeachers": "مجموع استادان",
     "totalStudents": "مجموع شاگردان",
     "totalClasses": "مجموع صنف‌ها",

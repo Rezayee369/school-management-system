@@ -24,6 +24,7 @@
     "logout": "Logout"
   },
   "adminDashboard": {
+    "studentsPresentToday": "Students Present Today",
     "totalTeachers": "Total Teachers",
     "totalStudents": "Total Students",
     "totalClasses": "Total Classes",

@@ -3,12 +3,13 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import DashboardHeader from '@/components/DashboardHeader';
-import { BookOpen, Users, Briefcase, Shield, Megaphone, BarChart2 } from 'lucide-react';
+import { BookOpen, Users, Briefcase, Shield, Megaphone, BarChart2, UserCheck } from 'lucide-react';
 import { useFirestore } from '@/firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import toast from 'react-hot-toast';
 import { SkeletonCard } from '@/components/Skeleton';
 import { useTranslation } from '@/i18n';
+import { format } from 'date-fns';
 
 export default function AdminDashboard() {
   const db = useFirestore();
@@ -18,27 +19,35 @@ export default function AdminDashboard() {
   const [studentCount, setStudentCount] = useState<number | null>(null);
   const [classCount, setClassCount] = useState<number | null>(null);
   const [adminCount, setAdminCount] = useState<number | null>(null);
+  const [presentTodayCount, setPresentTodayCount] = useState<number | null>(null);
 
   useEffect(() => {
     if (!db) return;
 
     const fetchData = async () => {
       try {
-        const teachersQuery = query(collection(db, 'users'), where('role', '==', 'teacher'));
-        const teachersSnap = await getDocs(teachersQuery);
+        const today = format(new Date(), 'yyyy-MM-dd');
+
+        const [
+            teachersSnap,
+            studentsSnap,
+            classesSnap,
+            adminsSnap,
+            presentSnap
+        ] = await Promise.all([
+            getDocs(query(collection(db, 'users'), where('role', '==', 'teacher'))),
+            getDocs(query(collection(db, 'users'), where('role', '==', 'student'))),
+            getDocs(collection(db, 'classes')),
+            getDocs(query(collection(db, 'users'), where('role', '==', 'admin'))),
+            getDocs(query(collection(db, 'attendance'), where('date', '==', today), where('status', '==', 'present')))
+        ]);
+        
         setTeacherCount(teachersSnap.size);
-
-        const studentsQuery = query(collection(db, 'users'), where('role', '==', 'student'));
-        const studentsSnap = await getDocs(studentsQuery);
         setStudentCount(studentsSnap.size);
-
-        const classesQuery = collection(db, 'classes');
-        const classesSnap = await getDocs(classesQuery);
         setClassCount(classesSnap.size);
-
-        const adminsQuery = query(collection(db, 'users'), where('role', '==', 'admin'));
-        const adminsSnap = await getDocs(adminsQuery);
         setAdminCount(adminsSnap.size);
+        setPresentTodayCount(presentSnap.size);
+
       } catch (e) {
         console.error(e);
         toast.error("Failed to load dashboard data.");
@@ -52,7 +61,25 @@ export default function AdminDashboard() {
       <div className="w-full max-w-7xl animate-fade-in-slide-up">
         <DashboardHeader userRole="admin" />
         
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {presentTodayCount === null ? (
+              <SkeletonCard />
+            ) : (
+              <Link href="/admin/reports" className="block group">
+                <div className="p-6 h-full bg-background/60 backdrop-blur-sm rounded-xl shadow-lg border border-border transition-all duration-300 hover:border-primary hover:shadow-xl hover:shadow-primary/20 hover:-translate-y-1 hover:scale-[1.02]">
+                    <div className="flex items-start justify-between">
+                        <div>
+                            <p className="text-sm text-muted-foreground">{t('adminDashboard.studentsPresentToday')}</p>
+                            <p className="text-4xl font-bold text-foreground mt-2 transition-all duration-300 group-hover:text-primary">{presentTodayCount}</p>
+                        </div>
+                        <div className="p-3 bg-primary/10 rounded-lg transition-all duration-300 group-hover:bg-primary/20 group-hover:shadow-[0_0_20px_hsl(var(--primary))]">
+                            <UserCheck className="w-6 h-6 text-primary transition-transform duration-300 group-hover:scale-110" />
+                        </div>
+                    </div>
+                </div>
+              </Link>
+            )}
+
             {teacherCount === null ? (
               <SkeletonCard />
             ) : (
