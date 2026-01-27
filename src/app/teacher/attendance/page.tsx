@@ -131,6 +131,12 @@ export default function TeacherAttendancePage() {
   const handleMarkAttendance = async (student: StudentData, status: 'present' | 'absent' | 'leave') => {
     if (!selectedClassId || !date || !user || !db || marking) return;
 
+    const currentRecord = attendance.get(student.id);
+    if (currentRecord && currentRecord.status === status) {
+        toast(`Already marked as ${status}.`);
+        return;
+    }
+
     setMarking({studentId: student.id, status});
     const dateString = format(date, 'yyyy-MM-dd');
     const selectedClass = classes.find(c => c.id === selectedClassId);

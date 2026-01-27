@@ -23,6 +23,10 @@ service cloud.firestore {
       return request.auth != null && getUserRole(request.auth.uid) == 'parent';
     }
 
+    function isClassTeacher(classId, userId) {
+      return get(/databases/$(database)/documents/classes/$(classId)).data.teacherId == userId;
+    }
+
     match /users/{userId} {
       // Admins can read and write any user document.
       allow read, write: if isAdmin();
@@ -44,13 +48,18 @@ service cloud.firestore {
     }
     
     match /attendance/{attendanceId} {
-      // Teachers can create attendance records.
-      allow create: if isTeacher();
-      // Admins can read all attendance records.
-      // Teachers can read records they have created.
-      allow read: if isAdmin() || (isTeacher() && resource.data.teacherId == request.auth.uid);
-      // Teachers can update records they have created. Admins can update any.
-      allow update: if isAdmin() || (isTeacher() && resource.data.teacherId == request.auth.uid);
+      // Teachers can create attendance records only for their own classes.
+      // The incoming data must also correctly state the teacher's UID.
+      allow create: if isTeacher() 
+                    && isClassTeacher(request.resource.data.classId, request.auth.uid)
+                    && request.resource.data.teacherId == request.auth.uid;
+                    
+      // Admins can read all records. Teachers can read records for classes they currently teach.
+      allow read: if isAdmin() || (isTeacher() && isClassTeacher(resource.data.classId, request.auth.uid));
+      
+      // Teachers can update records for their classes. Admins can update any.
+      allow update: if isAdmin() || (isTeacher() && isClassTeacher(resource.data.classId, request.auth.uid));
+      
       // Only Admins can delete records.
       allow delete: if isAdmin();
     }
