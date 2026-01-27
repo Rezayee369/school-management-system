@@ -52,6 +52,7 @@
   },
   "adminUsers": {
     "userManagement": "User Management",
+    "filteredUserManagement": "{{role}} Management",
     "createUser": "Create User",
     "allUsers": "All Users",
     "noUsersFound": "No Users Found",
@@ -361,5 +362,7 @@
     "back": "Back"
   }
 }
+
+    
 
     

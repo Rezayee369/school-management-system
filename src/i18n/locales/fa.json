@@ -52,6 +52,7 @@
   },
   "adminUsers": {
     "userManagement": "مدیریت کاربران",
+    "filteredUserManagement": "مدیریت {{role}}",
     "createUser": "ایجاد کاربر جدید",
     "allUsers": "تمام کاربران",
     "noUsersFound": "هیچ کاربری یافت نشد",
@@ -61,10 +62,10 @@
     "fullName": "نام کامل",
     "role": "نقش",
     "all": "همه",
-    "student": "شاگرد",
-    "teacher": "استاد",
+    "student": "شاگردان",
+    "teacher": "استادان",
     "parent": "والدین",
-    "staff": "کارمند",
+    "staff": "کارمندان",
     "cancel": "لغو",
     "saveChanges": "ذخیره تغییرات",
     "saving": "در حال ذخیره...",
@@ -192,7 +193,7 @@
     "monthlyAttendance": "حاضری ماهانه",
     "currentMonthFee": "شهریه این ماه",
     "status_present": "حاضر",
-    "status_absنت": "غایب",
+    "status_absent": "غایب",
     "status_leave": "رخصت",
     "notMarked": "هنوز ثبت نشده",
     "daysSummary": "{{present}} / {{total}} روز",
@@ -361,5 +362,7 @@
     "back": "بازگشت"
   }
 }
+
+    
 
     

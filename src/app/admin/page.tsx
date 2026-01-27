@@ -172,7 +172,7 @@ export default function AdminDashboard() {
             {adminCount === null ? (
               <SkeletonCard />
             ) : (
-              <Link href="/admin/users?role=admin" className="group">
+              <Link href="/admin/users?role=admin" className="block group">
                 <div className="p-6 bg-background/60 backdrop-blur-sm rounded-xl shadow-lg border border-border transition-all duration-300 hover:border-destructive hover:shadow-xl hover:shadow-destructive/20 hover:-translate-y-1 hover:scale-[1.02]">
                   <div className="flex items-start justify-between">
                       <div>
@@ -303,5 +303,7 @@ export default function AdminDashboard() {
     </main>
   );
 }
+
+    
 
     

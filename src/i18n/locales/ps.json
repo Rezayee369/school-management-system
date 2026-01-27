@@ -52,6 +52,7 @@
   },
   "adminUsers": {
     "userManagement": "د کاروونکو مدیریت",
+    "filteredUserManagement": "د {{role}} مدیریت",
     "createUser": "نوی کاروونکی جوړول",
     "allUsers": "ټول کاروونکي",
     "noUsersFound": "هیڅ کاروونکی پیدا نه شو",
@@ -61,10 +62,10 @@
     "fullName": "بشپړ نوم",
     "role": "رول",
     "all": "ټول",
-    "student": "زده‌کوونکی",
-    "teacher": "ښوونکی",
+    "student": "زده‌کوونکي",
+    "teacher": "ښوونکي",
     "parent": "والدین",
-    "staff": "کارکوونکی",
+    "staff": "کارکوونکي",
     "cancel": "لغوه",
     "saveChanges": "بدلونونه خوندي کول",
     "saving": "د خوندي کولو په حال کې...",
@@ -361,5 +362,7 @@
     "back": "شاته"
   }
 }
+
+    
 
     

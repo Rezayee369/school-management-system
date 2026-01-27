@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { collection, query, onSnapshot, orderBy, doc, writeBatch, where, getDocs, getDoc, arrayRemove, deleteField } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
 import { UserPlus, Users, Briefcase, UserCircle, Trash2, Pencil, GraduationCap, Shield, HardHat } from 'lucide-react';
@@ -23,6 +23,7 @@ interface UserData {
 export default function AdminUsersPage() {
   const db = useFirestore();
   const { t } = useTranslation();
+  const router = useRouter();
   const searchParams = useSearchParams();
   const roleParam = searchParams.get('role');
   
@@ -242,6 +243,14 @@ export default function AdminUsersPage() {
     return translatedRole;
   };
   
+  const getPageTitle = () => {
+    if (filter === 'all' || !filter) {
+      return t('adminUsers.userManagement');
+    }
+    const roleName = getRoleName(filter);
+    return t('adminUsers.filteredUserManagement', { role: roleName });
+  };
+  
   const filterOptions = [
     { role: 'all', icon: Users, label: t('adminUsers.all') },
     { role: 'student', icon: GraduationCap, label: t('adminUsers.student') },
@@ -250,6 +259,11 @@ export default function AdminUsersPage() {
     { role: 'staff', icon: HardHat, label: t('adminUsers.staff') },
   ];
 
+  const handleFilterClick = (role: string) => {
+    const href = role === 'all' ? '/admin/users' : `/admin/users?role=${role}`;
+    router.push(href);
+  };
+
   return (
     <main className="flex min-h-screen flex-col items-center p-4 sm:p-8 bg-transparent">
       <div className="w-full max-w-6xl animate-fade-in-slide-up">
@@ -257,7 +271,7 @@ export default function AdminUsersPage() {
             <BackButton />
         </div>
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-            <h1 className="text-4xl font-bold text-foreground">{t('adminUsers.userManagement')}</h1>
+            <h1 className="text-4xl font-bold text-foreground">{getPageTitle()}</h1>
             <Link href="/admin/users/create">
                 <button className="flex items-center gap-2 px-5 py-2.5 font-semibold text-primary-foreground bg-gradient-to-r from-secondary to-primary rounded-lg shadow-md hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background active:scale-95 transition-transform">
                     <UserPlus className="w-5 h-5" />
@@ -270,7 +284,7 @@ export default function AdminUsersPage() {
             {filterOptions.map(({ role, icon: Icon, label }) => (
             <button
                 key={role}
-                onClick={() => setFilter(role)}
+                onClick={() => handleFilterClick(role)}
                 className={`flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
                 filter === role
                     ? 'bg-primary text-primary-foreground shadow-lg'
@@ -285,7 +299,7 @@ export default function AdminUsersPage() {
 
         <div className="p-6 bg-background/60 backdrop-blur-sm border border-border rounded-xl shadow-lg">
           <h2 className="text-2xl font-semibold text-foreground mb-4">
-            {filter === 'all' ? t('adminUsers.allUsers') : `${getRoleName(filter)}s`} ({users.length})
+            {filter === 'all' ? t('adminUsers.allUsers') : `${getRoleName(filter)}`} ({users.length})
           </h2>
           <div className="space-y-3">
             {isLoadingUsers ? (
@@ -436,5 +450,7 @@ export default function AdminUsersPage() {
     </main>
   );
 }
+
+    
 
     
