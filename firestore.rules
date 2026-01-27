@@ -41,9 +41,10 @@ service cloud.firestore {
     // --- Collection Rules ---
 
     match /users/{userId} {
-      // Admins can read any user profile, which allows collection queries.
-      // Other authenticated users can only read their own profile.
-      allow read: if request.auth != null && (isAdmin() || isOwner(userId));
+      // Admins can query the entire collection.
+      allow list: if isAdmin();
+      // Admins and owners can read individual documents.
+      allow get: if request.auth != null && (isAdmin() || isOwner(userId));
       
       // Admins can perform any write operation.
       // Users can create their own profile (but not as an admin).
