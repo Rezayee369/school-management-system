@@ -6,7 +6,7 @@ import Link from 'next/link';
 import DashboardHeader from '@/components/DashboardHeader';
 import { BookOpen, Users, Briefcase, Shield, Megaphone, BarChart2, UserCheck, CreditCard, ListX, PieChart, ClipboardCheck, HardHat } from 'lucide-react';
 import { useFirestore } from '@/firebase';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { collection, query, where, getCountFromServer } from 'firebase/firestore';
 import toast from 'react-hot-toast';
 import { SkeletonCard } from '@/components/Skeleton';
 import { useTranslation } from '@/i18n';
@@ -29,6 +29,14 @@ export default function AdminDashboard() {
       try {
         const today = format(new Date(), 'yyyy-MM-dd');
 
+        // Define queries for counting
+        const teacherQuery = query(collection(db, 'users'), where('role', '==', 'teacher'));
+        const studentQuery = query(collection(db, 'users'), where('role', '==', 'student'));
+        const classesQuery = collection(db, 'classes');
+        const adminQuery = query(collection(db, 'users'), where('role', '==', 'admin'));
+        const presentQuery = query(collection(db, 'attendance'), where('date', '==', today), where('status', '==', 'present'));
+
+        // Fetch counts from server using efficient aggregation query
         const [
             teachersSnap,
             studentsSnap,
@@ -36,18 +44,19 @@ export default function AdminDashboard() {
             adminsSnap,
             presentSnap
         ] = await Promise.all([
-            getDocs(query(collection(db, 'users'), where('role', '==', 'teacher'))),
-            getDocs(query(collection(db, 'users'), where('role', '==', 'student'))),
-            getDocs(collection(db, 'classes')),
-            getDocs(query(collection(db, 'users'), where('role', '==', 'admin'))),
-            getDocs(query(collection(db, 'attendance'), where('date', '==', today), where('status', '==', 'present')))
+            getCountFromServer(teacherQuery),
+            getCountFromServer(studentQuery),
+            getCountFromServer(classesQuery),
+            getCountFromServer(adminQuery),
+            getCountFromServer(presentQuery)
         ]);
         
-        setTeacherCount(teachersSnap.size);
-        setStudentCount(studentsSnap.size);
-        setClassCount(classesSnap.size);
-        setAdminCount(adminsSnap.size);
-        setPresentTodayCount(presentSnap.size);
+        // Set state with the counts from the aggregation result
+        setTeacherCount(teachersSnap.data().count);
+        setStudentCount(studentsSnap.data().count);
+        setClassCount(classesSnap.data().count);
+        setAdminCount(adminsSnap.data().count);
+        setPresentTodayCount(presentSnap.data().count);
 
       } catch (e) {
         console.error(e);
