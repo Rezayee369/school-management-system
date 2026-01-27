@@ -7,6 +7,7 @@ import { useAuth, useUser } from '@/firebase';
 import { LogOut, User as UserIcon, Settings } from 'lucide-react';
 import { useTranslation } from '@/i18n';
 import LanguageSwitcher from './LanguageSwitcher';
+import { ThemeToggle } from './ui/theme-toggle';
 
 interface DashboardHeaderProps {
   userRole: string;
@@ -70,8 +71,9 @@ export default function DashboardHeader({ userRole }: DashboardHeaderProps) {
         </h1>
       </div>
 
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2">
         <LanguageSwitcher />
+        <ThemeToggle />
         
         <div className="relative">
           <button

@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -16,6 +15,7 @@ import { Mail, Lock, GraduationCap } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useTranslation } from '@/i18n';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
+import { ThemeToggle } from '@/components/ui/theme-toggle';
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="24px" height="24px" {...props}>
@@ -129,8 +129,9 @@ export default function LoginPage() {
 
   return (
     <main className="flex min-h-screen w-full items-center justify-center p-4 bg-transparent">
-      <div className="absolute top-4 end-4 z-20">
+      <div className="absolute top-4 end-4 z-20 flex items-center gap-2">
           <LanguageSwitcher />
+          <ThemeToggle />
       </div>
       
       <div className="w-full max-w-md animate-fade-in-scale">

@@ -4,6 +4,29 @@
 
 @layer base {
   :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 190 95% 45%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 280 85% 55%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 190 95% 45%;
+    --radius: 0.75rem;
+  }
+
+  .dark {
     --background: 222 89% 11%;
     --foreground: 210 40% 98%;
     --card: 222 89% 11%;
@@ -17,30 +40,6 @@
     --muted: 222 89% 18%;
     --muted-foreground: 215 20% 65%;
     --accent: 140 75% 55%; /* Neon Green */
-    --accent-foreground: 222 89% 11%;
-    --destructive: 0 72% 51%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 222 89% 18%;
-    --input: 222 89% 18%;
-    --ring: 190 95% 55%;
-    --radius: 0.75rem;
-  }
-
-  .dark {
-    /* The theme is locked to dark mode. */
-    --background: 222 89% 11%;
-    --foreground: 210 40% 98%;
-    --card: 222 89% 11%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222 89% 9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 190 95% 55%;
-    --primary-foreground: 222 89% 11%;
-    --secondary: 280 85% 60%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 222 89% 18%;
-    --muted-foreground: 215 20% 65%;
-    --accent: 140 75% 55%;
     --accent-foreground: 222 89% 11%;
     --destructive: 0 72% 51%;
     --destructive-foreground: 210 40% 98%;
