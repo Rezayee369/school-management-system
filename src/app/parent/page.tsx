@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -6,9 +7,9 @@ import { useAuthGuard } from '@/hooks/useAuthGuard';
 import DashboardHeader from '@/components/DashboardHeader';
 import PermissionDenied from '@/components/PermissionDenied';
 import { useUser, useFirestore } from '@/firebase';
-import { collection, doc, onSnapshot, query, where, documentId, getDocs, orderBy } from 'firebase/firestore';
-import { BookOpen, Users, Percent, CalendarDays, Wallet, CalendarClock, Award } from 'lucide-react';
-import { format, parse } from 'date-fns';
+import { collection, doc, onSnapshot, query, where, documentId, getDocs, orderBy, Timestamp } from 'firebase/firestore';
+import { BookOpen, Users, Percent, CalendarDays, Wallet, CalendarClock, Award, Megaphone, MessageSquare } from 'lucide-react';
+import { format, parse, formatDistanceToNow } from 'date-fns';
 
 interface StudentData {
   id: string;
@@ -32,6 +33,13 @@ interface FeeData {
     status: 'paid' | 'unpaid';
     amount: number;
     discount?: number;
+}
+
+interface AnnouncementData {
+    id: string;
+    title: string;
+    message: string;
+    createdAt: Timestamp;
 }
 
 // Generate month options for the filter dropdown
@@ -64,6 +72,11 @@ export default function ParentDashboard() {
   // State for attendance history filtering
   const [selectedMonth, setSelectedMonth] = useState<string>(format(new Date(), 'yyyy-MM'));
   const monthOptions = useMemo(getMonthOptions, []);
+
+  // State for announcements
+  const [allParentsAnnouncements, setAllParentsAnnouncements] = useState<AnnouncementData[]>([]);
+  const [studentAnnouncements, setStudentAnnouncements] = useState<AnnouncementData[]>([]);
+  const [classAnnouncements, setClassAnnouncements] = useState<AnnouncementData[]>([]);
 
   // Fetch parent's linked students
   useEffect(() => {
@@ -125,6 +138,36 @@ export default function ParentDashboard() {
 
     return () => unsubscribes.forEach(unsub => unsub());
   }, [selectedStudentId, db]);
+
+  // Fetch announcements
+  useEffect(() => {
+    if (!db) return;
+    const q = query(collection(db, 'announcements'), where('targetType', '==', 'all_parents'), orderBy('createdAt', 'desc'));
+    const unsub = onSnapshot(q, snap => setAllParentsAnnouncements(snap.docs.map(d => ({id: d.id, ...d.data()}) as AnnouncementData)));
+    return () => unsub();
+  }, [db]);
+
+  useEffect(() => {
+    if (!db || !selectedStudentId) { setStudentAnnouncements([]); return; }
+    const q = query(collection(db, 'announcements'), where('targetType', '==', 'student'), where('targetId', '==', selectedStudentId), orderBy('createdAt', 'desc'));
+    const unsub = onSnapshot(q, snap => setStudentAnnouncements(snap.docs.map(d => ({id: d.id, ...d.data()}) as AnnouncementData)));
+    return () => unsub();
+  }, [db, selectedStudentId]);
+
+  useEffect(() => {
+    const classIds = classes.map(c => c.id);
+    if (!db || classIds.length === 0) { setClassAnnouncements([]); return; }
+    const q = query(collection(db, 'announcements'), where('targetType', '==', 'class'), where('targetId', 'in', classIds), orderBy('createdAt', 'desc'));
+    const unsub = onSnapshot(q, snap => setClassAnnouncements(snap.docs.map(d => ({id: d.id, ...d.data()}) as AnnouncementData)));
+    return () => unsub();
+  }, [db, classes]);
+  
+  const announcements = useMemo(() => {
+    const all = [...allParentsAnnouncements, ...studentAnnouncements, ...classAnnouncements];
+    const unique = Array.from(new Map(all.map(item => [item.id, item])).values());
+    unique.sort((a, b) => b.createdAt.toDate().getTime() - a.createdAt.toDate().getTime());
+    return unique;
+  }, [allParentsAnnouncements, studentAnnouncements, classAnnouncements]);
   
   const feeStatus = useMemo(() => {
     const currentMonthForFee = format(new Date(), 'yyyy-MM');
@@ -237,7 +280,34 @@ export default function ParentDashboard() {
               />
             </div>
 
-            <div className="mt-12 grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="mb-8">
+              <div className="p-6 bg-background/60 backdrop-blur-sm border border-border rounded-xl shadow-lg">
+                  <div className="flex items-center gap-3 mb-4">
+                      <Megaphone className="w-6 h-6 text-primary"/>
+                      <h3 className="text-xl font-semibold text-foreground">Announcements</h3>
+                  </div>
+                  <div className="space-y-4 max-h-[40vh] overflow-y-auto pr-2">
+                      {announcements.length > 0 ? announcements.map(ann => (
+                          <div key={ann.id} className="p-4 bg-background/40 border-s-4 border-primary/70 rounded-r-lg">
+                              <div className="flex justify-between items-baseline gap-4">
+                                  <h4 className="font-semibold text-foreground/90">{ann.title}</h4>
+                                  <p className="text-xs text-muted-foreground whitespace-nowrap shrink-0">
+                                      {formatDistanceToNow(ann.createdAt.toDate(), { addSuffix: true })}
+                                  </p>
+                              </div>
+                              <p className="mt-1 text-sm text-muted-foreground break-words">{ann.message}</p>
+                          </div>
+                      )) : (
+                          <div className="flex flex-col items-center justify-center h-24 text-center">
+                            <MessageSquare className="h-8 w-8 text-muted-foreground" />
+                            <p className="mt-2 text-sm text-muted-foreground">No new announcements.</p>
+                          </div>
+                      )}
+                  </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <div className="grid grid-cols-1 gap-8 content-start">
                     <Link href="/parent/grades" className="block group">
                         <div className="flex flex-col justify-center text-center h-full p-6 bg-background/60 backdrop-blur-sm rounded-xl shadow-lg transition-all duration-300 border border-border hover:border-primary hover:shadow-xl hover:shadow-primary/20 hover:-translate-y-1 hover:scale-[1.02]">

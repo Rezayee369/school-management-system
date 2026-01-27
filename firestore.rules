@@ -138,8 +138,10 @@ service cloud.firestore {
     }
     
     match /announcements/{announcementId} {
-      // Only admins can create, read, update or delete announcements.
-      allow read, write: if isAdmin();
+      // Admins can create/update/delete.
+      allow write: if isAdmin();
+      // Admins and Parents can read. Client-side logic filters for relevancy.
+      allow read: if isAdmin() || isParent();
     }
   }
 }
