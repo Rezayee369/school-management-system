@@ -1,12 +1,16 @@
+
 'use client';
 
 import { useAuthGuard } from '@/hooks/useAuthGuard';
 import DashboardHeader from '@/components/DashboardHeader';
 import { useUser, useFirestore } from '@/firebase';
-import { collection, query, where, onSnapshot } from 'firebase/firestore';
-import { useState, useEffect } from 'react';
-import { BookOpen, CheckCircle, XCircle, MinusCircle, ClipboardCheck } from 'lucide-react';
+import { collection, query, where, onSnapshot, doc, setDoc, arrayUnion, Timestamp } from 'firebase/firestore';
+import { useState, useEffect, useMemo } from 'react';
+import { BookOpen, CheckCircle, XCircle, MinusCircle, ClipboardCheck, Megaphone, MessageSquare } from 'lucide-react';
 import PermissionDenied from '@/components/PermissionDenied';
+import { formatDistanceToNow } from 'date-fns';
+import toast from 'react-hot-toast';
+
 
 interface ClassData {
   id: string;
@@ -25,6 +29,13 @@ interface GradeData {
   assignmentScore: number;
 }
 
+interface NotificationData {
+    id: string;
+    title: string;
+    message: string;
+    createdAt: Timestamp;
+}
+
 export default function StudentDashboard() {
   const { isLoading: isLoadingAuth, isAuthorized, userRole } = useAuthGuard('student');
   const user = useUser();
@@ -33,6 +44,8 @@ export default function StudentDashboard() {
   const [classes, setClasses] = useState<ClassData[]>([]);
   const [attendance, setAttendance] = useState<AttendanceData[]>([]);
   const [grades, setGrades] = useState<GradeData[]>([]);
+  const [notifications, setNotifications] = useState<NotificationData[]>([]);
+  const [readNotificationIds, setReadNotificationIds] = useState<Set<string>>(new Set());
   const [isLoadingData, setIsLoadingData] = useState(true);
 
   useEffect(() => {
@@ -41,9 +54,11 @@ export default function StudentDashboard() {
         return;
     };
 
+    const unsubscribes: (() => void)[] = [];
+
     // Fetch classes
     const classesQuery = query(collection(db, 'classes'), where('studentIds', 'array-contains', user.uid));
-    const unsubscribeClasses = onSnapshot(classesQuery, (snapshot) => {
+    unsubscribes.push(onSnapshot(classesQuery, (snapshot) => {
       const classesData = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data(),
@@ -53,34 +68,64 @@ export default function StudentDashboard() {
     }, (error) => {
       console.error("Error fetching classes:", error);
       if(isLoadingData) setIsLoadingData(false);
-    });
+    }));
 
-    // Fetch attendance records for the student
+    // Fetch attendance records
     const attendanceQuery = query(collection(db, 'attendance'), where('studentId', '==', user.uid));
-    const unsubscribeAttendance = onSnapshot(attendanceQuery, (snapshot) => {
+    unsubscribes.push(onSnapshot(attendanceQuery, (snapshot) => {
       const attendanceData = snapshot.docs.map(doc => doc.data() as AttendanceData);
       setAttendance(attendanceData);
-    });
+    }));
 
-    // Fetch grades for the student
+    // Fetch grades
     const gradesQuery = query(collection(db, 'grades'), where('studentId', '==', user.uid));
-    const unsubscribeGrades = onSnapshot(gradesQuery, (snapshot) => {
+    unsubscribes.push(onSnapshot(gradesQuery, (snapshot) => {
         const gradesData = snapshot.docs.map(doc => doc.data() as GradeData);
         setGrades(gradesData);
-    });
+    }));
+    
+    // Fetch notifications
+    const notifQuery = query(collection(db, 'notifications'), where('targetRole', 'in', ['all', 'student']));
+    unsubscribes.push(onSnapshot(notifQuery, (snapshot) => {
+        const notifData = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as NotificationData));
+        setNotifications(notifData.sort((a, b) => b.createdAt.toDate().getTime() - a.createdAt.toDate().getTime()));
+    }));
+
+    // Fetch read status
+    const readStateRef = doc(db, 'userReadStates', user.uid);
+    unsubscribes.push(onSnapshot(readStateRef, (doc) => {
+      const data = doc.data();
+      if (data && data.readNotificationIds) {
+        setReadNotificationIds(new Set(data.readNotificationIds));
+      }
+    }));
 
 
-    return () => {
-      unsubscribeClasses();
-      unsubscribeAttendance();
-      unsubscribeGrades();
-    };
+    return () => unsubscribes.forEach(unsub => unsub());
   }, [isLoadingAuth, isAuthorized, user, db]);
 
   const attendanceSummary = attendance.reduce((acc, record) => {
     acc[record.status] = (acc[record.status] || 0) + 1;
     return acc;
   }, {} as Record<'present' | 'absent' | 'leave', number>);
+  
+  const unreadCount = useMemo(() => {
+    return notifications.filter(notif => !readNotificationIds.has(notif.id)).length;
+  }, [notifications, readNotificationIds]);
+
+  const handleNotificationClick = async (notificationId: string) => {
+    if (!user || readNotificationIds.has(notificationId)) return;
+    
+    const readStateRef = doc(db, 'userReadStates', user.uid);
+    try {
+      await setDoc(readStateRef, {
+        readNotificationIds: arrayUnion(notificationId)
+      }, { merge: true });
+    } catch (error) {
+      console.error("Failed to mark notification as read:", error);
+      toast.error("Could not update read status.");
+    }
+  };
 
 
   if (isLoadingAuth || isLoadingData) {
@@ -154,6 +199,46 @@ export default function StudentDashboard() {
                         <MinusCircle className="w-6 h-6 text-yellow-500 transition-transform duration-300 group-hover:scale-110" />
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <div className="p-6 mb-8 bg-background/60 backdrop-blur-sm border border-border rounded-xl shadow-lg">
+            <div className="flex items-center gap-3 mb-4">
+                <div className="relative">
+                    <Megaphone className="w-6 h-6 text-primary"/>
+                    {unreadCount > 0 && (
+                        <span className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-xs font-bold text-white">
+                            {unreadCount}
+                        </span>
+                    )}
+                </div>
+                <h3 className="text-xl font-semibold text-foreground">Notifications</h3>
+            </div>
+            <div className="space-y-4 max-h-[40vh] overflow-y-auto pr-2">
+                {notifications.length > 0 ? notifications.map(notif => (
+                    <div 
+                        key={notif.id}
+                        onClick={() => handleNotificationClick(notif.id)}
+                        className={`p-4 bg-background/40 border-s-4 rounded-r-lg cursor-pointer transition-all duration-300 ${
+                            !readNotificationIds.has(notif.id)
+                            ? 'border-primary hover:bg-primary/10'
+                            : 'border-transparent'
+                        }`}
+                    >
+                        <div className="flex justify-between items-baseline gap-4">
+                            <h4 className={`font-semibold ${!readNotificationIds.has(notif.id) ? 'text-primary' : 'text-foreground/90'}`}>{notif.title}</h4>
+                            <p className="text-xs text-muted-foreground whitespace-nowrap shrink-0">
+                                {formatDistanceToNow(notif.createdAt.toDate(), { addSuffix: true })}
+                            </p>
+                        </div>
+                        <p className="mt-1 text-sm text-muted-foreground break-words">{notif.message}</p>
+                    </div>
+                )) : (
+                    <div className="flex flex-col items-center justify-center h-24 text-center">
+                    <MessageSquare className="h-8 w-8 text-muted-foreground" />
+                    <p className="mt-2 text-sm text-muted-foreground">No new notifications.</p>
+                    </div>
+                )}
             </div>
         </div>
 

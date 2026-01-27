@@ -196,9 +196,9 @@ export default function AdminDashboard() {
                       <div className="p-3 bg-secondary/10 rounded-lg transition-all duration-300 group-hover:bg-secondary/20 group-hover:shadow-[0_0_15px_hsl(var(--secondary))]">
                         <Megaphone className="w-6 h-6 text-secondary transition-transform duration-300 group-hover:scale-110" />
                       </div>
-                      <h2 className="text-xl font-semibold text-foreground">{t('adminDashboard.announcements')}</h2>
+                      <h2 className="text-xl font-semibold text-foreground">Notifications</h2>
                     </div>
-                    <p className="text-muted-foreground">{t('adminDashboard.announcementsDesc')}</p>
+                    <p className="text-muted-foreground">Send notifications to users and external services.</p>
                   </div>
                 </Link>
 

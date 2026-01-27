@@ -1,85 +1,35 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useAuthGuard } from '@/hooks/useAuthGuard';
 import { useFirestore } from '@/firebase';
-import { collection, addDoc, serverTimestamp, query, orderBy, getDocs, where } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import toast from 'react-hot-toast';
 import PermissionDenied from '@/components/PermissionDenied';
 import BackButton from '@/components/BackButton';
-import { Megaphone, Users, BookOpen, User, Loader2 } from 'lucide-react';
-import { Skeleton } from '@/components/Skeleton';
+import { Megaphone, Users, Loader2 } from 'lucide-react';
+import { dispatchNotification } from '@/services/notificationService';
 
-// Interfaces
-interface ClassData {
-  id: string;
-  name: string;
-}
+type TargetRole = 'all' | 'parent' | 'teacher' | 'student' | 'staff';
 
-interface StudentData {
-  id: string;
-  fullName: string;
-}
+const roles: { value: TargetRole, label: string }[] = [
+    { value: 'all', label: 'All Users' },
+    { value: 'parent', label: 'Parents' },
+    { value: 'teacher', label: 'Teachers' },
+    { value: 'student', label: 'Students' },
+    { value: 'staff', label: 'Staff' },
+];
 
-type TargetType = 'all_parents' | 'class' | 'student';
-
-export default function AdminAnnouncementsPage() {
+export default function AdminNotificationsPage() {
   const { isLoading: isLoadingAuth, isAuthorized } = useAuthGuard('admin');
   const db = useFirestore();
 
   // Form state
   const [title, setTitle] = useState('');
   const [message, setMessage] = useState('');
-  const [targetType, setTargetType] = useState<TargetType>('all_parents');
-  const [targetId, setTargetId] = useState('');
+  const [targetRole, setTargetRole] = useState<TargetRole>('all');
   const [isSaving, setIsSaving] = useState(false);
-
-  // Data for dropdowns
-  const [classes, setClasses] = useState<ClassData[]>([]);
-  const [students, setStudents] = useState<StudentData[]>([]);
-  const [isLoadingData, setIsLoadingData] = useState(false);
-
-  // Fetch classes and students when target type changes
-  useEffect(() => {
-    if (!db) return;
-    
-    const fetchData = async () => {
-      setIsLoadingData(true);
-      try {
-        if (targetType === 'class' && classes.length === 0) {
-          const classesQuery = query(collection(db, 'classes'), orderBy('name'));
-          const snapshot = await getDocs(classesQuery);
-          const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as ClassData));
-          setClasses(data);
-          if (data.length > 0) setTargetId(data[0].id);
-        } else if (targetType === 'student' && students.length === 0) {
-          const studentsQuery = query(collection(db, 'users'), where('role', '==', 'student'), orderBy('fullName'));
-          const snapshot = await getDocs(studentsQuery);
-          const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as StudentData));
-          setStudents(data);
-          if (data.length > 0) setTargetId(data[0].id);
-        }
-      } catch (error) {
-        toast.error("Failed to load target data.");
-        console.error(error);
-      } finally {
-        setIsLoadingData(false);
-      }
-    };
-    
-    fetchData();
-  }, [targetType, db, classes.length, students.length]);
-
-  useEffect(() => {
-    if(targetType === 'class' && classes.length > 0) {
-        setTargetId(classes[0].id);
-    } else if (targetType === 'student' && students.length > 0) {
-        setTargetId(students[0].id);
-    } else {
-        setTargetId('');
-    }
-  }, [targetType, classes, students]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -87,28 +37,33 @@ export default function AdminAnnouncementsPage() {
       toast.error('Title and message are required.');
       return;
     }
-    if ((targetType === 'class' || targetType === 'student') && !targetId) {
-        toast.error(`Please select a specific ${targetType}.`);
-        return;
-    }
 
     setIsSaving(true);
-    try {
-      await addDoc(collection(db, 'announcements'), {
+    const notificationData = {
         title: title.trim(),
         message: message.trim(),
-        targetType,
-        targetId: targetType === 'all_parents' ? null : targetId,
+        targetRole,
         createdAt: serverTimestamp(),
+    };
+
+    try {
+      // Save notification to Firestore
+      const docRef = await addDoc(collection(db, 'notifications'), notificationData);
+      toast.success('Notification sent successfully!');
+      
+      // Dispatch notification (SMS/WhatsApp) in the background
+      dispatchNotification(notificationData).catch(err => {
+        console.error("Failed to dispatch notification:", err);
+        // This error is not shown to the user as the primary action (saving to DB) was successful.
       });
 
-      toast.success('Announcement sent successfully!');
       // Reset form
       setTitle('');
       setMessage('');
+      setTargetRole('all');
 
     } catch (error) {
-      toast.error('Failed to send announcement.');
+      toast.error('Failed to send notification.');
       console.error(error);
     } finally {
       setIsSaving(false);
@@ -122,52 +77,6 @@ export default function AdminAnnouncementsPage() {
   if (!isAuthorized) {
     return <PermissionDenied />;
   }
-  
-  const renderTargetSelector = () => {
-    if (targetType === 'all_parents') {
-        return <p className="text-sm text-muted-foreground mt-2">This will be sent to all parents.</p>;
-    }
-    
-    if (isLoadingData) {
-        return <Skeleton className="h-12 w-full mt-2" />;
-    }
-
-    if (targetType === 'class') {
-      return (
-        <select
-          value={targetId}
-          onChange={(e) => setTargetId(e.target.value)}
-          disabled={classes.length === 0}
-          className="mt-2 w-full appearance-none px-4 py-3 bg-background/50 text-foreground border border-input rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
-        >
-          {classes.length > 0 ? (
-            classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)
-          ) : (
-            <option>No classes found</option>
-          )}
-        </select>
-      );
-    }
-
-    if (targetType === 'student') {
-        return (
-          <select
-            value={targetId}
-            onChange={(e) => setTargetId(e.target.value)}
-            disabled={students.length === 0}
-            className="mt-2 w-full appearance-none px-4 py-3 bg-background/50 text-foreground border border-input rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
-          >
-            {students.length > 0 ? (
-              students.map(s => <option key={s.id} value={s.id}>{s.fullName}</option>)
-            ) : (
-              <option>No students found</option>
-            )}
-          </select>
-        );
-      }
-
-    return null;
-  };
 
   return (
     <main className="flex min-h-screen flex-col items-center p-4 sm:p-8 bg-transparent">
@@ -175,7 +84,7 @@ export default function AdminAnnouncementsPage() {
         <div className="flex justify-between items-center mb-8">
           <BackButton />
         </div>
-        <h1 className="text-4xl font-bold text-foreground mb-8">Create Announcement</h1>
+        <h1 className="text-4xl font-bold text-foreground mb-8">Create Notification</h1>
         
         <form onSubmit={handleSubmit} className="p-6 bg-background/60 backdrop-blur-sm border border-secondary/30 rounded-xl shadow-lg space-y-6">
           
@@ -186,7 +95,7 @@ export default function AdminAnnouncementsPage() {
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="e.g., Parent-Teacher Meeting"
+              placeholder="e.g., School Closure Notice"
               className="w-full px-4 py-3 bg-background/50 text-foreground placeholder-muted-foreground/50 border border-input rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
               required
             />
@@ -198,7 +107,7 @@ export default function AdminAnnouncementsPage() {
               id="message"
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              placeholder="Enter the details of the announcement..."
+              placeholder="Enter the details of the notification..."
               rows={5}
               className="w-full px-4 py-3 bg-background/50 text-foreground placeholder-muted-foreground/50 border border-input rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
               required
@@ -206,13 +115,17 @@ export default function AdminAnnouncementsPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-muted-foreground mb-2">Target Audience</label>
-            <div className="flex items-center justify-around h-[46px] p-1 bg-background/50 border border-input rounded-md">
-                <button type="button" onClick={() => setTargetType('all_parents')} className={`w-1/3 py-1.5 text-sm font-semibold rounded flex items-center justify-center gap-2 ${targetType === 'all_parents' ? 'bg-primary text-white shadow' : 'text-muted-foreground hover:bg-muted/30'}`}><Users size={16} /> All Parents</button>
-                <button type="button" onClick={() => setTargetType('class')} className={`w-1/3 py-1.5 text-sm font-semibold rounded flex items-center justify-center gap-2 ${targetType === 'class' ? 'bg-primary text-white shadow' : 'text-muted-foreground hover:bg-muted/30'}`}><BookOpen size={16} /> Class</button>
-                <button type="button" onClick={() => setTargetType('student')} className={`w-1/3 py-1.5 text-sm font-semibold rounded flex items-center justify-center gap-2 ${targetType === 'student' ? 'bg-primary text-white shadow' : 'text-muted-foreground hover:bg-muted/30'}`}><User size={16} /> Student</button>
-            </div>
-            {renderTargetSelector()}
+            <label htmlFor="target-role" className="block text-sm font-medium text-muted-foreground mb-2">Target Audience</label>
+            <select
+                id="target-role"
+                value={targetRole}
+                onChange={(e) => setTargetRole(e.target.value as TargetRole)}
+                className="w-full appearance-none px-4 py-3 bg-background/50 text-foreground border border-input rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                >
+                {roles.map(role => (
+                    <option key={role.value} value={role.value}>{role.label}</option>
+                ))}
+            </select>
           </div>
 
           <div className="pt-4">
@@ -222,7 +135,7 @@ export default function AdminAnnouncementsPage() {
               className="w-full flex items-center justify-center gap-3 py-3 rounded-lg bg-gradient-to-r from-secondary to-primary text-primary-foreground font-bold tracking-wider uppercase hover:shadow-lg hover:shadow-primary/30 transition-all duration-300 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Megaphone className="w-5 h-5" />}
-              <span>Send Announcement</span>
+              <span>Send Notification</span>
             </button>
           </div>
         </form>

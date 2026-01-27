@@ -183,36 +183,32 @@
         "submittedAt"
       ]
     },
-    "Announcement": {
-      "title": "Announcement",
+    "Notification": {
+      "title": "Notification",
       "description": "Represents a broadcasted message sent by an admin.",
       "type": "object",
       "properties": {
         "title": { "type": "string" },
         "message": { "type": "string" },
-        "targetType": {
+        "targetRole": {
           "type": "string",
-          "enum": ["all_parents", "class", "student"]
-        },
-        "targetId": { 
-            "type": ["string", "null"],
-            "description": "The UID of the class or student if targetType is not 'all_parents'."
+          "enum": ["all", "admin", "teacher", "student", "parent", "staff"]
         },
         "createdAt": {
           "type": "string",
           "format": "date-time"
         }
       },
-      "required": ["title", "message", "targetType", "createdAt"]
+      "required": ["title", "message", "targetRole", "createdAt"]
     },
-    "ReadState": {
-      "title": "User Read State",
-      "description": "Tracks which announcements a user has read.",
+    "NotificationReadState": {
+      "title": "User Notification Read State",
+      "description": "Tracks which notifications a user has read.",
       "type": "object",
       "properties": {
-        "readAnnouncementIds": {
+        "readNotificationIds": {
           "type": "array",
-          "description": "An array of announcement IDs that the user has marked as read.",
+          "description": "An array of notification IDs that the user has marked as read.",
           "items": { "type": "string" }
         }
       }
@@ -264,17 +260,17 @@
       },
       "description": "Stores individual student scores for specific exams. The document ID is a composite of {examId}_{studentId}."
     },
-    "/announcements/{announcementId}": {
+    "/notifications/{notificationId}": {
         "schema": {
-            "$ref": "#/backend/entities/Announcement"
+            "$ref": "#/backend/entities/Notification"
         },
-        "description": "Stores all announcements sent by administrators."
+        "description": "Stores all notifications sent by administrators."
     },
     "/userReadStates/{userId}": {
         "schema": {
-            "$ref": "#/backend/entities/ReadState"
+            "$ref": "#/backend/entities/NotificationReadState"
         },
-        "description": "Stores the read status of announcements for each user."
+        "description": "Stores the read status of notifications for each user."
     }
   }
 }

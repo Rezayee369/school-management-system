@@ -115,11 +115,12 @@ service cloud.firestore {
       allow update, delete: if isAdmin();
     }
     
-    match /announcements/{announcementId} {
-      // Admins and Parents can read.
-      allow read: if isAdmin() || isParent();
-      // Only Admins can write.
+    match /notifications/{notificationId} {
+      // Admins can write notifications.
       allow write: if isAdmin();
+      // Any authenticated user can read a notification if it's for their role or for 'all'.
+      allow read: if request.auth != null && 
+                   (resource.data.targetRole == 'all' || resource.data.targetRole == getUserRole(request.auth.uid));
     }
 
     match /userReadStates/{userId} {

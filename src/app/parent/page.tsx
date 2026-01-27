@@ -36,7 +36,7 @@ interface FeeData {
     discount?: number;
 }
 
-interface AnnouncementData {
+interface NotificationData {
     id: string;
     title: string;
     message: string;
@@ -74,11 +74,9 @@ export default function ParentDashboard() {
   const [selectedMonth, setSelectedMonth] = useState<string>(format(new Date(), 'yyyy-MM'));
   const monthOptions = useMemo(getMonthOptions, []);
 
-  // State for announcements
-  const [allParentsAnnouncements, setAllParentsAnnouncements] = useState<AnnouncementData[]>([]);
-  const [studentAnnouncements, setStudentAnnouncements] = useState<AnnouncementData[]>([]);
-  const [classAnnouncements, setClassAnnouncements] = useState<AnnouncementData[]>([]);
-  const [readAnnouncementIds, setReadAnnouncementIds] = useState<Set<string>>(new Set());
+  // State for notifications
+  const [notifications, setNotifications] = useState<NotificationData[]>([]);
+  const [readNotificationIds, setReadNotificationIds] = useState<Set<string>>(new Set());
 
   // Fetch parent's linked students
   useEffect(() => {
@@ -141,64 +139,51 @@ export default function ParentDashboard() {
     return () => unsubscribes.forEach(unsub => unsub());
   }, [selectedStudentId, db]);
 
-  // Fetch announcements
+  // Fetch notifications for the parent
   useEffect(() => {
-    if (!db) return;
-    const q = query(collection(db, 'announcements'), where('targetType', '==', 'all_parents'), orderBy('createdAt', 'desc'));
-    const unsub = onSnapshot(q, snap => setAllParentsAnnouncements(snap.docs.map(d => ({id: d.id, ...d.data()}) as AnnouncementData)));
-    return () => unsub();
-  }, [db]);
+    if (!user || !db) return;
 
-  useEffect(() => {
-    if (!db || !selectedStudentId) { setStudentAnnouncements([]); return; }
-    const q = query(collection(db, 'announcements'), where('targetType', '==', 'student'), where('targetId', '==', selectedStudentId), orderBy('createdAt', 'desc'));
-    const unsub = onSnapshot(q, snap => setStudentAnnouncements(snap.docs.map(d => ({id: d.id, ...d.data()}) as AnnouncementData)));
-    return () => unsub();
-  }, [db, selectedStudentId]);
+    const notifQuery = query(
+      collection(db, 'notifications'),
+      where('targetRole', 'in', ['all', 'parent']),
+      orderBy('createdAt', 'desc')
+    );
 
-  useEffect(() => {
-    const classIds = classes.map(c => c.id);
-    if (!db || classIds.length === 0) { setClassAnnouncements([]); return; }
-    const q = query(collection(db, 'announcements'), where('targetType', '==', 'class'), where('targetId', 'in', classIds), orderBy('createdAt', 'desc'));
-    const unsub = onSnapshot(q, snap => setClassAnnouncements(snap.docs.map(d => ({id: d.id, ...d.data()}) as AnnouncementData)));
+    const unsub = onSnapshot(notifQuery, (snapshot) => {
+      const notifData = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as NotificationData));
+      setNotifications(notifData);
+    });
+    
     return () => unsub();
-  }, [db, classes]);
+  }, [user, db]);
   
-  // Fetch read announcement states
+  // Fetch read notification states
   useEffect(() => {
     if (!user || !db) return;
     const readStateRef = doc(db, 'userReadStates', user.uid);
     const unsub = onSnapshot(readStateRef, (doc) => {
       const data = doc.data();
-      if (data && data.readAnnouncementIds) {
-        setReadAnnouncementIds(new Set(data.readAnnouncementIds));
+      if (data && data.readNotificationIds) {
+        setReadNotificationIds(new Set(data.readNotificationIds));
       }
     });
     return () => unsub();
   }, [user, db]);
-
   
-  const announcements = useMemo(() => {
-    const all = [...allParentsAnnouncements, ...studentAnnouncements, ...classAnnouncements];
-    const unique = Array.from(new Map(all.map(item => [item.id, item])).values());
-    unique.sort((a, b) => b.createdAt.toDate().getTime() - a.createdAt.toDate().getTime());
-    return unique;
-  }, [allParentsAnnouncements, studentAnnouncements, classAnnouncements]);
-
   const unreadCount = useMemo(() => {
-    return announcements.filter(ann => !readAnnouncementIds.has(ann.id)).length;
-  }, [announcements, readAnnouncementIds]);
+    return notifications.filter(notif => !readNotificationIds.has(notif.id)).length;
+  }, [notifications, readNotificationIds]);
 
-  const handleAnnouncementClick = async (announcementId: string) => {
-    if (!user || readAnnouncementIds.has(announcementId)) return;
+  const handleNotificationClick = async (notificationId: string) => {
+    if (!user || readNotificationIds.has(notificationId)) return;
     
     const readStateRef = doc(db, 'userReadStates', user.uid);
     try {
       await setDoc(readStateRef, {
-        readAnnouncementIds: arrayUnion(announcementId)
+        readNotificationIds: arrayUnion(notificationId)
       }, { merge: true });
     } catch (error) {
-      console.error("Failed to mark announcement as read:", error);
+      console.error("Failed to mark notification as read:", error);
       toast.error("Could not update read status.");
     }
   };
@@ -325,31 +310,31 @@ export default function ParentDashboard() {
                               </span>
                           )}
                       </div>
-                      <h3 className="text-xl font-semibold text-foreground">Announcements</h3>
+                      <h3 className="text-xl font-semibold text-foreground">Notifications</h3>
                   </div>
                   <div className="space-y-4 max-h-[40vh] overflow-y-auto pr-2">
-                      {announcements.length > 0 ? announcements.map(ann => (
+                      {notifications.length > 0 ? notifications.map(notif => (
                           <div 
-                              key={ann.id}
-                              onClick={() => handleAnnouncementClick(ann.id)}
+                              key={notif.id}
+                              onClick={() => handleNotificationClick(notif.id)}
                               className={`p-4 bg-background/40 border-s-4 rounded-r-lg cursor-pointer transition-all duration-300 ${
-                                  !readAnnouncementIds.has(ann.id)
+                                  !readNotificationIds.has(notif.id)
                                   ? 'border-primary hover:bg-primary/10'
                                   : 'border-transparent'
                               }`}
                           >
                               <div className="flex justify-between items-baseline gap-4">
-                                  <h4 className={`font-semibold ${!readAnnouncementIds.has(ann.id) ? 'text-primary' : 'text-foreground/90'}`}>{ann.title}</h4>
+                                  <h4 className={`font-semibold ${!readNotificationIds.has(notif.id) ? 'text-primary' : 'text-foreground/90'}`}>{notif.title}</h4>
                                   <p className="text-xs text-muted-foreground whitespace-nowrap shrink-0">
-                                      {formatDistanceToNow(ann.createdAt.toDate(), { addSuffix: true })}
+                                      {formatDistanceToNow(notif.createdAt.toDate(), { addSuffix: true })}
                                   </p>
                               </div>
-                              <p className="mt-1 text-sm text-muted-foreground break-words">{ann.message}</p>
+                              <p className="mt-1 text-sm text-muted-foreground break-words">{notif.message}</p>
                           </div>
                       )) : (
                           <div className="flex flex-col items-center justify-center h-24 text-center">
                             <MessageSquare className="h-8 w-8 text-muted-foreground" />
-                            <p className="mt-2 text-sm text-muted-foreground">No new announcements.</p>
+                            <p className="mt-2 text-sm text-muted-foreground">No new notifications.</p>
                           </div>
                       )}
                   </div>
