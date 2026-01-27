@@ -2,7 +2,7 @@
 import * as THREE from 'three';
 import React, { useEffect, useRef } from 'react';
 
-const AnimatedShaderBackground = () => {
+export default function AnimatedShaderBackground() {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -124,5 +124,3 @@ const AnimatedShaderBackground = () => {
 
   return <div ref={containerRef} className="fixed inset-0 -z-10" />;
 };
-
-export default AnimatedShaderBackground;
