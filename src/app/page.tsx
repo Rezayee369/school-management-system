@@ -3,13 +3,6 @@
 import { useAuth, useUser } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import { PT_Sans } from 'next/font/google';
-
-const ptSans = PT_Sans({
-  subsets: ['latin'],
-  weight: ['400', '700'],
-  variable: '--font-pt-sans',
-});
 
 export default function HomePage() {
   const router = useRouter();
@@ -27,16 +20,25 @@ export default function HomePage() {
     }
 
     // User is logged in, handle role-based redirection
-    const handleLogin = async () => {
-      if (user.role === 'admin') {
-        router.replace('/admin');
-      } else if (user.role === 'receptionist') {
-        router.replace('/receptionist');
-      } else if (user.role === 'doctor') {
-        router.replace('/doctor');
-      } else {
-        // Fallback for users with no/invalid role
-        router.replace('/login');
+    const handleLogin = () => {
+      switch (user.role) {
+        case 'admin':
+          router.replace('/admin');
+          break;
+        case 'teacher':
+          router.replace('/teacher');
+          break;
+        case 'student':
+          router.replace('/student');
+          break;
+        case 'parent':
+          router.replace('/parent');
+          break;
+        default:
+          // For staff or any other unhandled roles, redirect to login
+          // as they do not have a dedicated dashboard.
+          router.replace('/login');
+          break;
       }
     };
 
@@ -45,10 +47,10 @@ export default function HomePage() {
 
   return (
     <main
-      className={`flex min-h-screen flex-col items-center justify-center p-24 ${ptSans.variable} font-sans`}
+      className={`flex min-h-screen flex-col items-center justify-center p-24 font-sans`}
     >
       <div className="text-center">
-        <h1 className="text-4xl font-bold text-primary">HealthQueue Pro</h1>
+        <h1 className="text-4xl font-bold text-primary">Salamkar School</h1>
         <p className="mt-4 text-lg text-foreground">
           Loading your dashboard...
         </p>
