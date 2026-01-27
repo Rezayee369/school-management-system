@@ -4,14 +4,19 @@ import "./globals.css";
 import { FirebaseClientProvider } from "@/firebase";
 import { Toaster } from 'react-hot-toast';
 import { LanguageProvider } from "@/i18n";
-import AnimatedShaderBackground from "@/components/ui/animated-shader-background";
 import { ThemeProvider } from "@/components/providers/theme-provider";
+import dynamic from 'next/dynamic';
 
 const ptSans = PT_Sans({
   subsets: ['latin'],
   weight: ['400', '700'],
   variable: '--font-pt-sans',
 });
+
+const AnimatedShaderBackground = dynamic(
+  () => import('@/components/ui/animated-shader-background'),
+  { ssr: false }
+);
 
 export const metadata: Metadata = {
   title: "Salamkar School Management",
