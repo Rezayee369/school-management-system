@@ -6,9 +6,14 @@ import { useTheme } from "next-themes"
 
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme()
+  const [mounted, setMounted] = React.useState(false)
   const [isOpen, setIsOpen] = React.useState(false)
   const dropdownRef = React.useRef<HTMLDivElement>(null)
   const buttonRef = React.useRef<HTMLButtonElement>(null)
+
+  React.useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const themes = [
     { name: "Light", value: "light", icon: Sun },
@@ -46,6 +51,12 @@ export function ThemeToggle() {
         default: return Laptop;
     }
   }, [theme])
+
+  if (!mounted) {
+    return (
+      <div className="h-11 w-11 rounded-full bg-background/70" />
+    )
+  }
 
   return (
     <div className="relative">
