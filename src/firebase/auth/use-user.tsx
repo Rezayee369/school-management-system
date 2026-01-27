@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { onAuthStateChanged, type User } from 'firebase/auth';
-import { doc, getDoc, onSnapshot } from 'firebase/firestore';
+import { doc, onSnapshot, type Unsubscribe } from 'firebase/firestore';
 import { useAuth, useFirestore } from '../provider';
 
 interface AppUser extends User {
@@ -12,39 +12,54 @@ interface AppUser extends User {
 export function useUser() {
     const auth = useAuth();
     const db = useFirestore();
-    const [user, setUser] = useState<AppUser | null | undefined>(undefined); // undefined for loading, null for no user
+    const [user, setUser] = useState<AppUser | null | undefined>(undefined); // undefined for loading
 
     useEffect(() => {
-        const unsubscribeAuth = onAuthStateChanged(auth, async (firebaseUser) => {
+        let unsubscribeDoc: Unsubscribe | undefined;
+
+        const unsubscribeAuth = onAuthStateChanged(auth, (firebaseUser) => {
+            // First, unsubscribe from any previous document listener
+            if (unsubscribeDoc) {
+                unsubscribeDoc();
+            }
+
             if (firebaseUser) {
                 const userDocRef = doc(db, 'users', firebaseUser.uid);
                 
-                // Set initial user data from auth
-                setUser(firebaseUser);
-
-                // Subscribe to user document for role updates
-                const unsubscribeDoc = onSnapshot(userDocRef, (doc) => {
-                    if (doc.exists()) {
-                        const userData = doc.data();
-                        setUser(prevUser => prevUser ? ({ ...prevUser, ...userData, role: userData.role }) : null);
+                // Subscribe to the user's document in Firestore
+                unsubscribeDoc = onSnapshot(userDocRef, (docSnap) => {
+                    if (docSnap.exists()) {
+                        // User document exists, merge auth data with Firestore data
+                        const userData = docSnap.data();
+                        setUser({
+                            ...firebaseUser,
+                            ...userData,
+                            role: userData.role,
+                        });
                     } else {
-                        // Document might not exist right after sign-up, wait for it to be created
-                        // Or handle case where user exists in auth but not firestore
-                        setUser(firebaseUser); // Keep basic auth user
+                        // User is authenticated, but no document in Firestore.
+                        // This could be a new sign-up or an error state.
+                        console.warn(`No Firestore document found for user ${firebaseUser.uid}`);
+                        setUser(firebaseUser); // User object without role, which useAuthGuard will handle
                     }
                 }, (error) => {
                     console.error("Error fetching user document:", error);
-                    setUser(firebaseUser); // Fallback to auth user
+                    // On error, still provide the basic auth user object so the app doesn't hang
+                    setUser(firebaseUser);
                 });
-                
-                return () => unsubscribeDoc();
-
             } else {
+                // User is not logged in
                 setUser(null);
             }
         });
 
-        return () => unsubscribeAuth();
+        // Cleanup function for the useEffect hook
+        return () => {
+            unsubscribeAuth();
+            if (unsubscribeDoc) {
+                unsubscribeDoc();
+            }
+        };
     }, [auth, db]);
 
     return user;
