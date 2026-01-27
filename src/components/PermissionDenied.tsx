@@ -14,7 +14,7 @@ export default function PermissionDenied({ userRole }: PermissionDeniedProps) {
     if (userRole && ['admin', 'teacher', 'student', 'parent'].includes(userRole)) {
       router.replace(`/${userRole}`);
     } else {
-      router.replace('/login'); 
+      router.replace('/'); 
     }
   };
 

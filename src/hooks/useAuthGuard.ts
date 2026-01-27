@@ -25,7 +25,7 @@ export function useAuthGuard(allowedRole: string): AuthGuardResult {
 
     if (!user) {
       // Not logged in, redirect to login.
-      router.replace('/login');
+      router.replace('/');
       // The component will unmount, so no need to update state.
       return;
     }

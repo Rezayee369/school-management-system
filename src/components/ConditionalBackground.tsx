@@ -14,8 +14,8 @@ const AnimatedShaderBackground = dynamic(
 export default function ConditionalBackground() {
   const pathname = usePathname();
 
-  // Do not render the background on the login page.
-  if (pathname.startsWith('/login')) {
+  // Do not render the background on the login page (now at root) or the old /login path.
+  if (pathname === '/' || pathname.startsWith('/login')) {
     return null;
   }
 
