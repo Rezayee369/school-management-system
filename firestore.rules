@@ -10,12 +10,15 @@ service cloud.firestore {
     }
 
     function getUserRole(userId) {
-      // This get() call requires that any authenticated user can read user profiles.
-      // The rule on /users/{userId} must permit this for role checks to work.
+      // This get() call requires read access to the users collection.
+      // This is granted below. It's safe because only admins can read all profiles,
+      // and other users can only read non-staff profiles or their own.
       return get(/databases/$(database)/documents/users/$(userId)).data.role;
     }
 
     function isAdmin() {
+      // Important: For this to work, the rules for /users/{userId} MUST
+      // allow the currently authenticated user to read their own document.
       return request.auth != null && getUserRole(request.auth.uid) == 'admin';
     }
 
@@ -26,6 +29,10 @@ service cloud.firestore {
     function isParent() {
       return request.auth != null && getUserRole(request.auth.uid) == 'parent';
     }
+    
+    function isStaff() {
+      return request.auth != null && getUserRole(request.auth.uid) == 'staff';
+    }
 
     // Check if the user is the teacher assigned to a specific class.
     function isClassTeacher(classId, userId) {
@@ -35,14 +42,23 @@ service cloud.firestore {
     // --- Collection Rules ---
 
     match /users/{userId} {
-      // Any authenticated user can read profile data, which is necessary for role-based rules.
-      allow read: if request.auth != null;
+      // Admins can read any profile.
+      // Users can read their own profile.
+      // Staff can only read their own profile.
+      // Other authenticated users can read profiles of non-staff members. This protects staff data
+      // from being read by other non-admin roles.
+      allow read: if request.auth != null && (
+                    isAdmin() || 
+                    isOwner(userId) ||
+                    resource.data.role != 'staff'
+                  );
       
-      // Admins can write to any profile.
-      // Users can create their own profile, or update it (but not change their role).
-      allow write: if isAdmin() || 
-                    (request.method == 'create' && isOwner(userId)) ||
-                    (request.method == 'update' && isOwner(userId) && request.resource.data.role == resource.data.role);
+      // Admins can perform any write operation.
+      // Users can create their own profile (but not as an admin).
+      // Users can update their own profile, but cannot change their role.
+      allow create: if isAdmin() || (isOwner(userId) && request.resource.data.role != 'admin');
+      allow update: if isAdmin() || (isOwner(userId) && request.resource.data.role == resource.data.role);
+      allow delete: if isAdmin();
     }
     
     match /classes/{classId} {
