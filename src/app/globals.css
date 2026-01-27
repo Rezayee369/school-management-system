@@ -10,10 +10,10 @@
     --card-foreground: 222.2 84% 4.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
-    --primary: 190 95% 45%;
+    --primary: 221.2 83.2% 53.3%;
     --primary-foreground: 210 40% 98%;
-    --secondary: 280 85% 55%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
     --accent: 210 40% 96.1%;
@@ -22,7 +22,7 @@
     --destructive-foreground: 210 40% 98%;
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 190 95% 45%;
+    --ring: 222.2 84% 4.9%;
     --radius: 0.75rem;
   }
 
@@ -46,6 +46,28 @@
     --border: 222 89% 18%;
     --input: 222 89% 18%;
     --ring: 190 95% 55%;
+  }
+
+  .brand {
+    --background: 220 20% 98%;
+    --foreground: 220 15% 25%;
+    --card: 220 20% 100%;
+    --card-foreground: 220 15% 25%;
+    --popover: 220 20% 100%;
+    --popover-foreground: 220 15% 25%;
+    --primary: 215 80% 50%; /* Corporate Blue */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 10 80% 55%; /* Corporate Orange */
+    --secondary-foreground: 0 0% 100%;
+    --muted: 220 20% 94%;
+    --muted-foreground: 220 10% 45%;
+    --accent: 30 90% 60%; /* Accent Yellow/Gold */
+    --accent-foreground: 220 15% 15%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 15% 88%;
+    --input: 220 15% 88%;
+    --ring: 215 80% 50%;
   }
 }
 

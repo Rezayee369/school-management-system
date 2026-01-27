@@ -24,11 +24,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="fa" dir="rtl" className={`dark ${ptSans.variable}`} suppressHydrationWarning>
+    <html lang="fa" dir="rtl" className={`${ptSans.variable}`} suppressHydrationWarning>
       <body className={`font-sans bg-background`} suppressHydrationWarning>
         <ThemeProvider
           attribute="class"
-          defaultTheme="dark"
+          defaultTheme="system"
           enableSystem
           disableTransitionOnChange
         >
