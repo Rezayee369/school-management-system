@@ -145,6 +145,33 @@
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["classId", "teacherId", "subject", "type", "maxScore", "date", "createdAt"]
+    },
+    "ExamGrade": {
+      "title": "Exam Grade",
+      "description": "Represents a score a student received for a specific exam.",
+      "type": "object",
+      "properties": {
+        "examId": { "type": "string" },
+        "classId": { "type": "string" },
+        "studentId": { "type": "string" },
+        "studentName": { "type": "string" },
+        "teacherId": { "type": "string" },
+        "score": { "type": "number" },
+        "maxScore": { "type": "number" },
+        "submittedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "examId",
+        "classId",
+        "studentId",
+        "teacherId",
+        "score",
+        "maxScore",
+        "submittedAt"
+      ]
     }
   },
   "auth": {
@@ -186,6 +213,12 @@
         "$ref": "#/backend/entities/Exam"
       },
       "description": "Stores exam details."
+    },
+    "/examGrades/{examGradeId}": {
+      "schema": {
+        "$ref": "#/backend/entities/ExamGrade"
+      },
+      "description": "Stores individual student scores for specific exams. The document ID is a composite of {examId}_{studentId}."
     }
   }
 }

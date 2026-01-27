@@ -117,5 +117,23 @@ service cloud.firestore {
       // Teachers can update/delete their own exams. Admins can update/delete any.
       allow update, delete: if isAdmin() || (isTeacher() && resource.data.teacherId == request.auth.uid);
     }
+
+    match /examGrades/{examGradeId} {
+      // Admins can manage everything
+      allow read, write: if isAdmin();
+
+      // Teacher can create a grade if they are the teacher for the exam's class
+      // and they are the owner of the grade record. They cannot update it once created.
+      allow create: if isTeacher()
+                     && request.resource.data.teacherId == request.auth.uid
+                     && isClassTeacher(request.resource.data.classId, request.auth.uid)
+                     && request.resource.data.score <= request.resource.data.maxScore
+                     && request.resource.data.score >= 0;
+
+      // Students, Parents, and the Teacher who created it can read.
+      allow read: if (isTeacher() && resource.data.teacherId == request.auth.uid) ||
+                   (request.auth != null && resource.data.studentId == request.auth.uid) ||
+                   (isParent() && resource.data.studentId in get(/databases/$(database)/documents/users/$(request.auth.uid)).data.studentIds);
+    }
   }
 }
