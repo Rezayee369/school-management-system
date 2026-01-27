@@ -86,5 +86,20 @@ service cloud.firestore {
                    (request.auth != null && resource.data.studentId == request.auth.uid) ||
                    (isParent() && resource.data.studentId in get(/databases/$(database)/documents/users/$(request.auth.uid)).data.studentIds);
     }
+
+    match /fees/{feeId} {
+      // Admins can read/write any fee record.
+      allow read, write: if isAdmin();
+
+      // The feeId is formatted as 'studentId_YYYY-MM'.
+      function getStudentIdFromFeeId(feeId) {
+        return feeId.split('_')[0];
+      }
+
+      // Students can read their own fee records.
+      // Parents can read fee records for their linked children.
+      allow read: if (request.auth != null && getStudentIdFromFeeId(feeId) == request.auth.uid) ||
+                   (isParent() && getStudentIdFromFeeId(feeId) in get(/databases/$(database)/documents/users/$(request.auth.uid)).data.studentIds);
+    }
   }
 }

@@ -111,6 +111,22 @@
         }
       },
       "required": ["classId", "studentId", "teacherId", "examScore", "assignmentScore", "updatedAt"]
+    },
+    "Fee": {
+      "title": "Fee",
+      "description": "Represents a student's fee record for a specific month.",
+      "type": "object",
+      "properties": {
+        "studentId": { "type": "string" },
+        "studentName": { "type": "string" },
+        "month": { "type": "string", "description": "The month for the fee in YYYY-MM format." },
+        "amount": { "type": "number", "minimum": 0 },
+        "discount": { "type": "number", "minimum": 0 },
+        "status": { "type": "string", "enum": ["paid", "unpaid"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["studentId", "studentName", "month", "amount", "status", "createdAt", "updatedAt"]
     }
   },
   "auth": {
@@ -140,6 +156,12 @@
         "$ref": "#/backend/entities/Grade"
       },
       "description": "Stores grade records for students. The gradeId is a composite of classId_studentId."
+    },
+    "/fees/{feeId}": {
+      "schema": {
+        "$ref": "#/backend/entities/Fee"
+      },
+      "description": "Stores student fee records. The feeId is a composite of studentId_YYYY-MM."
     }
   }
 }

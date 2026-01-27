@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import DashboardHeader from '@/components/DashboardHeader';
-import { BookOpen, Users, Briefcase, Shield, Megaphone, BarChart2, UserCheck } from 'lucide-react';
+import { BookOpen, Users, Briefcase, Shield, Megaphone, BarChart2, UserCheck, CreditCard } from 'lucide-react';
 import { useFirestore } from '@/firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import toast from 'react-hot-toast';
@@ -153,7 +153,7 @@ export default function AdminDashboard() {
 
         <div className="mt-12">
              <h2 className="text-2xl font-semibold text-foreground mb-6">{t('adminDashboard.quickActions')}</h2>
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <Link href="/admin/classes" className="group">
                   <div className="flex flex-col h-full p-6 bg-background/60 backdrop-blur-sm rounded-xl shadow-lg transition-all duration-300 border border-border hover:border-secondary hover:shadow-xl hover:shadow-secondary/20 hover:-translate-y-1 hover:scale-[1.02]">
                     <div className="flex items-center gap-4 mb-3">
@@ -175,6 +175,18 @@ export default function AdminDashboard() {
                       <h2 className="text-xl font-semibold text-foreground">{t('adminDashboard.manageUsers')}</h2>
                     </div>
                     <p className="text-muted-foreground">{t('adminDashboard.manageUsersDesc')}</p>
+                  </div>
+                </Link>
+
+                <Link href="/admin/fees" className="group">
+                  <div className="flex flex-col h-full p-6 bg-background/60 backdrop-blur-sm rounded-xl shadow-lg transition-all duration-300 border border-border hover:border-primary hover:shadow-xl hover:shadow-primary/20 hover:-translate-y-1 hover:scale-[1.02]">
+                    <div className="flex items-center gap-4 mb-3">
+                      <div className="p-3 bg-primary/10 rounded-lg transition-all duration-300 group-hover:bg-primary/20 group-hover:shadow-[0_0_15px_hsl(var(--primary))]">
+                        <CreditCard className="w-6 h-6 text-primary" />
+                      </div>
+                      <h2 className="text-xl font-semibold text-foreground">Manage Fees</h2>
+                    </div>
+                    <p className="text-muted-foreground">Record and track student fee payments.</p>
                   </div>
                 </Link>
                 
