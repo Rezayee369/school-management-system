@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import DashboardHeader from '@/components/DashboardHeader';
-import { BookOpen, Users, Briefcase, Shield, Megaphone, BarChart2, UserCheck, CreditCard, ListX, PieChart } from 'lucide-react';
+import { BookOpen, Users, Briefcase, Shield, Megaphone, BarChart2, UserCheck, CreditCard, ListX, PieChart, ClipboardCheck } from 'lucide-react';
 import { useFirestore } from '@/firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import toast from 'react-hot-toast';
@@ -223,6 +223,18 @@ export default function AdminDashboard() {
                         <h2 className="text-xl font-semibold text-foreground">{t('adminDashboard.financeReport')}</h2>
                     </div>
                     <p className="text-muted-foreground">{t('adminDashboard.financeReportDesc')}</p>
+                    </div>
+                </Link>
+
+                <Link href="/admin/grades" className="group">
+                    <div className="flex flex-col h-full p-6 bg-background/60 backdrop-blur-sm rounded-xl shadow-lg transition-all duration-300 border border-border hover:border-accent hover:shadow-xl hover:shadow-accent/20 hover:-translate-y-1 hover:scale-[1.02]">
+                    <div className="flex items-center gap-4 mb-3">
+                        <div className="p-3 bg-accent/10 rounded-lg transition-all duration-300 group-hover:bg-accent/20 group-hover:shadow-[0_0_15px_hsl(var(--accent))]">
+                        <ClipboardCheck className="w-6 h-6 text-accent" />
+                        </div>
+                        <h2 className="text-xl font-semibold text-foreground">{t('adminDashboard.viewGrades')}</h2>
+                    </div>
+                    <p className="text-muted-foreground">{t('adminDashboard.viewGradesDesc')}</p>
                     </div>
                 </Link>
             </div>

@@ -39,7 +39,9 @@
     "analyticsAndReports": "Analytics & Reports",
     "analyticsAndReportsDesc": "View school performance and user engagement data.",
     "financeReport": "Financial Report",
-    "financeReportDesc": "View monthly fee collection and outstanding balances."
+    "financeReportDesc": "View monthly fee collection and outstanding balances.",
+    "viewGrades": "View Grades",
+    "viewGradesDesc": "Review and analyze student exam scores by class."
   },
   "adminUsers": {
     "userManagement": "User Management",
@@ -77,6 +79,20 @@
     "deleteClassTitle": "Delete Class: {{class}}",
     "deleteClassDesc": "Are you sure you want to delete this class? All student enrollments for this class will be removed. This action cannot be undone.",
     "deleteClassConfirm": "Delete Class"
+  },
+  "adminGrades": {
+    "title": "View Exam Grades",
+    "selectClass": "Select Class",
+    "selectExam": "Select Exam",
+    "loadingClasses": "Loading classes...",
+    "noClasses": "No classes found",
+    "loadingExams": "Loading exams...",
+    "noExams": "No exams for this class",
+    "classAverage": "Class Average",
+    "studentName": "Student Name",
+    "score": "Score",
+    "noGradesTitle": "No Grades Submitted",
+    "noGradesDesc": "There are no grades submitted for the selected exam yet."
   },
   "financeReport": {
     "title": "Monthly Financial Report",

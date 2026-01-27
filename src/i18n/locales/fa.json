@@ -39,7 +39,9 @@
     "analyticsAndReports": "تحلیل و گزارشات",
     "analyticsAndReportsDesc": "مشاهده گزارشات کارکرد مکتب و فعالیت کاربران.",
     "financeReport": "گزارش مالی",
-    "financeReportDesc": "مشاهده خلاصه‌ی ماهانه‌ی دریافت شهریه و باقی‌مانده‌ها."
+    "financeReportDesc": "مشاهده خلاصه‌ی ماهانه‌ی دریافت شهریه و باقی‌مانده‌ها.",
+    "viewGrades": "مشاهده نمرات",
+    "viewGradesDesc": "بررسی و تحلیل نمرات امتحانات شاگردان بر اساس صنف."
   },
   "adminUsers": {
     "userManagement": "مدیریت کاربران",
@@ -77,6 +79,20 @@
     "deleteClassTitle": "حذف صنف: {{class}}",
     "deleteClassDesc": "آیا از حذف این صنف مطمئن هستید؟ تمام ثبت نام‌های شاگردان برای این صنف حذف خواهد شد. این عمل قابل بازگشت نیست.",
     "deleteClassConfirm": "حذف صنف"
+  },
+  "adminGrades": {
+    "title": "مشاهده نمرات امتحانات",
+    "selectClass": "انتخاب صنف",
+    "selectExam": "انتخاب امتحان",
+    "loadingClasses": "در حال بارگیری صنف‌ها...",
+    "noClasses": "صنفی یافت نشد",
+    "loadingExams": "در حال بارگیری امتحانات...",
+    "noExams": "امتحانی برای این صنف وجود ندارد",
+    "classAverage": "اوسط نمرات صنف",
+    "studentName": "نام شاگرد",
+    "score": "نمره",
+    "noGradesTitle": "هیچ نمره‌ای ثبت نشده است",
+    "noGradesDesc": "هنوز هیچ نمره‌ای برای امتحان انتخاب شده ثبت نشده است."
   },
   "financeReport": {
     "title": "گزارش مالی ماهانه",
