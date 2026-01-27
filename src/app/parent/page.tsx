@@ -7,9 +7,10 @@ import { useAuthGuard } from '@/hooks/useAuthGuard';
 import DashboardHeader from '@/components/DashboardHeader';
 import PermissionDenied from '@/components/PermissionDenied';
 import { useUser, useFirestore } from '@/firebase';
-import { collection, doc, onSnapshot, query, where, documentId, getDocs, orderBy, Timestamp } from 'firebase/firestore';
+import { collection, doc, onSnapshot, query, where, documentId, getDocs, orderBy, Timestamp, setDoc, arrayUnion } from 'firebase/firestore';
 import { BookOpen, Users, Percent, CalendarDays, Wallet, CalendarClock, Award, Megaphone, MessageSquare } from 'lucide-react';
 import { format, parse, formatDistanceToNow } from 'date-fns';
+import toast from 'react-hot-toast';
 
 interface StudentData {
   id: string;
@@ -77,6 +78,7 @@ export default function ParentDashboard() {
   const [allParentsAnnouncements, setAllParentsAnnouncements] = useState<AnnouncementData[]>([]);
   const [studentAnnouncements, setStudentAnnouncements] = useState<AnnouncementData[]>([]);
   const [classAnnouncements, setClassAnnouncements] = useState<AnnouncementData[]>([]);
+  const [readAnnouncementIds, setReadAnnouncementIds] = useState<Set<string>>(new Set());
 
   // Fetch parent's linked students
   useEffect(() => {
@@ -162,12 +164,44 @@ export default function ParentDashboard() {
     return () => unsub();
   }, [db, classes]);
   
+  // Fetch read announcement states
+  useEffect(() => {
+    if (!user || !db) return;
+    const readStateRef = doc(db, 'userReadStates', user.uid);
+    const unsub = onSnapshot(readStateRef, (doc) => {
+      const data = doc.data();
+      if (data && data.readAnnouncementIds) {
+        setReadAnnouncementIds(new Set(data.readAnnouncementIds));
+      }
+    });
+    return () => unsub();
+  }, [user, db]);
+
+  
   const announcements = useMemo(() => {
     const all = [...allParentsAnnouncements, ...studentAnnouncements, ...classAnnouncements];
     const unique = Array.from(new Map(all.map(item => [item.id, item])).values());
     unique.sort((a, b) => b.createdAt.toDate().getTime() - a.createdAt.toDate().getTime());
     return unique;
   }, [allParentsAnnouncements, studentAnnouncements, classAnnouncements]);
+
+  const unreadCount = useMemo(() => {
+    return announcements.filter(ann => !readAnnouncementIds.has(ann.id)).length;
+  }, [announcements, readAnnouncementIds]);
+
+  const handleAnnouncementClick = async (announcementId: string) => {
+    if (!user || readAnnouncementIds.has(announcementId)) return;
+    
+    const readStateRef = doc(db, 'userReadStates', user.uid);
+    try {
+      await setDoc(readStateRef, {
+        readAnnouncementIds: arrayUnion(announcementId)
+      }, { merge: true });
+    } catch (error) {
+      console.error("Failed to mark announcement as read:", error);
+      toast.error("Could not update read status.");
+    }
+  };
   
   const feeStatus = useMemo(() => {
     const currentMonthForFee = format(new Date(), 'yyyy-MM');
@@ -283,14 +317,29 @@ export default function ParentDashboard() {
             <div className="mb-8">
               <div className="p-6 bg-background/60 backdrop-blur-sm border border-border rounded-xl shadow-lg">
                   <div className="flex items-center gap-3 mb-4">
-                      <Megaphone className="w-6 h-6 text-primary"/>
+                      <div className="relative">
+                          <Megaphone className="w-6 h-6 text-primary"/>
+                          {unreadCount > 0 && (
+                              <span className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-xs font-bold text-white">
+                                  {unreadCount}
+                              </span>
+                          )}
+                      </div>
                       <h3 className="text-xl font-semibold text-foreground">Announcements</h3>
                   </div>
                   <div className="space-y-4 max-h-[40vh] overflow-y-auto pr-2">
                       {announcements.length > 0 ? announcements.map(ann => (
-                          <div key={ann.id} className="p-4 bg-background/40 border-s-4 border-primary/70 rounded-r-lg">
+                          <div 
+                              key={ann.id}
+                              onClick={() => handleAnnouncementClick(ann.id)}
+                              className={`p-4 bg-background/40 border-s-4 rounded-r-lg cursor-pointer transition-all duration-300 ${
+                                  !readAnnouncementIds.has(ann.id)
+                                  ? 'border-primary hover:bg-primary/10'
+                                  : 'border-transparent'
+                              }`}
+                          >
                               <div className="flex justify-between items-baseline gap-4">
-                                  <h4 className="font-semibold text-foreground/90">{ann.title}</h4>
+                                  <h4 className={`font-semibold ${!readAnnouncementIds.has(ann.id) ? 'text-primary' : 'text-foreground/90'}`}>{ann.title}</h4>
                                   <p className="text-xs text-muted-foreground whitespace-nowrap shrink-0">
                                       {formatDistanceToNow(ann.createdAt.toDate(), { addSuffix: true })}
                                   </p>

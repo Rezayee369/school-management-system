@@ -195,6 +195,18 @@
         }
       },
       "required": ["title", "message", "targetType", "createdAt"]
+    },
+    "ReadState": {
+      "title": "User Read State",
+      "description": "Tracks which announcements a user has read.",
+      "type": "object",
+      "properties": {
+        "readAnnouncementIds": {
+          "type": "array",
+          "description": "An array of announcement IDs that the user has marked as read.",
+          "items": { "type": "string" }
+        }
+      }
     }
   },
   "auth": {
@@ -248,6 +260,12 @@
             "$ref": "#/backend/entities/Announcement"
         },
         "description": "Stores all announcements sent by administrators."
+    },
+    "/userReadStates/{userId}": {
+        "schema": {
+            "$ref": "#/backend/entities/ReadState"
+        },
+        "description": "Stores the read status of announcements for each user."
     }
   }
 }

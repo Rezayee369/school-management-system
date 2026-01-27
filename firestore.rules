@@ -143,5 +143,10 @@ service cloud.firestore {
       // Admins and Parents can read. Client-side logic filters for relevancy.
       allow read: if isAdmin() || isParent();
     }
+
+    match /userReadStates/{userId} {
+      // Users can only read and modify their own read states.
+      allow read, write: if isOwner(userId);
+    }
   }
 }
