@@ -75,21 +75,21 @@ export default function TeacherDashboard() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center p-8 sm:p-12 bg-transparent text-foreground">
+    <main className="flex min-h-screen flex-col items-center p-4 sm:p-8 md:p-12 bg-transparent text-foreground">
       <div className="w-full max-w-4xl animate-fade-in-slide-up">
         <DashboardHeader userRole="teacher" />
         
         <div className="mt-12">
-            <div className="flex justify-between items-center mb-6">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
               <h2 className="text-2xl font-semibold text-foreground">{t('teacherDashboard.myClasses')}</h2>
-              <div className="flex items-center gap-2">
-                  <Link href="/teacher/attendance">
-                      <button className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-primary-foreground bg-primary rounded-lg shadow-md hover:bg-primary/90 transition-colors">
+              <div className="flex w-full sm:w-auto flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                  <Link href="/teacher/attendance" className="w-full sm:w-auto">
+                      <button className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold text-primary-foreground bg-primary rounded-lg shadow-md hover:bg-primary/90 transition-colors">
                           <Calendar size={16} /> {t('teacherDashboard.markAttendance')}
                       </button>
                   </Link>
-                  <Link href="/teacher/exams">
-                      <button className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-secondary-foreground bg-secondary rounded-lg shadow-md hover:bg-secondary/90 transition-colors">
+                  <Link href="/teacher/exams" className="w-full sm:w-auto">
+                      <button className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold text-secondary-foreground bg-secondary rounded-lg shadow-md hover:bg-secondary/90 transition-colors">
                           <FilePenLine size={16} /> {t('teacherDashboard.manageExams')}
                       </button>
                   </Link>

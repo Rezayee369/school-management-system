@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -195,7 +196,7 @@ export default function AdminGradesPage() {
                     </div>
 
                     <div className="overflow-x-auto">
-                        <table className="w-full text-left">
+                        <table className="w-full min-w-[400px] text-left">
                             <thead className="border-b border-muted/30">
                                 <tr>
                                     <th className="p-3 text-sm font-semibold text-muted-foreground">{t('adminGrades.studentName')}</th>

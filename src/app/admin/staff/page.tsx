@@ -139,29 +139,33 @@ export default function AdminStaffPage() {
           <div className="space-y-3">
             {staff.length > 0 ? (
               staff.map((user) => (
-                <div key={user.id} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center p-4 bg-background/50 border border-muted/20 rounded-lg transition-all hover:border-primary/50">
-                  <div className="font-medium text-foreground/90">{user.fullName}</div>
-                  <div className="text-muted-foreground truncate">{user.email}</div>
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-2">
-                        <Phone className="w-4 h-4 text-accent" />
-                        <span className="text-sm font-semibold capitalize">{user.phone || 'N/A'}</span>
+                <div key={user.id} className="p-4 bg-background/50 border border-muted/20 rounded-lg transition-all hover:border-primary/50">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                        <div className="flex-1">
+                            <p className="font-medium text-foreground/90">{user.fullName}</p>
+                            <p className="text-sm text-muted-foreground truncate">{user.email}</p>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
+                            <div className="flex items-center gap-2 text-muted-foreground">
+                                <Phone className="w-4 h-4 text-accent" />
+                                <span className="font-semibold capitalize">{user.phone || 'N/A'}</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-muted-foreground">
+                                <HardHat className="w-4 h-4 text-secondary" />
+                                <span className="font-semibold capitalize">{user.staffType}</span>
+                            </div>
+                        </div>
+                        <div className="flex justify-end items-center gap-2">
+                            <button
+                                onClick={() => handleDeleteClick(user)}
+                                disabled={isDeleting === user.id}
+                                className="p-2 text-destructive hover:bg-destructive/10 rounded-full transition-colors active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                                aria-label={`Delete ${user.fullName}`}
+                            >
+                                {isDeleting === user.id ? <div className="w-5 h-5 border-2 border-destructive border-t-transparent rounded-full animate-spin"></div> : <Trash2 size={18} />}
+                            </button>
+                        </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                        <HardHat className="w-4 h-4 text-secondary" />
-                        <span className="text-sm font-semibold capitalize">{user.staffType}</span>
-                    </div>
-                  </div>
-                  <div className="flex justify-end items-center gap-2">
-                    <button
-                        onClick={() => handleDeleteClick(user)}
-                        disabled={isDeleting === user.id}
-                        className="p-2 text-destructive hover:bg-destructive/10 rounded-full transition-colors active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-                        aria-label={`Delete ${user.fullName}`}
-                    >
-                        {isDeleting === user.id ? <div className="w-5 h-5 border-2 border-destructive border-t-transparent rounded-full animate-spin"></div> : <Trash2 size={18} />}
-                    </button>
-                  </div>
                 </div>
               ))
             ) : (

@@ -175,7 +175,7 @@ export default function AdminAttendancePage() {
                   </div>
               ) : attendanceRecords.length > 0 ? (
                   <div className="overflow-x-auto">
-                      <table className="w-full text-left">
+                      <table className="w-full min-w-[400px] text-left">
                           <thead className="border-b border-muted/30">
                               <tr>
                                   <th className="p-3 text-sm font-semibold text-muted-foreground">Student Name</th>

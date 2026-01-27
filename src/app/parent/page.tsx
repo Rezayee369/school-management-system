@@ -257,7 +257,7 @@ export default function ParentDashboard() {
   );
 
   return (
-    <main className="flex min-h-screen flex-col items-center p-8 sm:p-12 bg-background text-foreground">
+    <main className="flex min-h-screen flex-col items-center p-4 sm:p-8 md:p-12 bg-background text-foreground">
       <div className="w-full max-w-7xl animate-fade-in-slide-up">
         <DashboardHeader userRole="parent" />
 
@@ -280,7 +280,7 @@ export default function ParentDashboard() {
                 )}
              </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-12">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
               <StatCard 
                 title={t('parentDashboard.attendanceToday')}
                 value={attendanceToday ? t(`parentDashboard.status_${attendanceToday.status}`) : 'N/A'}
@@ -361,16 +361,16 @@ export default function ParentDashboard() {
                             {feeHistory.length > 0 ? feeHistory.map((fee) => {
                                 const amountDue = fee.amount - (fee.discount || 0);
                                 return (
-                                    <div key={fee.id} className="grid grid-cols-3 items-center p-3 bg-background/30 border-b border-muted/20">
-                                        <div>
+                                    <div key={fee.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-3 bg-background/30 border-b border-muted/20">
+                                        <div className="flex-grow">
                                             <p className="font-medium text-foreground/90">{format(parse(fee.month, 'yyyy-MM', new Date()), 'MMMM yyyy')}</p>
                                             <p className="text-xs text-muted-foreground">{t('parentDashboard.due')}: ${amountDue.toFixed(2)}</p>
                                         </div>
-                                        <div className="text-center text-muted-foreground">
+                                        <div className="text-left sm:text-center text-muted-foreground">
                                             <p className="text-xs">{t('parentDashboard.fee')}: ${fee.amount.toFixed(2)}</p>
                                             {fee.discount && fee.discount > 0 ? <p className="text-xs">{t('parentDashboard.discount')}: ${fee.discount.toFixed(2)}</p> : null}
                                         </div>
-                                        <div className="text-right">
+                                        <div className="self-start sm:self-center">
                                             <span className={`px-3 py-1 text-xs font-bold uppercase rounded-full border ${
                                                 fee.status === 'paid' ? 'bg-green-500/20 text-green-300 border-green-500/50' : 'bg-red-500/20 text-red-300 border-red-500/50'
                                             }`}>

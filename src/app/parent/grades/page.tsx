@@ -306,12 +306,12 @@ export default function ParentGradesPage() {
     <main className="flex min-h-screen flex-col items-center p-4 sm:p-8 bg-transparent">
         {isLoading ? <LoadingSkeleton /> : (
             <div className="w-full max-w-4xl animate-fade-in-slide-up">
-                <div className="flex justify-between items-center mb-8">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
                     <BackButton />
                     <button
                         onClick={handleDownloadPdf}
                         disabled={reportCardItems.length === 0 || isLoading}
-                        className="inline-flex items-center gap-2 px-4 py-2 font-semibold text-primary-foreground bg-primary rounded-lg shadow-md hover:opacity-90 active:scale-95 transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2 font-semibold text-primary-foreground bg-primary rounded-lg shadow-md hover:opacity-90 active:scale-95 transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <Download size={18} />
                         <span>{t('parentGrades.downloadButton')}</span>
@@ -355,7 +355,7 @@ export default function ParentGradesPage() {
                         )}
                         
                         <div className="overflow-x-auto">
-                            <div className="w-full text-left">
+                            <div className="w-full text-left min-w-[600px]">
                                 <div className="border-b border-muted/30 grid grid-cols-4 gap-4 p-3">
                                     <h3 className="text-sm font-semibold text-muted-foreground">{t('parentGrades.examSubject')}</h3>
                                     <h3 className="text-sm font-semibold text-muted-foreground">{t('parentGrades.date')}</h3>

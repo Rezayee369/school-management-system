@@ -176,7 +176,7 @@ export default function AdminReportsPage() {
                         </div>
                         {isLoadingClassReport ? <SkeletonReportTable /> : (
                             <div className="overflow-x-auto">
-                                <table className="w-full text-left">
+                                <table className="w-full min-w-[600px] text-left">
                                     <thead className="border-b border-muted/30">
                                         <tr>
                                             <th className="p-3 text-sm font-semibold text-muted-foreground">Class Name</th>
@@ -212,7 +212,7 @@ export default function AdminReportsPage() {
                         </div>
                          {isLoadingHighAbsenceReport ? <SkeletonReportTable cols={3} /> : (
                             <div className="overflow-x-auto">
-                                <table className="w-full text-left">
+                                <table className="w-full min-w-[600px] text-left">
                                     <thead className="border-b border-muted/30">
                                         <tr>
                                             <th className="p-3 text-sm font-semibold text-muted-foreground">Student Name</th>
