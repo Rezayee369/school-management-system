@@ -18,7 +18,7 @@
         "role": {
           "type": "string",
           "description": "The user's role in the system.",
-          "enum": ["admin", "teacher", "student", "parent"]
+          "enum": ["admin", "teacher", "student", "parent", "staff"]
         },
         "createdAt": {
           "type": "string",
@@ -36,6 +36,15 @@
             "items": {
                 "type": "string"
             }
+        },
+        "phone": {
+            "type": "string",
+            "description": "The user's phone number."
+        },
+        "staffType": {
+            "type": "string",
+            "description": "The type of staff member.",
+            "enum": ["Cleaner", "Guard", "Office Staff", "Maintenance"]
         }
       },
       "required": ["fullName", "email", "role", "createdAt"]

@@ -34,6 +34,8 @@
     "manageClassesDesc": "Add, edit, or view school classes and schedules.",
     "manageUsers": "Manage Users",
     "manageUsersDesc": "Administer student, teacher, and parent accounts.",
+    "manageStaff": "Manage Staff",
+    "manageStaffDesc": "Add, edit, or remove staff members and their roles.",
     "announcements": "Announcements",
     "announcementsDesc": "Create and send announcements to all users.",
     "analyticsAndReports": "Analytics & Reports",
@@ -93,6 +95,24 @@
     "score": "Score",
     "noGradesTitle": "No Grades Submitted",
     "noGradesDesc": "There are no grades submitted for the selected exam yet."
+  },
+  "adminStaff": {
+    "title": "Staff Management",
+    "createStaff": "Create Staff",
+    "allStaff": "All Staff Members",
+    "noStaffFound": "No Staff Found",
+    "getStarted": "Get started by creating the first staff account.",
+    "deleteStaffTitle": "Delete Staff: {{user}}",
+    "deleteStaffDesc": "Are you sure you want to delete this staff member's data? This action cannot be undone.",
+    "deleteStaffConfirm": "Delete Staff",
+    "createTitle": "Create New Staff Member",
+    "createSubtitle": "Add a new staff member to the system",
+    "fullName": "Full Name",
+    "email": "Email Address",
+    "password": "Password",
+    "phone": "Phone Number",
+    "staffType": "Staff Type",
+    "creating": "Creating..."
   },
   "financeReport": {
     "title": "Monthly Financial Report",

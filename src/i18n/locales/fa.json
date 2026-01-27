@@ -34,6 +34,8 @@
     "manageClassesDesc": "ایجاد، ویرایش و یا مشاهده صنف‌ها و تقسیم اوقات درسی.",
     "manageUsers": "مدیریت کاربران",
     "manageUsersDesc": "مدیریت حساب‌های کاربری شاگردان، استادان و والدین.",
+    "manageStaff": "مدیریت کارمندان",
+    "manageStaffDesc": "ایجاد، ویرایش یا حذف کارمندان و نقش‌های آن‌ها.",
     "announcements": "اعلانات",
     "announcementsDesc": "ایجاد و ارسال اعلانات به تمام کاربران سیستم.",
     "analyticsAndReports": "تحلیل و گزارشات",
@@ -93,6 +95,24 @@
     "score": "نمره",
     "noGradesTitle": "هیچ نمره‌ای ثبت نشده است",
     "noGradesDesc": "هنوز هیچ نمره‌ای برای امتحان انتخاب شده ثبت نشده است."
+  },
+  "adminStaff": {
+    "title": "مدیریت کارمندان",
+    "createStaff": "ایجاد کارمند جدید",
+    "allStaff": "تمام کارمندان",
+    "noStaffFound": "هیچ کارمندی یافت نشد",
+    "getStarted": "برای شروع، اولین حساب کاربری کارمند را ایجاد کنید.",
+    "deleteStaffTitle": "حذف کارمند: {{user}}",
+    "deleteStaffDesc": "آیا از حذف اطلاعات این کارمند مطمئن هستید؟ این عمل قابل بازگشت نیست.",
+    "deleteStaffConfirm": "حذف کارمند",
+    "createTitle": "ایجاد کارمند جدید",
+    "createSubtitle": "یک کارمند جدید به سیستم اضافه کنید",
+    "fullName": "نام کامل",
+    "email": "آدرس ایمیل",
+    "password": "رمز عبور",
+    "phone": "شماره تلفن",
+    "staffType": "نوع کارمند",
+    "creating": "در حال ایجاد..."
   },
   "financeReport": {
     "title": "گزارش مالی ماهانه",
