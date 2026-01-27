@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -9,6 +10,7 @@ import { ClipboardEdit, Save } from 'lucide-react';
 import toast from 'react-hot-toast';
 import PermissionDenied from '@/components/PermissionDenied';
 import BackButton from '@/components/BackButton';
+import { useTranslation } from '@/i18n';
 
 // Interfaces
 interface ClassData {
@@ -38,6 +40,7 @@ export default function ManageGradesPage() {
   const user = useUser();
   const db = useFirestore();
   const params = useParams();
+  const { t } = useTranslation();
   const classId = params.classId as string;
 
   const [classData, setClassData] = useState<ClassData | null>(null);
@@ -67,18 +70,18 @@ export default function ManageGradesPage() {
             setStudents([]);
           }
         } else {
-          toast.error("You are not authorized for this class.");
+          toast.error(t('teacherClassGrades.authError'));
           setClassData(null);
         }
       } else {
-        toast.error("Class not found.");
+        toast.error(t('teacherClassGrades.classNotFoundError'));
         setClassData(null);
       }
       setIsLoadingData(false);
     });
 
     return () => unsubscribeClass();
-  }, [user, db, classId]);
+  }, [user, db, classId, t]);
 
   // Loading existing grades for the class
   useEffect(() => {
@@ -126,7 +129,7 @@ export default function ManageGradesPage() {
     const assignmentScore = parseFloat(studentScores.assignment);
 
     if (isNaN(examScore) || isNaN(assignmentScore) || examScore < 0 || examScore > 100 || assignmentScore < 0 || assignmentScore > 100) {
-      toast.error('Scores must be numbers between 0 and 100.');
+      toast.error(t('teacherClassGrades.scoreRangeError'));
       return;
     }
 
@@ -147,10 +150,10 @@ export default function ManageGradesPage() {
         updatedAt: serverTimestamp(),
       }, { merge: true });
 
-      toast.success(`Grades saved for ${student.name}.`);
+      toast.success(t('teacherClassGrades.saveSuccess', { name: student.name }));
     } catch (e) {
       console.error(e);
-      toast.error('Failed to save grades.');
+      toast.error(t('teacherClassGrades.saveError'));
     } finally {
       setIsSaving(prev => {
         const newSet = new Set(prev);
@@ -183,14 +186,14 @@ export default function ManageGradesPage() {
         <div className="mb-8">
           <BackButton />
         </div>
-        <h1 className="text-4xl font-bold text-foreground mb-2">{classData?.name || 'Grades'}</h1>
-        <p className="text-muted-foreground mb-8">Manage student grades for this class.</p>
+        <h1 className="text-4xl font-bold text-foreground mb-2">{classData?.name || t('teacherClassGrades.title')}</h1>
+        <p className="text-muted-foreground mb-8">{t('teacherClassGrades.subtitle')}</p>
 
         {classData ? (
           <div className="p-6 bg-background/60 backdrop-blur-sm border border-secondary/30 rounded-xl shadow-lg">
             <div className="flex items-center gap-3 mb-6">
               <ClipboardEdit className="w-7 h-7 text-secondary" />
-              <h2 className="text-2xl font-semibold text-foreground">Gradebook</h2>
+              <h2 className="text-2xl font-semibold text-foreground">{t('teacherClassGrades.gradebook')}</h2>
             </div>
             
             <div className="space-y-4">
@@ -199,7 +202,7 @@ export default function ManageGradesPage() {
                   <p className="text-lg text-foreground/90 font-medium w-full md:w-1/4">{student.name}</p>
                   <div className="grid grid-cols-2 sm:grid-cols-4 items-center gap-3 w-full md:w-auto">
                     <div>
-                      <label className="text-xs text-muted-foreground">Exam</label>
+                      <label className="text-xs text-muted-foreground">{t('teacherClassGrades.examLabel')}</label>
                       <input
                         type="number"
                         min="0"
@@ -211,7 +214,7 @@ export default function ManageGradesPage() {
                       />
                     </div>
                     <div>
-                      <label className="text-xs text-muted-foreground">Assignment</label>
+                      <label className="text-xs text-muted-foreground">{t('teacherClassGrades.assignmentLabel')}</label>
                       <input
                         type="number"
                         min="0"
@@ -223,7 +226,7 @@ export default function ManageGradesPage() {
                       />
                     </div>
                     <div className="text-center">
-                      <label className="text-xs text-muted-foreground">Average</label>
+                      <label className="text-xs text-muted-foreground">{t('teacherClassGrades.averageLabel')}</label>
                       <p className="text-lg font-bold text-primary">{calculateAverage(student.id)}</p>
                     </div>
                     <button
@@ -240,13 +243,13 @@ export default function ManageGradesPage() {
                   </div>
                 </div>
               )) : (
-                <p className="text-muted-foreground text-center py-8">No students enrolled in this class.</p>
+                <p className="text-muted-foreground text-center py-8">{t('teacherClassGrades.noStudents')}</p>
               )}
             </div>
           </div>
         ) : !isLoadingData && (
           <div className="p-6 bg-background/60 backdrop-blur-sm border border-destructive/30 rounded-xl shadow-lg text-center">
-            <p className="text-destructive-foreground">Could not load class data.</p>
+            <p className="text-destructive-foreground">{t('teacherClassGrades.loadError')}</p>
           </div>
         )}
       </div>

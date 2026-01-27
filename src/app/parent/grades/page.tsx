@@ -13,6 +13,7 @@ import { format } from 'date-fns';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { vazirmatnFont } from '@/lib/vazir-font';
+import { useTranslation } from '@/i18n';
 
 
 // Interfaces
@@ -46,6 +47,7 @@ export default function ParentGradesPage() {
   const { isLoading: isLoadingAuth, isAuthorized } = useAuthGuard('parent');
   const user = useUser();
   const db = useFirestore();
+  const { t } = useTranslation();
 
   const [isLoading, setIsLoading] = useState(true);
   const [linkedStudents, setLinkedStudents] = useState<StudentData[]>([]);
@@ -190,25 +192,28 @@ export default function ParentGradesPage() {
 
     // Header
     doc.setFontSize(16);
-    doc.text('دبیرستان سلام‌کار', pageWidth / 2, y, { align: 'center' });
+    doc.text(t('pdfReport.schoolName'), pageWidth / 2, y, { align: 'center' });
     y += 8;
     doc.setFontSize(12);
-    doc.text('کارنامه تحصیلی', pageWidth / 2, y, { align: 'center' });
+    doc.text(t('pdfReport.title'), pageWidth / 2, y, { align: 'center' });
     y += 15;
     
     // Student Info
     doc.setFontSize(11);
-    doc.text(`نام دانش‌آموز: ${selectedStudent.name}`, pageWidth - margin, y, { align: 'right' });
+    doc.text(`${t('pdfReport.studentName')}: ${selectedStudent.name}`, pageWidth - margin, y, { align: 'right' });
     y += 7;
-    doc.text(`صنف: ${className}`, pageWidth - margin, y, { align: 'right' });
+    doc.text(`${t('pdfReport.className')}: ${className}`, pageWidth - margin, y, { align: 'right' });
     y += 7;
-    doc.text(`تاریخ صدور: ${format(new Date(), 'yyyy/MM/dd')}`, pageWidth - margin, y, { align: 'right' });
+    doc.text(`${t('pdfReport.issueDate')}: ${format(new Date(), 'yyyy/MM/dd')}`, pageWidth - margin, y, { align: 'right' });
     y += 12;
 
     // Grades Table
-    // The order in the array is reversed by jsPDF-autotable in RTL mode.
-    // So this is effectively: [Subject, Score, Max Score, Percentage]
-    const tableHead = [['موضوع امتحان', 'نمره', 'حداکثر نمره', 'درصد']];
+    const tableHead = [[
+        t('pdfReport.subjectHeader'),
+        t('pdfReport.scoreHeader'),
+        t('pdfReport.maxScoreHeader'),
+        t('pdfReport.percentageHeader')
+    ]];
     const tableBody = reportCardItems.map(item => [
       `${item.subject} (${item.type})`,
       item.score,
@@ -223,8 +228,8 @@ export default function ParentGradesPage() {
         theme: 'grid',
         styles: {
             font: 'Vazirmatn',
-            cellPadding: 3, // Increased padding
-            halign: 'center', // Center-align by default
+            cellPadding: 3, 
+            halign: 'center',
         },
         headStyles: {
             fillColor: [45, 55, 72],
@@ -235,7 +240,7 @@ export default function ParentGradesPage() {
             fillColor: [248, 249, 250]
         },
         columnStyles: {
-            0: { halign: 'right' }, // Right-align subject names
+            0: { halign: 'right' }, 
         }
     });
 
@@ -244,7 +249,7 @@ export default function ParentGradesPage() {
     // Summary Section
     doc.setFontSize(12);
     doc.setFont('Vazirmatn', 'bold');
-    doc.text('خلاصه عملکرد', pageWidth - margin, y, { align: 'right' });
+    doc.text(t('pdfReport.summaryTitle'), pageWidth - margin, y, { align: 'right' });
     y += 8;
 
     doc.setFontSize(11);
@@ -252,31 +257,25 @@ export default function ParentGradesPage() {
 
     const totalScore = reportCardItems.reduce((sum, item) => sum + item.score, 0);
     const totalMaxScore = reportCardItems.reduce((sum, item) => sum + item.maxScore, 0);
-    doc.text(`مجموع نمرات: ${totalScore} از ${totalMaxScore}`, pageWidth - margin, y, { align: 'right' });
+    doc.text(`${t('pdfReport.totalScore')}: ${totalScore} ${t('pdfReport.from')} ${totalMaxScore}`, pageWidth - margin, y, { align: 'right' });
     y += 7;
 
     if (totalMaxScore > 0) {
         const finalPercentage = (totalScore / totalMaxScore) * 100;
-        doc.text(`فیصدی کل: %${finalPercentage.toFixed(1)}`, pageWidth - margin, y, { align: 'right' });
+        doc.text(`${t('pdfReport.finalPercentage')}: %${finalPercentage.toFixed(1)}`, pageWidth - margin, y, { align: 'right' });
         y += 7;
 
         let resultLabel = '';
-        if (finalPercentage >= 85) {
-            resultLabel = 'عالی';
-        } else if (finalPercentage >= 70) {
-            resultLabel = 'خوب';
-        } else if (finalPercentage >= 50) {
-            resultLabel = 'قابل قبول';
-        } else {
-            resultLabel = 'نیاز به تلاش بیشتر';
-        }
+        if (finalPercentage >= 85) resultLabel = t('pdfReport.resultExcellent');
+        else if (finalPercentage >= 70) resultLabel = t('pdfReport.resultGood');
+        else if (finalPercentage >= 50) resultLabel = t('pdfReport.resultPass');
+        else resultLabel = t('pdfReport.resultFail');
         
         doc.setFont('Vazirmatn', 'bold');
-        doc.text(`نتیجه: ${resultLabel}`, pageWidth - margin, y, { align: 'right' });
+        doc.text(`${t('pdfReport.resultLabel')}: ${resultLabel}`, pageWidth - margin, y, { align: 'right' });
     }
 
-
-    doc.save(`کارنامه-${selectedStudent.name.replace(/ /g, '_')}.pdf`);
+    doc.save(`${t('pdfReport.fileName', { name: selectedStudent.name.replace(/ /g, '_') })}.pdf`);
   };
 
   if (isLoadingAuth) {
@@ -326,14 +325,14 @@ export default function ParentGradesPage() {
                         className="inline-flex items-center gap-2 px-4 py-2 font-semibold text-primary-foreground bg-primary rounded-lg shadow-md hover:opacity-90 active:scale-95 transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <Download size={18} />
-                        <span>دانلود کارنامه (PDF)</span>
+                        <span>{t('parentGrades.downloadButton')}</span>
                     </button>
                 </div>
-                <h1 className="text-4xl font-bold text-foreground mb-2">Report Card</h1>
+                <h1 className="text-4xl font-bold text-foreground mb-2">{t('parentGrades.title')}</h1>
                 {linkedStudents.length > 0 && selectedStudent && (
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
                         <p className="text-muted-foreground text-lg">
-                            Showing grades for <span className="font-semibold text-primary">{selectedStudent.name}</span>
+                            {t('parentGrades.showingGradesFor')} <span className="font-semibold text-primary">{selectedStudent.name}</span>
                         </p>
                         {linkedStudents.length > 1 && (
                             <select
@@ -355,13 +354,13 @@ export default function ParentGradesPage() {
                              <div className="mb-8 p-6 bg-primary/10 border border-primary/30 rounded-xl">
                                 <p className="text-sm text-primary flex items-center gap-2">
                                     <TrendingUp size={16}/>
-                                    Overall Performance
+                                    {t('parentGrades.overallPerformance')}
                                 </p>
                                 <p className={`text-4xl font-bold mt-1 ${getPercentageColor(overallAverage)}`}>
                                     {overallAverage.toFixed(1)}%
                                 </p>
                                 <p className="text-lg font-semibold text-primary/90">
-                                   Average Score
+                                   {t('parentGrades.averageScore')}
                                 </p>
                             </div>
                         )}
@@ -369,10 +368,10 @@ export default function ParentGradesPage() {
                         <div className="overflow-x-auto">
                             <div className="w-full text-left">
                                 <div className="border-b border-muted/30 grid grid-cols-4 gap-4 p-3">
-                                    <h3 className="text-sm font-semibold text-muted-foreground">Exam Subject</h3>
-                                    <h3 className="text-sm font-semibold text-muted-foreground">Date</h3>
-                                    <h3 className="text-sm font-semibold text-muted-foreground text-center">Score</h3>
-                                    <h3 className="text-sm font-semibold text-muted-foreground text-right">Percentage</h3>
+                                    <h3 className="text-sm font-semibold text-muted-foreground">{t('parentGrades.examSubject')}</h3>
+                                    <h3 className="text-sm font-semibold text-muted-foreground">{t('parentGrades.date')}</h3>
+                                    <h3 className="text-sm font-semibold text-muted-foreground text-center">{t('parentGrades.score')}</h3>
+                                    <h3 className="text-sm font-semibold text-muted-foreground text-right">{t('parentGrades.percentage')}</h3>
                                 </div>
                                 <div className='space-y-2 mt-2'>
                                 {reportCardItems.length > 0 ? (
@@ -387,8 +386,8 @@ export default function ParentGradesPage() {
                                 ) : (
                                     <div className="flex flex-col items-center justify-center h-48 text-center">
                                         <ClipboardList className="h-12 w-12 text-muted-foreground" />
-                                        <h3 className="mt-4 text-md font-semibold text-foreground">No Grades Available</h3>
-                                        <p className="mt-1 text-sm text-muted-foreground">No exam grades have been posted for this student yet.</p>
+                                        <h3 className="mt-4 text-md font-semibold text-foreground">{t('parentGrades.noGradesTitle')}</h3>
+                                        <p className="mt-1 text-sm text-muted-foreground">{t('parentGrades.noGradesDesc')}</p>
                                     </div>
                                 )}
                                 </div>
@@ -398,9 +397,9 @@ export default function ParentGradesPage() {
                 ) : (
                     <div className="mt-12 text-center p-12 bg-background/60 backdrop-blur-sm border border-dashed border-primary/30 rounded-xl shadow-lg">
                         <Award className="mx-auto h-16 w-16 text-primary" />
-                        <h2 className="mt-6 text-2xl font-bold text-foreground">No Student Linked</h2>
+                        <h2 className="mt-6 text-2xl font-bold text-foreground">{t('parentGrades.noStudentLinkedTitle')}</h2>
                         <p className="mt-2 text-md text-muted-foreground max-w-prose mx-auto">
-                            An administrator needs to link your account to a student's profile before you can view their report card.
+                            {t('parentGrades.noStudentLinkedDesc')}
                         </p>
                     </div>
                 )}

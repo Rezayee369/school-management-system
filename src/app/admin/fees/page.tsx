@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -8,6 +9,7 @@ import { DollarSign, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import PermissionDenied from '@/components/PermissionDenied';
 import BackButton from '@/components/BackButton';
+import { useTranslation } from '@/i18n';
 
 interface Student {
   id: string;
@@ -30,6 +32,7 @@ const getMonthOptions = () => {
 export default function AdminFeesPage() {
   const { isLoading: isLoadingAuth, isAuthorized, userRole } = useAuthGuard('admin');
   const db = useFirestore();
+  const { t } = useTranslation();
 
   const [students, setStudents] = useState<Student[]>([]);
   const [isLoadingStudents, setIsLoadingStudents] = useState(true);
@@ -57,7 +60,7 @@ export default function AdminFeesPage() {
           setSelectedStudentId(studentsData[0].id);
         }
       } catch (error) {
-        toast.error('Failed to load students.');
+        toast.error(t('adminFees.loadStudentsError'));
         console.error(error);
       } finally {
         setIsLoadingStudents(false);
@@ -65,18 +68,18 @@ export default function AdminFeesPage() {
     };
 
     fetchStudents();
-  }, [isAuthorized, db]);
+  }, [isAuthorized, db, t]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedStudentId || !month || !amount) {
-      toast.error('Student, month, and amount are required.');
+      toast.error(t('adminFees.formRequiredError'));
       return;
     }
     
     const feeAmount = parseFloat(amount);
     if (isNaN(feeAmount) || feeAmount < 0) {
-      toast.error('Please enter a valid, non-negative fee amount.');
+      toast.error(t('adminFees.formAmountError'));
       return;
     }
 
@@ -87,7 +90,7 @@ export default function AdminFeesPage() {
     try {
       const docSnap = await getDoc(feeRef);
       if (docSnap.exists()) {
-        toast.error('A fee record for this student and month already exists.');
+        toast.error(t('adminFees.recordExistsError'));
         setIsSaving(false);
         return;
       }
@@ -105,14 +108,14 @@ export default function AdminFeesPage() {
         updatedAt: serverTimestamp(),
       });
 
-      toast.success('Fee record saved successfully!');
+      toast.success(t('adminFees.saveSuccess'));
       // Reset form
       setAmount('');
       setDiscount('');
       setStatus('unpaid');
       
     } catch (error) {
-      toast.error('Failed to save fee record.');
+      toast.error(t('adminFees.saveError'));
       console.error(error);
     } finally {
       setIsSaving(false);
@@ -133,12 +136,12 @@ export default function AdminFeesPage() {
         <div className="flex justify-between items-center mb-8">
           <BackButton />
         </div>
-        <h1 className="text-4xl font-bold text-foreground mb-8">Manage Student Fees</h1>
+        <h1 className="text-4xl font-bold text-foreground mb-8">{t('adminFees.title')}</h1>
         
         <form onSubmit={handleSubmit} className="p-6 bg-background/60 backdrop-blur-sm border border-secondary/30 rounded-xl shadow-lg space-y-6">
           
           <div>
-            <label htmlFor="student-select" className="block text-sm font-medium text-muted-foreground mb-2">Student</label>
+            <label htmlFor="student-select" className="block text-sm font-medium text-muted-foreground mb-2">{t('adminFees.studentLabel')}</label>
             <select
               id="student-select"
               value={selectedStudentId}
@@ -147,18 +150,18 @@ export default function AdminFeesPage() {
               className="w-full appearance-none px-4 py-3 bg-background/50 text-foreground border border-input rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
             >
               {isLoadingStudents ? (
-                <option>Loading students...</option>
+                <option>{t('adminFees.loadingStudents')}</option>
               ) : students.length > 0 ? (
                 students.map(s => <option key={s.id} value={s.id}>{s.fullName}</option>)
               ) : (
-                <option>No students found</option>
+                <option>{t('adminFees.noStudents')}</option>
               )}
             </select>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div>
-              <label htmlFor="month-select" className="block text-sm font-medium text-muted-foreground mb-2">Month</label>
+              <label htmlFor="month-select" className="block text-sm font-medium text-muted-foreground mb-2">{t('adminFees.monthLabel')}</label>
               <select
                 id="month-select"
                 value={month}
@@ -169,13 +172,13 @@ export default function AdminFeesPage() {
               </select>
             </div>
             <div>
-              <label htmlFor="amount" className="block text-sm font-medium text-muted-foreground mb-2">Fee Amount</label>
+              <label htmlFor="amount" className="block text-sm font-medium text-muted-foreground mb-2">{t('adminFees.amountLabel')}</label>
               <input
                 id="amount"
                 type="number"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
-                placeholder="e.g., 500"
+                placeholder={t('adminFees.amountPlaceholder')}
                 className="w-full px-4 py-3 bg-background/50 text-foreground placeholder-muted-foreground/50 border border-input rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
                 required
               />
@@ -184,21 +187,21 @@ export default function AdminFeesPage() {
           
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 items-end">
             <div>
-              <label htmlFor="discount" className="block text-sm font-medium text-muted-foreground mb-2">Discount (Optional)</label>
+              <label htmlFor="discount" className="block text-sm font-medium text-muted-foreground mb-2">{t('adminFees.discountLabel')}</label>
               <input
                 id="discount"
                 type="number"
                 value={discount}
                 onChange={(e) => setDiscount(e.target.value)}
-                placeholder="e.g., 50"
+                placeholder={t('adminFees.discountPlaceholder')}
                 className="w-full px-4 py-3 bg-background/50 text-foreground placeholder-muted-foreground/50 border border-input rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-muted-foreground mb-2">Payment Status</label>
+              <label className="block text-sm font-medium text-muted-foreground mb-2">{t('adminFees.statusLabel')}</label>
               <div className="flex items-center justify-around h-[46px] p-1 bg-background/50 border border-input rounded-md">
-                 <button type="button" onClick={() => setStatus('unpaid')} className={`w-1/2 py-1.5 text-sm font-semibold rounded ${status === 'unpaid' ? 'bg-destructive/80 text-white shadow' : 'text-muted-foreground hover:bg-muted/30'}`}>Unpaid</button>
-                 <button type="button" onClick={() => setStatus('paid')} className={`w-1/2 py-1.5 text-sm font-semibold rounded ${status === 'paid' ? 'bg-green-600 text-white shadow' : 'text-muted-foreground hover:bg-muted/30'}`}>Paid</button>
+                 <button type="button" onClick={() => setStatus('unpaid')} className={`w-1/2 py-1.5 text-sm font-semibold rounded ${status === 'unpaid' ? 'bg-destructive/80 text-white shadow' : 'text-muted-foreground hover:bg-muted/30'}`}>{t('adminFees.statusUnpaid')}</button>
+                 <button type="button" onClick={() => setStatus('paid')} className={`w-1/2 py-1.5 text-sm font-semibold rounded ${status === 'paid' ? 'bg-green-600 text-white shadow' : 'text-muted-foreground hover:bg-muted/30'}`}>{t('adminFees.statusPaid')}</button>
               </div>
             </div>
           </div>
@@ -210,7 +213,7 @@ export default function AdminFeesPage() {
               className="w-full flex items-center justify-center gap-3 py-3 rounded-lg bg-gradient-to-r from-secondary to-primary text-primary-foreground font-bold tracking-wider uppercase hover:shadow-lg hover:shadow-primary/30 transition-all duration-300 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <DollarSign className="w-5 h-5" />}
-              <span>Save Fee Record</span>
+              <span>{isSaving ? t('adminFees.saving') : t('adminFees.saveButton')}</span>
             </button>
           </div>
         </form>

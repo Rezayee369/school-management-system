@@ -205,9 +205,9 @@ export default function AdminDashboard() {
                       <div className="p-3 bg-secondary/10 rounded-lg transition-all duration-300 group-hover:bg-secondary/20 group-hover:shadow-[0_0_15px_hsl(var(--secondary))]">
                         <Megaphone className="w-6 h-6 text-secondary transition-transform duration-300 group-hover:scale-110" />
                       </div>
-                      <h2 className="text-xl font-semibold text-foreground">Notifications</h2>
+                      <h2 className="text-xl font-semibold text-foreground">{t('adminDashboard.notificationsTitle')}</h2>
                     </div>
-                    <p className="text-muted-foreground">Send notifications to users and external services.</p>
+                    <p className="text-muted-foreground">{t('adminDashboard.notificationsDesc')}</p>
                   </div>
                 </Link>
 
@@ -217,9 +217,9 @@ export default function AdminDashboard() {
                       <div className="p-3 bg-primary/10 rounded-lg transition-all duration-300 group-hover:bg-primary/20 group-hover:shadow-[0_0_15px_hsl(var(--primary))]">
                         <CreditCard className="w-6 h-6 text-primary" />
                       </div>
-                      <h2 className="text-xl font-semibold text-foreground">Manage Fees</h2>
+                      <h2 className="text-xl font-semibold text-foreground">{t('adminDashboard.manageFeesTitle')}</h2>
                     </div>
-                    <p className="text-muted-foreground">Record and track student fee payments.</p>
+                    <p className="text-muted-foreground">{t('adminDashboard.manageFeesDesc')}</p>
                   </div>
                 </Link>
 
@@ -229,9 +229,9 @@ export default function AdminDashboard() {
                       <div className="p-3 bg-destructive/10 rounded-lg transition-all duration-300 group-hover:bg-destructive/20 group-hover:shadow-[0_0_15px_hsl(var(--destructive))]">
                         <ListX className="w-6 h-6 text-destructive" />
                       </div>
-                      <h2 className="text-xl font-semibold text-foreground">Unpaid Fees</h2>
+                      <h2 className="text-xl font-semibold text-foreground">{t('adminDashboard.unpaidFeesTitle')}</h2>
                     </div>
-                    <p className="text-muted-foreground">View a list of all outstanding student fee payments.</p>
+                    <p className="text-muted-foreground">{t('adminDashboard.unpaidFeesDesc')}</p>
                   </div>
                 </Link>
 

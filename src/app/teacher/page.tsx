@@ -9,6 +9,7 @@ import { useFirestore, useUser } from '@/firebase';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { BookOpen, Users, ClipboardEdit, Calendar, FilePenLine } from 'lucide-react';
 import PermissionDenied from '@/components/PermissionDenied';
+import { useTranslation } from '@/i18n';
 
 interface ClassData {
   id: string;
@@ -20,6 +21,7 @@ export default function TeacherDashboard() {
   const { isLoading: isLoadingAuth, isAuthorized, userRole } = useAuthGuard('teacher');
   const user = useUser();
   const db = useFirestore();
+  const { t } = useTranslation();
 
   const [classes, setClasses] = useState<ClassData[]>([]);
   const [isLoadingClasses, setIsLoadingClasses] = useState(true);
@@ -79,16 +81,16 @@ export default function TeacherDashboard() {
         
         <div className="mt-12">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-semibold text-foreground">My Classes</h2>
+              <h2 className="text-2xl font-semibold text-foreground">{t('teacherDashboard.myClasses')}</h2>
               <div className="flex items-center gap-2">
                   <Link href="/teacher/attendance">
                       <button className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-primary-foreground bg-primary rounded-lg shadow-md hover:bg-primary/90 transition-colors">
-                          <Calendar size={16} /> Mark Attendance
+                          <Calendar size={16} /> {t('teacherDashboard.markAttendance')}
                       </button>
                   </Link>
                   <Link href="/teacher/exams">
                       <button className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-secondary-foreground bg-secondary rounded-lg shadow-md hover:bg-secondary/90 transition-colors">
-                          <FilePenLine size={16} /> Manage Exams
+                          <FilePenLine size={16} /> {t('teacherDashboard.manageExams')}
                       </button>
                   </Link>
               </div>
@@ -106,14 +108,14 @@ export default function TeacherDashboard() {
                                         <p className="text-lg text-foreground/90 font-semibold">{c.name}</p>
                                         <div className="flex items-center gap-2 text-muted-foreground text-sm">
                                             <Users className="w-4 h-4" />
-                                            <span>{c.studentIds?.length || 0} Students</span>
+                                            <span>{t('teacherDashboard.students', { count: String(c.studentIds?.length || 0) })}</span>
                                         </div>
                                     </div>
                                 </div>
                                 <div className="flex items-center justify-end gap-2">
                                     <Link href={`/teacher/classes/${c.id}/grades`}>
                                         <button className="flex items-center gap-2 px-3 py-1.5 text-sm font-semibold text-secondary border border-secondary/50 rounded-md hover:bg-secondary/10 transition-colors">
-                                            <ClipboardEdit size={16} /> Grades
+                                            <ClipboardEdit size={16} /> {t('teacherDashboard.grades')}
                                         </button>
                                     </Link>
                                 </div>
@@ -121,7 +123,7 @@ export default function TeacherDashboard() {
                         ))}
                     </div>
                 ) : (
-                    <p className="text-muted-foreground text-center py-4">You are not assigned to any classes yet.</p>
+                    <p className="text-muted-foreground text-center py-4">{t('teacherDashboard.noClasses')}</p>
                 )}
             </div>
         </div>

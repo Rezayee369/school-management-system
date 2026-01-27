@@ -10,6 +10,7 @@ import PermissionDenied from '@/components/PermissionDenied';
 import { SkeletonListRow } from '@/components/Skeleton';
 import { Skeleton } from '@/components/Skeleton';
 import BackButton from '@/components/BackButton';
+import { useTranslation } from '@/i18n';
 
 interface FeeData {
   id: string;
@@ -51,6 +52,7 @@ const getMonthOptions = () => {
 export default function UnpaidFeesPage() {
   const { isLoading: isLoadingAuth, isAuthorized, userRole } = useAuthGuard('admin');
   const db = useFirestore();
+  const { t } = useTranslation();
 
   const [reportItems, setReportItems] = useState<UnpaidFeeReportItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -131,14 +133,14 @@ export default function UnpaidFeesPage() {
         <div className="flex justify-between items-center mb-8">
           <BackButton />
         </div>
-        <h1 className="text-4xl font-bold text-foreground mb-8">Unpaid Fees Report</h1>
+        <h1 className="text-4xl font-bold text-foreground mb-8">{t('adminUnpaidFees.title')}</h1>
         
         <div className="p-6 bg-background/60 backdrop-blur-sm border border-secondary/30 rounded-xl shadow-lg">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                 <div className="p-6 bg-destructive/10 border border-destructive/30 rounded-xl">
                     <p className="text-sm text-destructive-foreground/80 flex items-center gap-2">
                         <TrendingDown size={16}/>
-                        Total Unpaid Amount
+                        {t('adminUnpaidFees.totalUnpaid')}
                     </p>
                      {isLoading ? (
                         <Skeleton className="h-10 w-48 mt-2"/>
@@ -149,14 +151,14 @@ export default function UnpaidFeesPage() {
                      )}
                 </div>
                 <div>
-                    <label htmlFor="month-filter" className="text-sm font-medium text-muted-foreground flex items-center gap-2 mb-2"><Filter size={14}/> Filter by Month</label>
+                    <label htmlFor="month-filter" className="text-sm font-medium text-muted-foreground flex items-center gap-2 mb-2"><Filter size={14}/> {t('adminUnpaidFees.filterByMonth')}</label>
                     <select
                         id="month-filter"
                         value={selectedMonth}
                         onChange={(e) => setSelectedMonth(e.target.value)}
                         className="w-full appearance-none px-4 py-3 bg-background/50 text-foreground border border-input rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
                     >
-                        <option value="all">All Months</option>
+                        <option value="all">{t('adminUnpaidFees.allMonths')}</option>
                         {monthOptions.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
                     </select>
                 </div>
@@ -174,12 +176,12 @@ export default function UnpaidFeesPage() {
                       <table className="w-full text-left">
                           <thead className="border-b border-muted/30">
                               <tr>
-                                  <th className="p-3 text-sm font-semibold text-muted-foreground">Student Name</th>
-                                  <th className="p-3 text-sm font-semibold text-muted-foreground">Class</th>
-                                  <th className="p-3 text-sm font-semibold text-muted-foreground">Fee Month</th>
-                                  <th className="p-3 text-sm font-semibold text-muted-foreground text-right">Fee Amount</th>
-                                  <th className="p-3 text-sm font-semibold text-muted-foreground text-right">Discount</th>
-                                  <th className="p-3 text-sm font-semibold text-muted-foreground text-right">Amount Due</th>
+                                  <th className="p-3 text-sm font-semibold text-muted-foreground">{t('adminUnpaidFees.studentName')}</th>
+                                  <th className="p-3 text-sm font-semibold text-muted-foreground">{t('adminUnpaidFees.class')}</th>
+                                  <th className="p-3 text-sm font-semibold text-muted-foreground">{t('adminUnpaidFees.feeMonth')}</th>
+                                  <th className="p-3 text-sm font-semibold text-muted-foreground text-right">{t('adminUnpaidFees.feeAmount')}</th>
+                                  <th className="p-3 text-sm font-semibold text-muted-foreground text-right">{t('adminUnpaidFees.discount')}</th>
+                                  <th className="p-3 text-sm font-semibold text-muted-foreground text-right">{t('adminUnpaidFees.amountDue')}</th>
                               </tr>
                           </thead>
                           <tbody>
@@ -204,9 +206,9 @@ export default function UnpaidFeesPage() {
               ) : (
                 <div className="flex flex-col items-center justify-center h-48 text-center">
                     <ListX className="h-12 w-12 text-muted-foreground" />
-                    <h3 className="mt-4 text-md font-semibold text-foreground">No Unpaid Fees Found</h3>
+                    <h3 className="mt-4 text-md font-semibold text-foreground">{t('adminUnpaidFees.noUnpaidFees')}</h3>
                     <p className="mt-1 text-sm text-muted-foreground">
-                      {selectedMonth === 'all' ? 'There are no outstanding fees.' : `No unpaid fees were found for the selected month.`}
+                      {selectedMonth === 'all' ? t('adminUnpaidFees.noOutstanding') : t('adminUnpaidFees.noUnpaidForMonth')}
                     </p>
                 </div>
               )}

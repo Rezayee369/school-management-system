@@ -11,6 +11,7 @@ import toast from 'react-hot-toast';
 import PermissionDenied from '@/components/PermissionDenied';
 import BackButton from '@/components/BackButton';
 import { Skeleton } from '@/components/Skeleton';
+import { useTranslation } from '@/i18n';
 
 // Interfaces
 interface ExamData {
@@ -36,6 +37,7 @@ export default function GradeEntryPage() {
   const db = useFirestore();
   const params = useParams();
   const router = useRouter();
+  const { t } = useTranslation();
   const examId = params.examId as string;
 
   const [examData, setExamData] = useState<ExamData | null>(null);
@@ -56,7 +58,7 @@ export default function GradeEntryPage() {
         
         // Authorization check
         if (exam.teacherId !== user.uid) {
-            toast.error("You are not authorized to manage grades for this exam.");
+            toast.error(t('teacherExamGrades.authError'));
             router.push('/teacher');
             return;
         }
@@ -76,14 +78,14 @@ export default function GradeEntryPage() {
         }
         setIsLoading(false);
       } else {
-        toast.error("Exam not found.");
+        toast.error(t('teacherExamGrades.examNotFound'));
         router.push('/teacher/exams');
         setIsLoading(false);
       }
     });
 
     return () => unsubscribeExam();
-  }, [user, db, examId, router]);
+  }, [user, db, examId, router, t]);
   
   // Fetch existing grades for this exam
   useEffect(() => {
@@ -111,7 +113,7 @@ export default function GradeEntryPage() {
     
     // Check if already submitted
     if (submittedGrades.has(student.id)) {
-        toast.error('Grade has already been submitted and cannot be changed.');
+        toast.error(t('teacherExamGrades.alreadySubmittedError'));
         return;
     }
     
@@ -119,7 +121,7 @@ export default function GradeEntryPage() {
     const score = parseFloat(scoreStr);
 
     if (scoreStr === '' || isNaN(score) || score < 0 || score > examData.maxScore) {
-      toast.error(`Score must be a number between 0 and ${examData.maxScore}.`);
+      toast.error(t('teacherExamGrades.scoreRangeError', { maxScore: String(examData.maxScore) }));
       return;
     }
 
@@ -140,10 +142,10 @@ export default function GradeEntryPage() {
         submittedAt: serverTimestamp(),
       });
 
-      toast.success(`Grade saved for ${student.fullName}.`);
+      toast.success(t('teacherExamGrades.saveSuccess', { name: student.fullName }));
     } catch (e) {
       console.error(e);
-      toast.error('Failed to save grade. It might already exist.');
+      toast.error(t('teacherExamGrades.saveError'));
     } finally {
       setIsSaving(prev => {
         const newSet = new Set(prev);
@@ -184,16 +186,16 @@ export default function GradeEntryPage() {
         <div className="mb-8">
           <BackButton />
         </div>
-        <h1 className="text-4xl font-bold text-foreground mb-2">Grade Entry</h1>
+        <h1 className="text-4xl font-bold text-foreground mb-2">{t('teacherExamGrades.title')}</h1>
         <p className="text-muted-foreground mb-8">
-            Enter scores for the <span className="font-semibold text-secondary">{examData?.subject}</span> exam. Max score is {examData?.maxScore}.
+            {t('teacherExamGrades.subtitle', { subject: examData?.subject || '', maxScore: String(examData?.maxScore) })}
         </p>
 
         {examData ? (
           <div className="p-6 bg-background/60 backdrop-blur-sm border border-secondary/30 rounded-xl shadow-lg">
             <div className="flex items-center gap-3 mb-6">
               <ClipboardEdit className="w-7 h-7 text-secondary" />
-              <h2 className="text-2xl font-semibold text-foreground">Student Scores</h2>
+              <h2 className="text-2xl font-semibold text-foreground">{t('teacherExamGrades.studentScores')}</h2>
             </div>
             
             <div className="space-y-4">
@@ -219,7 +221,7 @@ export default function GradeEntryPage() {
                                 onClick={() => handleSaveGrade(student)}
                                 disabled={isSaving.has(student.id) || isSubmitted}
                                 className="p-2.5 text-primary-foreground bg-primary rounded-md transition-colors active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-primary/90"
-                                aria-label={`Save grade for ${student.fullName}`}
+                                aria-label={t('teacherExamGrades.saveGradeFor', { name: student.fullName })}
                             >
                                 {isSaving.has(student.id) ? (
                                     <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
@@ -233,15 +235,15 @@ export default function GradeEntryPage() {
               }) : (
                 <div className="flex flex-col items-center justify-center h-40 text-center">
                     <AlertCircle className="h-10 w-10 text-muted-foreground" />
-                    <h3 className="mt-4 text-md font-semibold text-foreground">No Students Found</h3>
-                    <p className="mt-1 text-sm text-muted-foreground">There are no students enrolled in this class to grade.</p>
+                    <h3 className="mt-4 text-md font-semibold text-foreground">{t('teacherExamGrades.noStudentsTitle')}</h3>
+                    <p className="mt-1 text-sm text-muted-foreground">{t('teacherExamGrades.noStudentsDesc')}</p>
                 </div>
               )}
             </div>
           </div>
         ) : !isLoading && (
           <div className="p-6 bg-background/60 backdrop-blur-sm border border-destructive/30 rounded-xl shadow-lg text-center">
-            <p className="text-destructive-foreground">Could not load exam data.</p>
+            <p className="text-destructive-foreground">{t('teacherExamGrades.loadError')}</p>
           </div>
         )}
       </div>

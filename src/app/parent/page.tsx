@@ -11,6 +11,7 @@ import { collection, doc, onSnapshot, query, where, documentId, getDocs, orderBy
 import { BookOpen, Users, Percent, CalendarDays, Wallet, CalendarClock, Award, Megaphone, MessageSquare } from 'lucide-react';
 import { format, parse, formatDistanceToNow } from 'date-fns';
 import toast from 'react-hot-toast';
+import { useTranslation } from '@/i18n';
 
 interface StudentData {
   id: string;
@@ -60,6 +61,7 @@ export default function ParentDashboard() {
   const { isLoading: isLoadingAuth, isAuthorized, userRole } = useAuthGuard('parent');
   const user = useUser();
   const db = useFirestore();
+  const { t } = useTranslation();
 
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [linkedStudents, setLinkedStudents] = useState<StudentData[]>([]);
@@ -184,7 +186,7 @@ export default function ParentDashboard() {
       }, { merge: true });
     } catch (error) {
       console.error("Failed to mark notification as read:", error);
-      toast.error("Could not update read status.");
+      toast.error(t('parentDashboard.readStatusError'));
     }
   };
   
@@ -263,7 +265,7 @@ export default function ParentDashboard() {
            <>
              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
                 <h2 className="text-2xl font-semibold text-foreground">
-                    Showing data for: <span className="text-primary">{selectedStudent.name}</span>
+                    {t('parentDashboard.showingDataFor')}: <span className="text-primary">{selectedStudent.name}</span>
                 </h2>
                 {linkedStudents.length > 1 && (
                     <select
@@ -280,21 +282,21 @@ export default function ParentDashboard() {
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-12">
               <StatCard 
-                title="Attendance Today"
-                value={attendanceToday ? attendanceToday.status.charAt(0).toUpperCase() + attendanceToday.status.slice(1) : 'N/A'}
-                subtext={attendanceToday ? format(new Date(), 'MMMM d, yyyy') : 'Not yet marked'}
+                title={t('parentDashboard.attendanceToday')}
+                value={attendanceToday ? t(`parentDashboard.status_${attendanceToday.status}`) : 'N/A'}
+                subtext={attendanceToday ? format(new Date(), 'MMMM d, yyyy') : t('parentDashboard.notMarked')}
                 icon={<CalendarDays className={`w-6 h-6 ${attendanceToday?.status === 'present' ? 'text-green-400' : attendanceToday?.status === 'absent' ? 'text-red-400' : 'text-yellow-400'}`} />}
               />
               <StatCard 
-                title="Monthly Attendance"
+                title={t('parentDashboard.monthlyAttendance')}
                 value={monthlyAttendancePercentage !== null ? `${monthlyAttendancePercentage.toFixed(0)}%` : 'N/A'}
-                subtext={monthlyAttendance.total > 0 ? `${monthlyAttendance.present} / ${monthlyAttendance.total} days` : 'No records this month'}
+                subtext={monthlyAttendance.total > 0 ? t('parentDashboard.daysSummary', { present: String(monthlyAttendance.present), total: String(monthlyAttendance.total) }) : t('parentDashboard.noRecords')}
                 icon={<Percent className="w-6 h-6 text-secondary" />}
               />
               <StatCard 
-                title="Current Month's Fee"
-                value={feeStatus ? feeStatus.status.charAt(0).toUpperCase() + feeStatus.status.slice(1) : 'N/A'}
-                subtext={feeStatus?.status === 'unpaid' ? `Due: $${(feeStatus.amount - (feeStatus.discount || 0)).toFixed(2)}` : (feeStatus ? 'Cleared' : 'No fees posted')}
+                title={t('parentDashboard.currentMonthFee')}
+                value={feeStatus ? t(`parentDashboard.fee_status_${feeStatus.status}`) : 'N/A'}
+                subtext={feeStatus?.status === 'unpaid' ? `${t('parentDashboard.due')}: $${(feeStatus.amount - (feeStatus.discount || 0)).toFixed(2)}` : (feeStatus ? t('parentDashboard.cleared') : t('parentDashboard.noFeesPosted'))}
                 icon={<Wallet className={`w-6 h-6 ${feeStatus?.status === 'paid' ? 'text-green-400' : feeStatus?.status === 'unpaid' ? 'text-red-400' : 'text-muted-foreground' }`} />}
               />
             </div>
@@ -310,7 +312,7 @@ export default function ParentDashboard() {
                               </span>
                           )}
                       </div>
-                      <h3 className="text-xl font-semibold text-foreground">Notifications</h3>
+                      <h3 className="text-xl font-semibold text-foreground">{t('parentDashboard.notifications')}</h3>
                   </div>
                   <div className="space-y-4 max-h-[40vh] overflow-y-auto pr-2">
                       {notifications.length > 0 ? notifications.map(notif => (
@@ -334,7 +336,7 @@ export default function ParentDashboard() {
                       )) : (
                           <div className="flex flex-col items-center justify-center h-24 text-center">
                             <MessageSquare className="h-8 w-8 text-muted-foreground" />
-                            <p className="mt-2 text-sm text-muted-foreground">No new notifications.</p>
+                            <p className="mt-2 text-sm text-muted-foreground">{t('parentDashboard.noNotifications')}</p>
                           </div>
                       )}
                   </div>
@@ -346,14 +348,14 @@ export default function ParentDashboard() {
                     <Link href="/parent/grades" className="block group">
                         <div className="flex flex-col justify-center text-center h-full p-6 bg-background/60 backdrop-blur-sm rounded-xl shadow-lg transition-all duration-300 border border-border hover:border-primary hover:shadow-xl hover:shadow-primary/20 hover:-translate-y-1 hover:scale-[1.02]">
                             <Award className="w-8 h-8 text-primary mx-auto mb-3 transition-transform duration-300 group-hover:scale-110" />
-                            <h3 className="text-xl font-semibold text-foreground group-hover:text-primary transition-colors">View Report Card</h3>
-                            <p className="text-sm text-muted-foreground mt-1">See detailed exam scores and performance.</p>
+                            <h3 className="text-xl font-semibold text-foreground group-hover:text-primary transition-colors">{t('parentDashboard.viewReportCard')}</h3>
+                            <p className="text-sm text-muted-foreground mt-1">{t('parentDashboard.viewReportCardDesc')}</p>
                         </div>
                     </Link>
                     <div className="p-6 bg-background/60 backdrop-blur-sm border border-border rounded-xl shadow-lg">
                         <div className="flex items-center gap-3 mb-4">
                             <Wallet className="w-6 h-6 text-secondary"/>
-                            <h3 className="text-xl font-semibold text-foreground">Fee History</h3>
+                            <h3 className="text-xl font-semibold text-foreground">{t('parentDashboard.feeHistory')}</h3>
                         </div>
                         <div className="space-y-2 max-h-[40vh] overflow-y-auto pr-2">
                             {feeHistory.length > 0 ? feeHistory.map((fee) => {
@@ -362,23 +364,23 @@ export default function ParentDashboard() {
                                     <div key={fee.id} className="grid grid-cols-3 items-center p-3 bg-background/30 border-b border-muted/20">
                                         <div>
                                             <p className="font-medium text-foreground/90">{format(parse(fee.month, 'yyyy-MM', new Date()), 'MMMM yyyy')}</p>
-                                            <p className="text-xs text-muted-foreground">Due: ${amountDue.toFixed(2)}</p>
+                                            <p className="text-xs text-muted-foreground">{t('parentDashboard.due')}: ${amountDue.toFixed(2)}</p>
                                         </div>
                                         <div className="text-center text-muted-foreground">
-                                            <p className="text-xs">Fee: ${fee.amount.toFixed(2)}</p>
-                                            {fee.discount && fee.discount > 0 ? <p className="text-xs">Disc: ${fee.discount.toFixed(2)}</p> : null}
+                                            <p className="text-xs">{t('parentDashboard.fee')}: ${fee.amount.toFixed(2)}</p>
+                                            {fee.discount && fee.discount > 0 ? <p className="text-xs">{t('parentDashboard.discount')}: ${fee.discount.toFixed(2)}</p> : null}
                                         </div>
                                         <div className="text-right">
                                             <span className={`px-3 py-1 text-xs font-bold uppercase rounded-full border ${
                                                 fee.status === 'paid' ? 'bg-green-500/20 text-green-300 border-green-500/50' : 'bg-red-500/20 text-red-300 border-red-500/50'
                                             }`}>
-                                                {fee.status}
+                                                {t(`parentDashboard.fee_status_${fee.status}`)}
                                             </span>
                                         </div>
                                     </div>
                                 )
                             }) : (
-                                <p className="text-muted-foreground text-center py-4">No fee history found.</p>
+                                <p className="text-muted-foreground text-center py-4">{t('parentDashboard.noFeeHistory')}</p>
                             )}
                         </div>
                     </div>
@@ -386,7 +388,7 @@ export default function ParentDashboard() {
                 
                 <div className="grid grid-cols-1 gap-8 content-start">
                     <div className="p-6 bg-background/60 backdrop-blur-sm border border-border rounded-xl shadow-lg">
-                        <h3 className="text-xl font-semibold text-foreground mb-4">Enrolled Classes</h3>
+                        <h3 className="text-xl font-semibold text-foreground mb-4">{t('parentDashboard.enrolledClasses')}</h3>
                         {classes.length > 0 ? (
                             <div className="space-y-4">
                                 {classes.map(c => (
@@ -394,20 +396,20 @@ export default function ParentDashboard() {
                                         <BookOpen className="w-5 h-5 text-secondary flex-shrink-0" />
                                         <div>
                                             <p className="text-md text-foreground/90 font-semibold">{c.name}</p>
-                                            <p className="text-xs text-muted-foreground">Teacher: {c.teacherName}</p>
+                                            <p className="text-xs text-muted-foreground">{t('parentDashboard.teacher')}: {c.teacherName}</p>
                                         </div>
                                     </div>
                                 ))}
                             </div>
                         ) : (
-                            <p className="text-muted-foreground text-center py-4">Student not enrolled in any classes.</p>
+                            <p className="text-muted-foreground text-center py-4">{t('parentDashboard.notEnrolled')}</p>
                         )}
                     </div>
                     <div className="p-6 bg-background/60 backdrop-blur-sm border border-border rounded-xl shadow-lg">
                         <div className="flex justify-between items-center gap-3 mb-4">
                             <div className='flex items-center gap-3'>
                                 <CalendarClock className="w-6 h-6 text-secondary"/>
-                                <h3 className="text-xl font-semibold text-foreground">Attendance History</h3>
+                                <h3 className="text-xl font-semibold text-foreground">{t('parentDashboard.attendanceHistory')}</h3>
                             </div>
                             <select
                                 value={selectedMonth}
@@ -422,11 +424,11 @@ export default function ParentDashboard() {
                                 <div key={i} className="flex items-center justify-between p-3 bg-background/30 border-b border-muted/20">
                                     <p className="font-medium text-foreground/90">{format(parse(record.date, 'yyyy-MM-dd', new Date()), 'MMMM dd, yyyy')}</p>
                                     <span className={`px-3 py-1 text-xs font-bold uppercase rounded-full border ${getStatusBadge(record.status)}`}>
-                                        {record.status}
+                                        {t(`parentDashboard.status_${record.status}`)}
                                     </span>
                                 </div>
                             )) : (
-                                 <p className="text-muted-foreground text-center py-4">No attendance records for this month.</p>
+                                 <p className="text-muted-foreground text-center py-4">{t('parentDashboard.noAttendanceForMonth')}</p>
                             )}
                         </div>
                     </div>
@@ -436,13 +438,13 @@ export default function ParentDashboard() {
         ) : (
           <div className="mt-12 text-center p-12 bg-background/60 backdrop-blur-sm border border-dashed border-primary/30 rounded-xl shadow-lg">
             <Users className="mx-auto h-16 w-16 text-primary" />
-            <h2 className="mt-6 text-2xl font-bold text-foreground">Welcome, Parent!</h2>
+            <h2 className="mt-6 text-2xl font-bold text-foreground">{t('parentDashboard.welcome')}</h2>
             <p className="mt-2 text-md text-muted-foreground max-w-prose mx-auto">
-              This is your dashboard where you can see your child's classes, grades, and attendance records.
+              {t('parentDashboard.welcomeDesc')}
             </p>
             <div className="mt-6 p-4 bg-primary/10 rounded-lg">
                 <p className="text-primary/90">
-                    Currently, no students are linked to your account. An administrator must link your account to your child's profile before you can view their data.
+                    {t('parentDashboard.noStudentLinked')}
                 </p>
             </div>
           </div>

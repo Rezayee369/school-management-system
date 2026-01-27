@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -15,6 +16,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { cn } from '@/lib/utils';
 import BackButton from '@/components/BackButton';
 import ConfirmDialog from '@/components/ConfirmDialog';
+import { useTranslation } from '@/i18n';
 
 interface ClassData {
   id: string;
@@ -34,6 +36,7 @@ export default function TeacherExamsPage() {
   const { isLoading: isLoadingAuth, isAuthorized } = useAuthGuard('teacher');
   const user = useUser();
   const db = useFirestore();
+  const { t } = useTranslation();
 
   // State for form
   const [classes, setClasses] = useState<ClassData[]>([]);
@@ -86,7 +89,7 @@ export default function TeacherExamsPage() {
             const classesSnap = await getDocs(classesQuery);
             const classMap = new Map(classesSnap.docs.map(d => [d.id, d.data().name]));
             examsData.forEach(exam => {
-                (exam as ExamData).className = classMap.get(exam.classId) || 'Unknown Class';
+                (exam as ExamData).className = classMap.get(exam.classId) || t('teacherExams.unknownClass');
             });
         }
         
@@ -95,18 +98,18 @@ export default function TeacherExamsPage() {
     }, () => setIsLoadingExams(false));
 
     return () => unsubscribe();
-  }, [isAuthorized, user, db]);
+  }, [isAuthorized, user, db, t]);
 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedClassId || !subject.trim() || !maxScore || !date || !user) {
-      toast.error('Please fill out all required fields.');
+      toast.error(t('teacherExams.formRequiredError'));
       return;
     }
     const score = parseInt(maxScore);
     if (isNaN(score) || score <= 0) {
-      toast.error('Max score must be a positive number.');
+      toast.error(t('teacherExams.maxScoreError'));
       return;
     }
     setIsSaving(true);
@@ -121,10 +124,10 @@ export default function TeacherExamsPage() {
         date: format(date, 'yyyy-MM-dd'),
         createdAt: serverTimestamp(),
       });
-      toast.success(`Exam created successfully!`);
+      toast.success(t('teacherExams.createSuccess'));
       setSubject(''); setMaxScore('100'); setExamType('monthly');
     } catch (error) {
-      toast.error('Failed to create exam.');
+      toast.error(t('teacherExams.createError'));
     } finally {
       setIsSaving(false);
     }
@@ -136,9 +139,9 @@ export default function TeacherExamsPage() {
     try {
         await deleteDoc(doc(db, 'exams', examToDelete.id));
         // Note: This does not delete associated grades. A more robust system might use a cloud function.
-        toast.success(`Exam "${examToDelete.subject}" deleted.`);
+        toast.success(t('teacherExams.deleteSuccess', { subject: examToDelete.subject }));
     } catch (e) {
-        toast.error("Failed to delete exam.");
+        toast.error(t('teacherExams.deleteError'));
     } finally {
         setIsDeleting(false);
         setExamToDelete(null);
@@ -159,40 +162,40 @@ export default function TeacherExamsPage() {
             <div className="flex justify-between items-center mb-8">
             <BackButton />
             </div>
-            <h1 className="text-4xl font-bold text-foreground mb-8">Manage Exams</h1>
+            <h1 className="text-4xl font-bold text-foreground mb-8">{t('teacherExams.title')}</h1>
             
             <form onSubmit={handleSubmit} className="p-6 bg-background/60 backdrop-blur-sm border border-secondary/30 rounded-xl shadow-lg space-y-6">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                     <div>
-                        <label htmlFor="class-select" className="block text-sm font-medium text-muted-foreground mb-2">Class</label>
+                        <label htmlFor="class-select" className="block text-sm font-medium text-muted-foreground mb-2">{t('teacherExams.classLabel')}</label>
                         <select id="class-select" value={selectedClassId} onChange={(e) => setSelectedClassId(e.target.value)} disabled={isLoadingClasses || classes.length === 0} className="w-full appearance-none px-4 py-3 bg-background/50 text-foreground border border-input rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50">
-                        {isLoadingClasses ? <option>Loading...</option> : classes.length > 0 ? classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>) : <option>No classes</option>}
+                        {isLoadingClasses ? <option>{t('teacherExams.loading')}</option> : classes.length > 0 ? classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>) : <option>{t('teacherExams.noClasses')}</option>}
                         </select>
                     </div>
                     <div>
-                        <label htmlFor="subject" className="block text-sm font-medium text-muted-foreground mb-2">Subject</label>
-                        <input id="subject" type="text" value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="e.g., Mathematics" className="w-full px-4 py-3 bg-background/50 text-foreground placeholder-muted-foreground/50 border border-input rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring" required />
+                        <label htmlFor="subject" className="block text-sm font-medium text-muted-foreground mb-2">{t('teacherExams.subjectLabel')}</label>
+                        <input id="subject" type="text" value={subject} onChange={(e) => setSubject(e.target.value)} placeholder={t('teacherExams.subjectPlaceholder')} className="w-full px-4 py-3 bg-background/50 text-foreground placeholder-muted-foreground/50 border border-input rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring" required />
                     </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                     <div>
-                        <label htmlFor="exam-type" className="block text-sm font-medium text-muted-foreground mb-2">Exam Type</label>
+                        <label htmlFor="exam-type" className="block text-sm font-medium text-muted-foreground mb-2">{t('teacherExams.typeLabel')}</label>
                         <select id="exam-type" value={examType} onChange={(e) => setExamType(e.target.value)} className="w-full appearance-none px-4 py-3 bg-background/50 text-foreground border border-input rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring">
-                            <option value="monthly">Monthly</option> <option value="midterm">Midterm</option> <option value="final">Final</option>
+                            <option value="monthly">{t('teacherExams.typeMonthly')}</option> <option value="midterm">{t('teacherExams.typeMidterm')}</option> <option value="final">{t('teacherExams.typeFinal')}</option>
                         </select>
                     </div>
                     <div>
-                        <label htmlFor="max-score" className="block text-sm font-medium text-muted-foreground mb-2">Max Score</label>
+                        <label htmlFor="max-score" className="block text-sm font-medium text-muted-foreground mb-2">{t('teacherExams.maxScoreLabel')}</label>
                         <input id="max-score" type="number" value={maxScore} onChange={(e) => setMaxScore(e.target.value)} placeholder="e.g., 100" className="w-full px-4 py-3 bg-background/50 text-foreground placeholder-muted-foreground/50 border border-input rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring" required />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-muted-foreground mb-2">Exam Date</label>
+                        <label className="block text-sm font-medium text-muted-foreground mb-2">{t('teacherExams.dateLabel')}</label>
                         <Popover>
                             <PopoverTrigger asChild>
                             <Button variant={"outline"} className={cn("w-full justify-start text-left font-normal py-3 h-auto", !date && "text-muted-foreground")}>
                                 <CalendarIcon className="mr-2 h-4 w-4" />
-                                {date ? format(date, "PPP") : <span>Pick a date</span>}
+                                {date ? format(date, "PPP") : <span>{t('teacherExams.pickDate')}</span>}
                             </Button>
                             </PopoverTrigger>
                             <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={date} onSelect={setDate} initialFocus /></PopoverContent>
@@ -202,17 +205,17 @@ export default function TeacherExamsPage() {
 
                 <div className="pt-2">
                     <button type="submit" disabled={isSaving || classes.length === 0} className="w-full sm:w-auto flex items-center justify-center gap-3 px-8 py-3 rounded-lg bg-gradient-to-r from-secondary to-primary text-primary-foreground font-bold tracking-wider uppercase hover:shadow-lg hover:shadow-primary/30 transition-all duration-300 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">
-                    {isSaving ? <><div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div><span>Saving...</span></> : <><FilePenLine className="w-5 h-5" /><span>Create Exam</span></>}
+                    {isSaving ? <><div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div><span>{t('teacherExams.saving')}</span></> : <><FilePenLine className="w-5 h-5" /><span>{t('teacherExams.createButton')}</span></>}
                     </button>
                 </div>
             </form>
         </div>
 
         <div>
-            <h2 className="text-3xl font-bold text-foreground mb-6">Scheduled Exams</h2>
+            <h2 className="text-3xl font-bold text-foreground mb-6">{t('teacherExams.scheduledExamsTitle')}</h2>
             <div className="p-6 bg-background/60 backdrop-blur-sm border border-border rounded-xl shadow-lg">
                 <div className="space-y-4">
-                    {isLoadingExams ? <p className="text-center text-muted-foreground">Loading exams...</p> : exams.length > 0 ? exams.map(exam => (
+                    {isLoadingExams ? <p className="text-center text-muted-foreground">{t('teacherExams.loadingExams')}</p> : exams.length > 0 ? exams.map(exam => (
                         <div key={exam.id} className="p-4 bg-background/30 border border-muted/20 rounded-lg flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
                             <div>
                                 <p className="text-lg text-foreground/90 font-semibold">{exam.subject} <span className="text-sm text-muted-foreground capitalize">({exam.type})</span></p>
@@ -221,7 +224,7 @@ export default function TeacherExamsPage() {
                             <div className="flex w-full sm:w-auto justify-end items-center gap-4">
                                 <Link href={`/teacher/exams/${exam.id}`}>
                                 <div className="flex items-center text-primary hover:text-primary/80 cursor-pointer">
-                                    <span>Enter Grades</span>
+                                    <span>{t('teacherExams.enterGradesLink')}</span>
                                     <ChevronRight className="w-5 h-5" />
                                 </div>
                                 </Link>
@@ -231,14 +234,14 @@ export default function TeacherExamsPage() {
                             </div>
                         </div>
                     )) : (
-                        <p className="text-center text-muted-foreground py-8">You have not created any exams yet.</p>
+                        <p className="text-center text-muted-foreground py-8">{t('teacherExams.noExamsCreated')}</p>
                     )}
                 </div>
             </div>
         </div>
 
       </div>
-      <ConfirmDialog open={!!examToDelete} onCancel={() => setExamToDelete(null)} onConfirm={handleDeleteExam} isLoading={isDeleting} title={`Delete Exam: ${examToDelete?.subject}`} description="Are you sure you want to delete this exam? This will not delete any grades already submitted for it." confirmText="Delete Exam" />
+      <ConfirmDialog open={!!examToDelete} onCancel={() => setExamToDelete(null)} onConfirm={handleDeleteExam} isLoading={isDeleting} title={t('teacherExams.deleteTitle', { subject: examToDelete?.subject || '' })} description={t('teacherExams.deleteDesc')} confirmText={t('teacherExams.deleteConfirm')} />
     </main>
   );
 }

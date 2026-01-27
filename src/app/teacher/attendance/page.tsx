@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -17,6 +18,7 @@ import {
 } from "@/components/ui/popover"
 import { cn } from '@/lib/utils';
 import BackButton from '@/components/BackButton';
+import { useTranslation } from '@/i18n';
 
 // Data Interfaces
 interface ClassData {
@@ -37,6 +39,7 @@ export default function TeacherAttendancePage() {
   const { isLoading: isLoadingAuth, isAuthorized, userRole } = useAuthGuard('teacher');
   const user = useUser();
   const db = useFirestore();
+  const { t } = useTranslation();
 
   const [classes, setClasses] = useState<ClassData[]>([]);
   const [students, setStudents] = useState<StudentData[]>([]);
@@ -114,7 +117,7 @@ export default function TeacherAttendancePage() {
             }
         } catch (error) {
             console.error("Error fetching student/attendance data:", error);
-            toast.error("Failed to load student data.");
+            toast.error(t('teacherAttendance.loadError'));
         } finally {
             setIsLoadingStudents(false);
         }
@@ -126,14 +129,14 @@ export default function TeacherAttendancePage() {
       unsubscribeStudents();
       unsubscribeAttendance();
     };
-  }, [selectedClassId, date, db]);
+  }, [selectedClassId, date, db, t]);
 
   const handleMarkAttendance = async (student: StudentData, status: 'present' | 'absent' | 'leave') => {
     if (!selectedClassId || !date || !user || !db || marking) return;
 
     const currentRecord = attendance.get(student.id);
     if (currentRecord && currentRecord.status === status) {
-        toast(`Already marked as ${status}.`);
+        toast(t('teacherAttendance.alreadyMarked', { status }));
         return;
     }
 
@@ -156,10 +159,10 @@ export default function TeacherAttendancePage() {
             markedAt: serverTimestamp(),
         }, { merge: true });
 
-        toast.success(`Marked ${student.name} as ${status}.`);
+        toast.success(t('teacherAttendance.markSuccess', { name: student.name, status }));
 
     } catch (e) {
-        toast.error("Failed to mark attendance.");
+        toast.error(t('teacherAttendance.markError'));
         console.error(e);
     } finally {
         setMarking(null);
@@ -189,12 +192,12 @@ export default function TeacherAttendancePage() {
         <div className="mb-8">
             <BackButton />
         </div>
-        <h1 className="text-4xl font-bold text-foreground mb-8">Mark Attendance</h1>
+        <h1 className="text-4xl font-bold text-foreground mb-8">{t('teacherAttendance.title')}</h1>
 
         <div className="p-6 bg-background/60 backdrop-blur-sm border border-secondary/30 rounded-xl shadow-lg">
           <div className="flex flex-col sm:flex-row gap-4 mb-6">
               <div className="flex-1">
-                  <label className="text-sm font-medium text-muted-foreground">Class</label>
+                  <label className="text-sm font-medium text-muted-foreground">{t('teacherAttendance.classLabel')}</label>
                   <select
                       value={selectedClassId}
                       onChange={(e) => setSelectedClassId(e.target.value)}
@@ -202,16 +205,16 @@ export default function TeacherAttendancePage() {
                       className="mt-1 block w-full appearance-none px-4 py-2 bg-background/50 text-foreground border border-input rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
                   >
                       {isLoadingClasses ? (
-                          <option>Loading classes...</option>
+                          <option>{t('teacherAttendance.loadingClasses')}</option>
                       ) : classes.length > 0 ? (
                           classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)
                       ) : (
-                          <option>No classes assigned</option>
+                          <option>{t('teacherAttendance.noClasses')}</option>
                       )}
                   </select>
               </div>
               <div className="flex-1">
-                  <label className="text-sm font-medium text-muted-foreground">Date</label>
+                  <label className="text-sm font-medium text-muted-foreground">{t('teacherAttendance.dateLabel')}</label>
                   <Popover>
                     <PopoverTrigger asChild>
                       <Button
@@ -222,7 +225,7 @@ export default function TeacherAttendancePage() {
                         )}
                       >
                         <CalendarIcon className="mr-2 h-4 w-4" />
-                        {date ? format(date, "PPP") : <span>Pick a date</span>}
+                        {date ? format(date, "PPP") : <span>{t('teacherAttendance.pickDate')}</span>}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0">
@@ -237,10 +240,10 @@ export default function TeacherAttendancePage() {
               </div>
           </div>
           
-          <h2 className="text-2xl font-semibold text-foreground mb-4">Student List ({students.length})</h2>
+          <h2 className="text-2xl font-semibold text-foreground mb-4">{t('teacherAttendance.studentListTitle', { count: String(students.length) })}</h2>
           <div className="space-y-3">
               {isLoadingStudents ? (
-                  <p className="text-muted-foreground text-center py-8">Loading students...</p>
+                  <p className="text-muted-foreground text-center py-8">{t('teacherAttendance.loadingStudents')}</p>
               ) : students.length > 0 ? students.map(student => {
                   const currentStatus = attendance.get(student.id)?.status;
                   const isMarkingPresent = marking?.studentId === student.id && marking?.status === 'present';
@@ -255,27 +258,27 @@ export default function TeacherAttendancePage() {
                                   disabled={!!marking}
                                   className={`flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-semibold transition-all active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed ${currentStatus === 'present' ? 'bg-green-500 text-white' : 'bg-green-500/20 text-green-300 hover:bg-green-500/40'}`}>
                                   {isMarkingPresent ? <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div> : <Check size={16}/>}
-                                  Present
+                                  {t('teacherAttendance.present')}
                               </button>
                               <button 
                                   onClick={() => handleMarkAttendance(student, 'absent')} 
                                   disabled={!!marking}
                                   className={`flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-semibold transition-all active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed ${currentStatus === 'absent' ? 'bg-red-500 text-white' : 'bg-red-500/20 text-red-300 hover:bg-red-500/40'}`}>
                                   {isMarkingAbsent ? <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div> : <X size={16}/>}
-                                  Absent
+                                  {t('teacherAttendance.absent')}
                               </button>
                               <button 
                                   onClick={() => handleMarkAttendance(student, 'leave')} 
                                   disabled={!!marking}
                                   className={`flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-semibold transition-all active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed ${currentStatus === 'leave' ? 'bg-yellow-500 text-black' : 'bg-yellow-500/20 text-yellow-300 hover:bg-yellow-500/40'}`}>
                                   {isMarkingLeave ? <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div> : <Minus size={16}/>}
-                                  Leave
+                                  {t('teacherAttendance.leave')}
                               </button>
                           </div>
                       </div>
                   );
               }) : (
-                  <p className="text-muted-foreground text-center py-8">No students enrolled in this class, or class not selected.</p>
+                  <p className="text-muted-foreground text-center py-8">{t('teacherAttendance.noStudents')}</p>
               )}
           </div>
         </div>

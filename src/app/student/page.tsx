@@ -10,6 +10,7 @@ import { BookOpen, CheckCircle, XCircle, MinusCircle, ClipboardCheck, Megaphone,
 import PermissionDenied from '@/components/PermissionDenied';
 import { formatDistanceToNow } from 'date-fns';
 import toast from 'react-hot-toast';
+import { useTranslation } from '@/i18n';
 
 
 interface ClassData {
@@ -40,6 +41,7 @@ export default function StudentDashboard() {
   const { isLoading: isLoadingAuth, isAuthorized, userRole } = useAuthGuard('student');
   const user = useUser();
   const db = useFirestore();
+  const { t } = useTranslation();
 
   const [classes, setClasses] = useState<ClassData[]>([]);
   const [attendance, setAttendance] = useState<AttendanceData[]>([]);
@@ -123,7 +125,7 @@ export default function StudentDashboard() {
       }, { merge: true });
     } catch (error) {
       console.error("Failed to mark notification as read:", error);
-      toast.error("Could not update read status.");
+      toast.error(t('studentDashboard.readStatusError'));
     }
   };
 
@@ -170,7 +172,7 @@ export default function StudentDashboard() {
             <div className="group p-6 bg-background/60 backdrop-blur-sm rounded-xl shadow-lg border border-green-500/30 transition-all duration-300 hover:border-green-500 hover:shadow-xl hover:shadow-green-500/20 hover:-translate-y-1">
                 <div className="flex items-start justify-between">
                     <div>
-                        <p className="text-sm text-muted-foreground">Days Present</p>
+                        <p className="text-sm text-muted-foreground">{t('studentDashboard.daysPresent')}</p>
                         <p className="text-4xl font-bold text-foreground mt-2 transition-all duration-300 group-hover:text-green-400">{attendanceSummary.present ?? 0}</p>
                     </div>
                     <div className="p-3 bg-green-500/10 rounded-lg transition-all duration-300 group-hover:bg-green-500/20 group-hover:shadow-[0_0_20px_#22c55e]">
@@ -181,7 +183,7 @@ export default function StudentDashboard() {
             <div className="group p-6 bg-background/60 backdrop-blur-sm rounded-xl shadow-lg border border-red-500/30 transition-all duration-300 hover:border-red-500 hover:shadow-xl hover:shadow-red-500/20 hover:-translate-y-1">
                 <div className="flex items-start justify-between">
                     <div>
-                        <p className="text-sm text-muted-foreground">Days Absent</p>
+                        <p className="text-sm text-muted-foreground">{t('studentDashboard.daysAbsent')}</p>
                         <p className="text-4xl font-bold text-foreground mt-2 transition-all duration-300 group-hover:text-red-400">{attendanceSummary.absent ?? 0}</p>
                     </div>
                     <div className="p-3 bg-red-500/10 rounded-lg transition-all duration-300 group-hover:bg-red-500/20 group-hover:shadow-[0_0_20px_#ef4444]">
@@ -192,7 +194,7 @@ export default function StudentDashboard() {
             <div className="group p-6 bg-background/60 backdrop-blur-sm rounded-xl shadow-lg border border-yellow-500/30 transition-all duration-300 hover:border-yellow-500 hover:shadow-xl hover:shadow-yellow-500/20 hover:-translate-y-1">
                 <div className="flex items-start justify-between">
                     <div>
-                        <p className="text-sm text-muted-foreground">Days on Leave</p>
+                        <p className="text-sm text-muted-foreground">{t('studentDashboard.daysOnLeave')}</p>
                         <p className="text-4xl font-bold text-foreground mt-2 transition-all duration-300 group-hover:text-yellow-400">{attendanceSummary.leave ?? 0}</p>
                     </div>
                     <div className="p-3 bg-yellow-500/10 rounded-lg transition-all duration-300 group-hover:bg-yellow-500/20 group-hover:shadow-[0_0_20px_#eab308]">
@@ -212,7 +214,7 @@ export default function StudentDashboard() {
                         </span>
                     )}
                 </div>
-                <h3 className="text-xl font-semibold text-foreground">Notifications</h3>
+                <h3 className="text-xl font-semibold text-foreground">{t('studentDashboard.notifications')}</h3>
             </div>
             <div className="space-y-4 max-h-[40vh] overflow-y-auto pr-2">
                 {notifications.length > 0 ? notifications.map(notif => (
@@ -236,7 +238,7 @@ export default function StudentDashboard() {
                 )) : (
                     <div className="flex flex-col items-center justify-center h-24 text-center">
                     <MessageSquare className="h-8 w-8 text-muted-foreground" />
-                    <p className="mt-2 text-sm text-muted-foreground">No new notifications.</p>
+                    <p className="mt-2 text-sm text-muted-foreground">{t('studentDashboard.noNotifications')}</p>
                     </div>
                 )}
             </div>
@@ -246,7 +248,7 @@ export default function StudentDashboard() {
             <div className="p-6 bg-background/60 backdrop-blur-sm border border-secondary/30 rounded-xl shadow-lg">
                 <div className="flex items-center gap-3 mb-4">
                     <ClipboardCheck className="w-6 h-6 text-secondary"/>
-                    <h3 className="text-xl font-semibold text-foreground">My Grades</h3>
+                    <h3 className="text-xl font-semibold text-foreground">{t('studentDashboard.myGrades')}</h3>
                 </div>
                 <div className="space-y-2 max-h-[40vh] overflow-y-auto pr-2">
                     {grades.length > 0 ? grades.map((grade, i) => {
@@ -259,14 +261,14 @@ export default function StudentDashboard() {
                             </div>
                         )
                     }) : (
-                         <p className="text-muted-foreground text-center py-4">No grades have been posted yet.</p>
+                         <p className="text-muted-foreground text-center py-4">{t('studentDashboard.noGrades')}</p>
                     )}
                 </div>
             </div>
 
             <div className="p-6 bg-background/60 backdrop-blur-sm border border-secondary/30 rounded-xl shadow-lg">
                 <h3 className="text-xl font-semibold text-foreground mb-4">
-                    My Classes
+                    {t('studentDashboard.myClasses')}
                 </h3>
                 {classes.length > 0 ? (
                     <div className="space-y-4 max-h-[40vh] overflow-y-auto pr-2">
@@ -275,13 +277,13 @@ export default function StudentDashboard() {
                                 <BookOpen className="w-5 h-5 text-secondary flex-shrink-0" />
                                 <div>
                                     <p className="text-md text-foreground/90 font-semibold">{c.name}</p>
-                                    <p className="text-xs text-muted-foreground">Teacher: {c.teacherName}</p>
+                                    <p className="text-xs text-muted-foreground">{t('studentDashboard.teacher')}: {c.teacherName}</p>
                                 </div>
                             </div>
                         ))}
                     </div>
                 ) : (
-                    <p className="text-muted-foreground text-center py-4">You are not enrolled in any classes.</p>
+                    <p className="text-muted-foreground text-center py-4">{t('studentDashboard.notEnrolled')}</p>
                 )}
             </div>
         </div>
