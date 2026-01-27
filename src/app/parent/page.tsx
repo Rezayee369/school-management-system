@@ -6,8 +6,8 @@ import DashboardHeader from '@/components/DashboardHeader';
 import PermissionDenied from '@/components/PermissionDenied';
 import { useUser, useFirestore } from '@/firebase';
 import { collection, doc, onSnapshot, query, where, documentId, getDocs } from 'firebase/firestore';
-import { BookOpen, CheckCircle, XCircle, Users, ClipboardCheck, Percent, CalendarDays, Wallet } from 'lucide-react';
-import { format } from 'date-fns';
+import { BookOpen, Users, ClipboardCheck, Percent, CalendarDays, Wallet, CalendarClock } from 'lucide-react';
+import { format, parse } from 'date-fns';
 
 interface StudentData {
   id: string;
@@ -34,8 +34,21 @@ interface GradeData {
 interface FeeData {
     status: 'paid' | 'unpaid';
     amount: number;
-    discount: number;
+    discount?: number;
 }
+
+// Generate month options for the filter dropdown
+const getMonthOptions = () => {
+    const options = [];
+    let date = new Date();
+    for (let i = 0; i < 12; i++) {
+        const value = format(date, 'yyyy-MM');
+        const label = format(date, 'MMMM yyyy');
+        options.push({ value, label });
+        date.setMonth(date.getMonth() - 1);
+    }
+    return options;
+};
 
 export default function ParentDashboard() {
   const { isLoading: isLoadingAuth, isAuthorized, userRole } = useAuthGuard('parent');
@@ -49,9 +62,12 @@ export default function ParentDashboard() {
   // Data for the selected student
   const [classes, setClasses] = useState<ClassData[]>([]);
   const [grades, setGrades] = useState<GradeData[]>([]);
-  const [attendanceToday, setAttendanceToday] = useState<AttendanceData | null>(null);
-  const [monthlyAttendance, setMonthlyAttendance] = useState({ present: 0, total: 0 });
+  const [allAttendance, setAllAttendance] = useState<AttendanceData[]>([]);
   const [feeStatus, setFeeStatus] = useState<FeeData | null>(null);
+
+  // State for attendance history filtering
+  const [selectedMonth, setSelectedMonth] = useState<string>(format(new Date(), 'yyyy-MM'));
+  const monthOptions = useMemo(getMonthOptions, []);
 
   // Fetch parent's linked students
   useEffect(() => {
@@ -87,7 +103,7 @@ export default function ParentDashboard() {
   // Fetch data for the selected student
   useEffect(() => {
     if (!selectedStudentId || !db) {
-      setClasses([]); setGrades([]); setAttendanceToday(null); setMonthlyAttendance({present: 0, total: 0}); setFeeStatus(null);
+      setClasses([]); setGrades([]); setAllAttendance([]); setFeeStatus(null);
       return;
     }
 
@@ -101,29 +117,41 @@ export default function ParentDashboard() {
     const gradesQuery = query(collection(db, 'grades'), where('studentId', '==', selectedStudentId));
     unsubscribes.push(onSnapshot(gradesQuery, snap => setGrades(snap.docs.map(d => d.data() as GradeData))));
 
-    // Attendance
-    const todayStr = format(new Date(), 'yyyy-MM-dd');
-    const monthStartStr = format(new Date(), 'yyyy-MM');
+    // Attendance (all records)
     const attendanceQuery = query(collection(db, 'attendance'), where('studentId', '==', selectedStudentId));
     unsubscribes.push(onSnapshot(attendanceQuery, (snapshot) => {
-        const allAttendance = snapshot.docs.map(d => d.data() as AttendanceData);
-        // Today's attendance
-        const todayRecord = allAttendance.find(a => a.date === todayStr) || null;
-        setAttendanceToday(todayRecord);
-        // Monthly attendance
-        const monthlyRecords = allAttendance.filter(a => a.date.startsWith(monthStartStr));
-        const presentCount = monthlyRecords.filter(a => a.status === 'present').length;
-        setMonthlyAttendance({ present: presentCount, total: monthlyRecords.length });
+        const records = snapshot.docs.map(d => d.data() as AttendanceData).sort((a,b) => b.date.localeCompare(a.date));
+        setAllAttendance(records);
     }));
 
-    // Fees
-    const currentMonth = format(new Date(), 'yyyy-MM');
-    const feeId = `${selectedStudentId}_${currentMonth}`;
+    // Fees for the CURRENT month
+    const currentMonthForFee = format(new Date(), 'yyyy-MM');
+    const feeId = `${selectedStudentId}_${currentMonthForFee}`;
     const feeRef = doc(db, 'fees', feeId);
     unsubscribes.push(onSnapshot(feeRef, snap => setFeeStatus(snap.exists() ? snap.data() as FeeData : null)));
 
     return () => unsubscribes.forEach(unsub => unsub());
   }, [selectedStudentId, db]);
+  
+  // Derived state for summary cards and history list
+  const { attendanceToday, monthlyAttendance, filteredAttendanceHistory } = useMemo(() => {
+    const todayStr = format(new Date(), 'yyyy-MM-dd');
+    const monthStartStr = format(new Date(), 'yyyy-MM');
+    
+    // Summary data
+    const todayRecord = allAttendance.find(a => a.date === todayStr) || null;
+    const monthlyRecords = allAttendance.filter(a => a.date.startsWith(monthStartStr));
+    const presentCount = monthlyRecords.filter(a => a.status === 'present').length;
+    
+    // History data
+    const historyRecords = allAttendance.filter(a => a.date.startsWith(selectedMonth));
+
+    return {
+        attendanceToday: todayRecord,
+        monthlyAttendance: { present: presentCount, total: monthlyRecords.length },
+        filteredAttendanceHistory: historyRecords,
+    }
+  }, [allAttendance, selectedMonth]);
   
   const monthlyAttendancePercentage = useMemo(() => {
     if(monthlyAttendance.total === 0) return null;
@@ -135,6 +163,15 @@ export default function ParentDashboard() {
     if (avg >= 70) return 'text-yellow-400'; if (avg >= 60) return 'text-orange-400';
     return 'text-red-400';
   }
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'present': return 'bg-green-500/20 text-green-300 border-green-500/50';
+      case 'absent': return 'bg-red-500/20 text-red-300 border-red-500/50';
+      case 'leave': return 'bg-yellow-500/20 text-yellow-300 border-yellow-500/50';
+      default: return 'bg-muted/20 text-muted-foreground border-muted/50';
+    }
+  };
   
   const selectedStudent = linkedStudents.find(s => s.id === selectedStudentId);
 
@@ -201,52 +238,82 @@ export default function ParentDashboard() {
                 icon={<Percent className="w-6 h-6 text-secondary" />}
               />
               <StatCard 
-                title="Fee Status"
+                title="Current Month's Fee"
                 value={feeStatus ? feeStatus.status.charAt(0).toUpperCase() + feeStatus.status.slice(1) : 'N/A'}
-                subtext={feeStatus?.status === 'unpaid' ? `Due: $${(feeStatus.amount - feeStatus.discount).toFixed(2)}` : (feeStatus ? 'Cleared' : 'No fees posted')}
+                subtext={feeStatus?.status === 'unpaid' ? `Due: $${(feeStatus.amount - (feeStatus.discount || 0)).toFixed(2)}` : (feeStatus ? 'Cleared' : 'No fees posted')}
                 icon={<Wallet className={`w-6 h-6 ${feeStatus?.status === 'paid' ? 'text-green-400' : feeStatus?.status === 'unpaid' ? 'text-red-400' : 'text-muted-foreground' }`} />}
               />
             </div>
 
-            <div className="mt-12 grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div className="p-6 bg-background/60 backdrop-blur-sm border border-border rounded-xl shadow-lg">
-                    <div className="flex items-center gap-3 mb-4">
-                        <ClipboardCheck className="w-6 h-6 text-secondary"/>
-                        <h3 className="text-xl font-semibold text-foreground">Grades</h3>
+            <div className="mt-12 grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="lg:col-span-2 grid grid-cols-1 gap-8 content-start">
+                    <div className="p-6 bg-background/60 backdrop-blur-sm border border-border rounded-xl shadow-lg">
+                        <div className="flex items-center gap-3 mb-4">
+                            <ClipboardCheck className="w-6 h-6 text-secondary"/>
+                            <h3 className="text-xl font-semibold text-foreground">Grades</h3>
+                        </div>
+                        <div className="space-y-2">
+                            {grades.length > 0 ? grades.map((grade, i) => {
+                                 const avg = (grade.examScore + grade.assignmentScore) / 2;
+                                return (
+                                    <div key={i} className="grid grid-cols-4 items-center p-3 bg-background/30 border-b border-muted/20">
+                                        <p className="col-span-2 font-medium">{grade.className}</p>
+                                        <p className="text-center text-muted-foreground">{grade.examScore}</p>
+                                        <p className={`text-right font-bold ${getAverageColor(avg)}`}>{avg.toFixed(1)}%</p>
+                                    </div>
+                                )
+                            }) : (
+                                 <p className="text-muted-foreground text-center py-4">No grades posted.</p>
+                            )}
+                        </div>
                     </div>
-                    <div className="space-y-2">
-                        {grades.length > 0 ? grades.map((grade, i) => {
-                             const avg = (grade.examScore + grade.assignmentScore) / 2;
-                            return (
-                                <div key={i} className="grid grid-cols-4 items-center p-3 bg-background/30 border-b border-muted/20">
-                                    <p className="col-span-2 font-medium">{grade.className}</p>
-                                    <p className="text-center text-muted-foreground">{grade.examScore}</p>
-                                    <p className={`text-right font-bold ${getAverageColor(avg)}`}>{avg.toFixed(1)}%</p>
-                                </div>
-                            )
-                        }) : (
-                             <p className="text-muted-foreground text-center py-4">No grades posted.</p>
+
+                    <div className="p-6 bg-background/60 backdrop-blur-sm border border-border rounded-xl shadow-lg">
+                        <h3 className="text-xl font-semibold text-foreground mb-4">Enrolled Classes</h3>
+                        {classes.length > 0 ? (
+                            <div className="space-y-4">
+                                {classes.map(c => (
+                                    <div key={c.id} className="p-3 bg-background/30 border border-muted/20 rounded-lg flex items-center gap-3">
+                                        <BookOpen className="w-5 h-5 text-secondary flex-shrink-0" />
+                                        <div>
+                                            <p className="text-md text-foreground/90 font-semibold">{c.name}</p>
+                                            <p className="text-xs text-muted-foreground">Teacher: {c.teacherName}</p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <p className="text-muted-foreground text-center py-4">Student not enrolled in any classes.</p>
                         )}
                     </div>
                 </div>
-
+                
                 <div className="p-6 bg-background/60 backdrop-blur-sm border border-border rounded-xl shadow-lg">
-                    <h3 className="text-xl font-semibold text-foreground mb-4">Enrolled Classes</h3>
-                    {classes.length > 0 ? (
-                        <div className="space-y-4">
-                            {classes.map(c => (
-                                <div key={c.id} className="p-3 bg-background/30 border border-muted/20 rounded-lg flex items-center gap-3">
-                                    <BookOpen className="w-5 h-5 text-secondary flex-shrink-0" />
-                                    <div>
-                                        <p className="text-md text-foreground/90 font-semibold">{c.name}</p>
-                                        <p className="text-xs text-muted-foreground">Teacher: {c.teacherName}</p>
-                                    </div>
-                                </div>
-                            ))}
+                    <div className="flex justify-between items-center gap-3 mb-4">
+                        <div className='flex items-center gap-3'>
+                            <CalendarClock className="w-6 h-6 text-secondary"/>
+                            <h3 className="text-xl font-semibold text-foreground">Attendance History</h3>
                         </div>
-                    ) : (
-                        <p className="text-muted-foreground text-center py-4">Student not enrolled in any classes.</p>
-                    )}
+                        <select
+                            value={selectedMonth}
+                            onChange={(e) => setSelectedMonth(e.target.value)}
+                            className="text-sm px-2 py-1 appearance-none bg-background/50 text-foreground border border-input rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                        >
+                            {monthOptions.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+                        </select>
+                    </div>
+                     <div className="space-y-2 max-h-[60vh] overflow-y-auto pr-2">
+                        {filteredAttendanceHistory.length > 0 ? filteredAttendanceHistory.map((record, i) => (
+                            <div key={i} className="flex items-center justify-between p-3 bg-background/30 border-b border-muted/20">
+                                <p className="font-medium text-foreground/90">{format(parse(record.date, 'yyyy-MM-dd', new Date()), 'MMMM dd, yyyy')}</p>
+                                <span className={`px-3 py-1 text-xs font-bold uppercase rounded-full border ${getStatusBadge(record.status)}`}>
+                                    {record.status}
+                                </span>
+                            </div>
+                        )) : (
+                             <p className="text-muted-foreground text-center py-4">No attendance records for this month.</p>
+                        )}
+                    </div>
                 </div>
             </div>
            </>
