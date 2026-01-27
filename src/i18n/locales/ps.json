@@ -27,6 +27,7 @@
     "studentsPresentToday": "نن حاضر زده‌کوونکي",
     "totalTeachers": "ټول ښوونکي",
     "totalStudents": "ټول زده‌کوونکي",
+    "totalStaff": "ټول کارکوونکي",
     "totalClasses": "ټول ټولګي",
     "totalAdmins": "ټول مدیران",
     "quickActions": "چټک لاسرسی",
@@ -358,3 +359,5 @@
     "back": "شاته"
   }
 }
+
+    

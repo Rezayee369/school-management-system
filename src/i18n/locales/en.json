@@ -27,6 +27,7 @@
     "studentsPresentToday": "Students Present Today",
     "totalTeachers": "Total Teachers",
     "totalStudents": "Total Students",
+    "totalStaff": "Total Staff",
     "totalClasses": "Total Classes",
     "totalAdmins": "Total Admins",
     "quickActions": "Quick Actions",
@@ -358,3 +359,5 @@
     "back": "Back"
   }
 }
+
+    

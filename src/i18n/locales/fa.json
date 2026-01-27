@@ -27,6 +27,7 @@
     "studentsPresentToday": "شاگردان حاضر امروز",
     "totalTeachers": "مجموع استادان",
     "totalStudents": "مجموع شاگردان",
+    "totalStaff": "مجموع کارمندان",
     "totalClasses": "مجموع صنف‌ها",
     "totalAdmins": "مجموع مدیران",
     "quickActions": "دسترسی سریع",
@@ -358,3 +359,5 @@
     "back": "بازگشت"
   }
 }
+
+    

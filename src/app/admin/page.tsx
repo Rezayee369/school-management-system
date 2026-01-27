@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -18,6 +17,7 @@ export default function AdminDashboard() {
 
   const [teacherCount, setTeacherCount] = useState<number | null>(null);
   const [studentCount, setStudentCount] = useState<number | null>(null);
+  const [staffCount, setStaffCount] = useState<number | null>(null);
   const [classCount, setClassCount] = useState<number | null>(null);
   const [adminCount, setAdminCount] = useState<number | null>(null);
   const [presentTodayCount, setPresentTodayCount] = useState<number | null>(null);
@@ -29,23 +29,28 @@ export default function AdminDashboard() {
       try {
         const today = format(new Date(), 'yyyy-MM-dd');
 
-        // Define queries for counting
+        // Define role-specific queries for counting users
         const teacherQuery = query(collection(db, 'users'), where('role', '==', 'teacher'));
         const studentQuery = query(collection(db, 'users'), where('role', '==', 'student'));
-        const classesQuery = collection(db, 'classes');
+        const staffQuery = query(collection(db, 'users'), where('role', '==', 'staff'));
         const adminQuery = query(collection(db, 'users'), where('role', '==', 'admin'));
+        
+        // Define other queries
+        const classesQuery = collection(db, 'classes');
         const presentQuery = query(collection(db, 'attendance'), where('date', '==', today), where('status', '==', 'present'));
 
-        // Fetch counts from server using efficient aggregation query
+        // Fetch all counts from server using efficient aggregation queries
         const [
             teachersSnap,
             studentsSnap,
+            staffSnap,
             classesSnap,
             adminsSnap,
             presentSnap
         ] = await Promise.all([
             getCountFromServer(teacherQuery),
             getCountFromServer(studentQuery),
+            getCountFromServer(staffQuery),
             getCountFromServer(classesQuery),
             getCountFromServer(adminQuery),
             getCountFromServer(presentQuery)
@@ -54,6 +59,7 @@ export default function AdminDashboard() {
         // Set state with the counts from the aggregation result
         setTeacherCount(teachersSnap.data().count);
         setStudentCount(studentsSnap.data().count);
+        setStaffCount(staffSnap.data().count);
         setClassCount(classesSnap.data().count);
         setAdminCount(adminsSnap.data().count);
         setPresentTodayCount(presentSnap.data().count);
@@ -123,6 +129,24 @@ export default function AdminDashboard() {
                         </div>
                     </div>
                 </div>
+              </Link>
+            )}
+
+            {staffCount === null ? (
+              <SkeletonCard />
+            ) : (
+              <Link href="/admin/staff" className="block group">
+                  <div className="p-6 h-full bg-background/60 backdrop-blur-sm rounded-xl shadow-lg border border-border transition-all duration-300 hover:border-accent hover:shadow-xl hover:shadow-accent/20 hover:-translate-y-1 hover:scale-[1.02]">
+                      <div className="flex items-start justify-between">
+                          <div>
+                              <p className="text-sm text-muted-foreground">{t('adminDashboard.totalStaff')}</p>
+                              <p className="text-4xl font-bold text-foreground mt-2 transition-all duration-300 group-hover:text-accent">{staffCount}</p>
+                          </div>
+                          <div className="p-3 bg-accent/10 rounded-lg transition-all duration-300 group-hover:bg-accent/20 group-hover:shadow-[0_0_20px_hsl(var(--accent))]">
+                              <HardHat className="w-6 h-6 text-accent transition-transform duration-300 group-hover:scale-110" />
+                          </div>
+                      </div>
+                  </div>
               </Link>
             )}
 
@@ -276,5 +300,7 @@ export default function AdminDashboard() {
     </main>
   );
 }
+
+    
 
     
