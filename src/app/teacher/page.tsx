@@ -6,7 +6,7 @@ import DashboardHeader from '@/components/DashboardHeader';
 import Link from 'next/link';
 import { useFirestore, useUser } from '@/firebase';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
-import { BookOpen, Users, ClipboardEdit, Calendar } from 'lucide-react';
+import { BookOpen, Users, ClipboardEdit, Calendar, FilePenLine } from 'lucide-react';
 import PermissionDenied from '@/components/PermissionDenied';
 
 interface ClassData {
@@ -79,11 +79,18 @@ export default function TeacherDashboard() {
         <div className="mt-12">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-semibold text-foreground">My Classes</h2>
-              <Link href="/teacher/attendance">
-                  <button className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-primary-foreground bg-primary rounded-lg shadow-md hover:bg-primary/90 transition-colors">
-                      <Calendar size={16} /> Mark Attendance
-                  </button>
-              </Link>
+              <div className="flex items-center gap-2">
+                  <Link href="/teacher/attendance">
+                      <button className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-primary-foreground bg-primary rounded-lg shadow-md hover:bg-primary/90 transition-colors">
+                          <Calendar size={16} /> Mark Attendance
+                      </button>
+                  </Link>
+                  <Link href="/teacher/exams">
+                      <button className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-secondary-foreground bg-secondary rounded-lg shadow-md hover:bg-secondary/90 transition-colors">
+                          <FilePenLine size={16} /> Manage Exams
+                      </button>
+                  </Link>
+              </div>
             </div>
             <div className="p-6 bg-background/60 backdrop-blur-sm border border-border rounded-xl shadow-lg">
                 {classes.length > 0 ? (

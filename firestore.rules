@@ -101,5 +101,21 @@ service cloud.firestore {
       allow read: if (request.auth != null && getStudentIdFromFeeId(feeId) == request.auth.uid) ||
                    (isParent() && getStudentIdFromFeeId(feeId) in get(/databases/$(database)/documents/users/$(request.auth.uid)).data.studentIds);
     }
+
+    match /exams/{examId} {
+      // Admins can manage all exams.
+      allow write: if isAdmin();
+
+      // Teachers can create exams for their classes, and must be the owner.
+      allow create: if isTeacher() 
+                    && request.resource.data.teacherId == request.auth.uid
+                    && isClassTeacher(request.resource.data.classId, request.auth.uid);
+
+      // Authenticated users can read exam details. The app is responsible for filtering.
+      allow read: if request.auth != null;
+      
+      // Teachers can update/delete their own exams. Admins can update/delete any.
+      allow update, delete: if isAdmin() || (isTeacher() && resource.data.teacherId == request.auth.uid);
+    }
   }
 }

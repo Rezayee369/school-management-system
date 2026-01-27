@@ -127,6 +127,24 @@
         "updatedAt": { "type": "string", "format": "date-time" }
       },
       "required": ["studentId", "studentName", "month", "amount", "status", "createdAt", "updatedAt"]
+    },
+    "Exam": {
+      "title": "Exam",
+      "description": "Represents an exam scheduled by a teacher.",
+      "type": "object",
+      "properties": {
+        "classId": { "type": "string" },
+        "teacherId": { "type": "string" },
+        "subject": { "type": "string" },
+        "type": {
+          "type": "string",
+          "enum": ["monthly", "midterm", "final"]
+        },
+        "maxScore": { "type": "number", "minimum": 0 },
+        "date": { "type": "string", "description": "ISO 8601 format date string (YYYY-MM-DD)" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["classId", "teacherId", "subject", "type", "maxScore", "date", "createdAt"]
     }
   },
   "auth": {
@@ -162,6 +180,12 @@
         "$ref": "#/backend/entities/Fee"
       },
       "description": "Stores student fee records. The feeId is a composite of studentId_YYYY-MM."
+    },
+    "/exams/{examId}": {
+      "schema": {
+        "$ref": "#/backend/entities/Exam"
+      },
+      "description": "Stores exam details."
     }
   }
 }
