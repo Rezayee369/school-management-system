@@ -4,19 +4,19 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
+    --background: 204 60% 96.1%; /* light blue: #EBF4FA */
     --foreground: 224 71.4% 4.1%;
-    --card: 0 0% 100%;
+    --card: 204 60% 96.1%;
     --card-foreground: 224 71.4% 4.1%;
     --popover: 0 0% 100%;
     --popover-foreground: 224 71.4% 4.1%;
-    --primary: 221.2 83.2% 53.3%;
+    --primary: 206 70% 63.1%; /* calming blue: #5DADE2 */
     --primary-foreground: 210 40% 98%;
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
+    --accent: 168 44% 53.3%; /* muted teal: #45B39D */
     --accent-foreground: 222.2 47.4% 11.2%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
@@ -27,25 +27,25 @@
   }
 
   .dark {
-    --background: 222 47% 11%;
-    --foreground: 210 40% 98%;
-    --card: 222 47% 13%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222 47% 11%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 210 90% 60%; /* A modern blue instead of neon cyan */
-    --primary-foreground: 210 40% 98%; /* White text on blue buttons */
-    --secondary: 280 70% 65%; /* A softer violet instead of neon purple */
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217 33% 17%;
-    --muted-foreground: 215 20% 65%;
-    --accent: 217 33% 17%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 72% 51%; /* A more standard, strong red */
+    --background: 204 60% 96.1%; /* light blue: #EBF4FA */
+    --foreground: 224 71.4% 4.1%;
+    --card: 204 60% 96.1%;
+    --card-foreground: 224 71.4% 4.1%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 224 71.4% 4.1%;
+    --primary: 206 70% 63.1%; /* calming blue: #5DADE2 */
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 168 44% 53.3%; /* muted teal: #45B39D */
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
-    --border: 215 30% 25%;
-    --input: 215 30% 25%;
-    --ring: 210 90% 60%; /* Match the new primary blue */
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 206 70% 63.1%;
   }
 }
 
@@ -55,6 +55,6 @@
   }
   body {
     @apply bg-background text-foreground;
-    font-family: var(--font-inter), sans-serif;
+    font-family: var(--font-pt-sans), sans-serif;
   }
 }
