@@ -54,11 +54,19 @@ service cloud.firestore {
                     && isClassTeacher(request.resource.data.classId, request.auth.uid)
                     && request.resource.data.teacherId == request.auth.uid;
                     
-      // Admins can read all records. Teachers can read records for classes they currently teach.
-      allow read: if isAdmin() || (isTeacher() && isClassTeacher(resource.data.classId, request.auth.uid));
+      // Admins can read all. Teachers can read records for their classes.
+      // Students can read their own records. Parents can read records for their children.
+      allow read: if isAdmin() || 
+                   (isTeacher() && isClassTeacher(resource.data.classId, request.auth.uid)) ||
+                   (request.auth != null && resource.data.studentId == request.auth.uid) ||
+                   (isParent() && resource.data.studentId in get(/databases/$(database)/documents/users/$(request.auth.uid)).data.studentIds);
       
-      // Teachers can update records for their classes. Admins can update any.
-      allow update: if isAdmin() || (isTeacher() && isClassTeacher(resource.data.classId, request.auth.uid));
+      // Teachers can update records for their classes, but not change key fields. Admins can update any.
+      allow update: if isAdmin() || 
+                    (isTeacher() && isClassTeacher(resource.data.classId, request.auth.uid) &&
+                     request.resource.data.classId == resource.data.classId &&
+                     request.resource.data.studentId == resource.data.studentId &&
+                     request.resource.data.teacherId == request.auth.uid);
       
       // Only Admins can delete records.
       allow delete: if isAdmin();
