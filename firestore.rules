@@ -43,8 +43,8 @@ service cloud.firestore {
     match /classes/{classId} {
       // Admins can manage classes.
       allow write: if isAdmin();
-      // Admins and Teachers can read class information.
-      allow read: if isAdmin() || isTeacher();
+      // Admins and Teachers can read class information. Parents also need to read this to get teacher names.
+      allow read: if isAdmin() || isTeacher() || isParent();
     }
     
     match /attendance/{attendanceId} {

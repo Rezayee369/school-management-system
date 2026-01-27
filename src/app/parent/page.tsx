@@ -1,12 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useAuthGuard } from '@/hooks/useAuthGuard';
 import DashboardHeader from '@/components/DashboardHeader';
 import PermissionDenied from '@/components/PermissionDenied';
 import { useUser, useFirestore } from '@/firebase';
-import { collection, doc, getDoc, onSnapshot, query, where, documentId, getDocs } from 'firebase/firestore';
-import { BookOpen, CheckCircle, XCircle, MinusCircle, Users, ClipboardCheck } from 'lucide-react';
+import { collection, doc, onSnapshot, query, where, documentId, getDocs } from 'firebase/firestore';
+import { BookOpen, CheckCircle, XCircle, Users, ClipboardCheck, Percent, CalendarDays, Wallet } from 'lucide-react';
+import { format } from 'date-fns';
 
 interface StudentData {
   id: string;
@@ -21,12 +22,19 @@ interface ClassData {
 
 interface AttendanceData {
   status: 'present' | 'absent' | 'leave';
+  date: string; // YYYY-MM-DD
 }
 
 interface GradeData {
   className: string;
   examScore: number;
   assignmentScore: number;
+}
+
+interface FeeData {
+    status: 'paid' | 'unpaid';
+    amount: number;
+    discount: number;
 }
 
 export default function ParentDashboard() {
@@ -38,11 +46,14 @@ export default function ParentDashboard() {
   const [linkedStudents, setLinkedStudents] = useState<StudentData[]>([]);
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
 
+  // Data for the selected student
   const [classes, setClasses] = useState<ClassData[]>([]);
-  const [attendance, setAttendance] = useState<AttendanceData[]>([]);
   const [grades, setGrades] = useState<GradeData[]>([]);
+  const [attendanceToday, setAttendanceToday] = useState<AttendanceData | null>(null);
+  const [monthlyAttendance, setMonthlyAttendance] = useState({ present: 0, total: 0 });
+  const [feeStatus, setFeeStatus] = useState<FeeData | null>(null);
 
-  // Effect to fetch the parent's linked students
+  // Fetch parent's linked students
   useEffect(() => {
     if (!isAuthorized || !user || !db) {
         if (!isLoadingAuth) setIsLoadingData(false);
@@ -68,53 +79,60 @@ export default function ParentDashboard() {
             }
         }
         setIsLoadingData(false);
-    });
+    }, () => setIsLoadingData(false));
 
     return () => unsubscribe();
   }, [isAuthorized, user, db]);
 
-  // Effect to fetch data for the selected student
+  // Fetch data for the selected student
   useEffect(() => {
     if (!selectedStudentId || !db) {
-      setClasses([]);
-      setAttendance([]);
-      setGrades([]);
+      setClasses([]); setGrades([]); setAttendanceToday(null); setMonthlyAttendance({present: 0, total: 0}); setFeeStatus(null);
       return;
     }
 
     const unsubscribes: (() => void)[] = [];
     
-    // Fetch classes
+    // Classes
     const classesQuery = query(collection(db, 'classes'), where('studentIds', 'array-contains', selectedStudentId));
-    unsubscribes.push(onSnapshot(classesQuery, (snapshot) => {
-        setClasses(snapshot.docs.map(d => ({ id: d.id, ...d.data() } as ClassData)));
-    }));
+    unsubscribes.push(onSnapshot(classesQuery, snap => setClasses(snap.docs.map(d => ({ id: d.id, ...d.data() } as ClassData)))));
 
-    // Fetch attendance
+    // Grades
+    const gradesQuery = query(collection(db, 'grades'), where('studentId', '==', selectedStudentId));
+    unsubscribes.push(onSnapshot(gradesQuery, snap => setGrades(snap.docs.map(d => d.data() as GradeData))));
+
+    // Attendance
+    const todayStr = format(new Date(), 'yyyy-MM-dd');
+    const monthStartStr = format(new Date(), 'yyyy-MM');
     const attendanceQuery = query(collection(db, 'attendance'), where('studentId', '==', selectedStudentId));
     unsubscribes.push(onSnapshot(attendanceQuery, (snapshot) => {
-        setAttendance(snapshot.docs.map(d => d.data() as AttendanceData));
+        const allAttendance = snapshot.docs.map(d => d.data() as AttendanceData);
+        // Today's attendance
+        const todayRecord = allAttendance.find(a => a.date === todayStr) || null;
+        setAttendanceToday(todayRecord);
+        // Monthly attendance
+        const monthlyRecords = allAttendance.filter(a => a.date.startsWith(monthStartStr));
+        const presentCount = monthlyRecords.filter(a => a.status === 'present').length;
+        setMonthlyAttendance({ present: presentCount, total: monthlyRecords.length });
     }));
 
-    // Fetch grades
-    const gradesQuery = query(collection(db, 'grades'), where('studentId', '==', selectedStudentId));
-    unsubscribes.push(onSnapshot(gradesQuery, (snapshot) => {
-        setGrades(snapshot.docs.map(d => d.data() as GradeData));
-    }));
+    // Fees
+    const currentMonth = format(new Date(), 'yyyy-MM');
+    const feeId = `${selectedStudentId}_${currentMonth}`;
+    const feeRef = doc(db, 'fees', feeId);
+    unsubscribes.push(onSnapshot(feeRef, snap => setFeeStatus(snap.exists() ? snap.data() as FeeData : null)));
 
     return () => unsubscribes.forEach(unsub => unsub());
   }, [selectedStudentId, db]);
-
-  const attendanceSummary = attendance.reduce((acc, record) => {
-    acc[record.status] = (acc[record.status] || 0) + 1;
-    return acc;
-  }, {} as Record<'present' | 'absent' | 'leave', number>);
-
+  
+  const monthlyAttendancePercentage = useMemo(() => {
+    if(monthlyAttendance.total === 0) return null;
+    return (monthlyAttendance.present / monthlyAttendance.total) * 100;
+  }, [monthlyAttendance]);
+  
   const getAverageColor = (avg: number) => {
-    if (avg >= 90) return 'text-primary';
-    if (avg >= 80) return 'text-green-400';
-    if (avg >= 70) return 'text-yellow-400';
-    if (avg >= 60) return 'text-orange-400';
+    if (avg >= 90) return 'text-primary'; if (avg >= 80) return 'text-green-400';
+    if (avg >= 70) return 'text-yellow-400'; if (avg >= 60) return 'text-orange-400';
     return 'text-red-400';
   }
   
@@ -132,6 +150,19 @@ export default function ParentDashboard() {
     return <PermissionDenied userRole={userRole} />;
   }
 
+  const StatCard = ({ title, value, icon, subtext }: { title: string; value: string; icon: React.ReactNode, subtext?: string }) => (
+    <div className="group p-6 bg-background/60 backdrop-blur-sm rounded-xl shadow-lg border border-border">
+      <div className="flex items-start justify-between">
+        <div>
+          <p className="text-sm text-muted-foreground">{title}</p>
+          <p className="text-4xl font-bold text-foreground mt-2">{value}</p>
+          {subtext && <p className="text-xs text-muted-foreground mt-1">{subtext}</p>}
+        </div>
+        <div className="p-3 bg-secondary/10 rounded-lg">{icon}</div>
+      </div>
+    </div>
+  );
+
   return (
     <main className="flex min-h-screen flex-col items-center p-8 sm:p-12 bg-background text-foreground">
       <div className="w-full max-w-7xl animate-fade-in-slide-up">
@@ -147,7 +178,7 @@ export default function ParentDashboard() {
                     <select
                         value={selectedStudentId ?? ''}
                         onChange={(e) => setSelectedStudentId(e.target.value)}
-                        className="w-full sm:w-auto px-4 py-2 appearance-none bg-background/50 text-foreground border border-secondary/30 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                        className="w-full sm:w-auto px-4 py-2 appearance-none bg-background/50 text-foreground border border-input rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
                     >
                         {linkedStudents.map(student => (
                             <option key={student.id} value={student.id}>{student.name}</option>
@@ -157,43 +188,28 @@ export default function ParentDashboard() {
              </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-12">
-                <div className="group p-6 bg-background/60 backdrop-blur-sm rounded-xl shadow-lg border border-green-500/30">
-                    <div className="flex items-start justify-between">
-                        <div>
-                            <p className="text-sm text-muted-foreground">Days Present</p>
-                            <p className="text-4xl font-bold text-foreground mt-2">{attendanceSummary.present ?? 0}</p>
-                        </div>
-                        <div className="p-3 bg-green-500/10 rounded-lg">
-                            <CheckCircle className="w-6 h-6 text-green-500" />
-                        </div>
-                    </div>
-                </div>
-                <div className="group p-6 bg-background/60 backdrop-blur-sm rounded-xl shadow-lg border border-red-500/30">
-                    <div className="flex items-start justify-between">
-                        <div>
-                            <p className="text-sm text-muted-foreground">Days Absent</p>
-                            <p className="text-4xl font-bold text-foreground mt-2">{attendanceSummary.absent ?? 0}</p>
-                        </div>
-                        <div className="p-3 bg-red-500/10 rounded-lg">
-                            <XCircle className="w-6 h-6 text-red-500" />
-                        </div>
-                    </div>
-                </div>
-                <div className="group p-6 bg-background/60 backdrop-blur-sm rounded-xl shadow-lg border border-yellow-500/30">
-                    <div className="flex items-start justify-between">
-                        <div>
-                            <p className="text-sm text-muted-foreground">Days on Leave</p>
-                            <p className="text-4xl font-bold text-foreground mt-2">{attendanceSummary.leave ?? 0}</p>
-                        </div>
-                        <div className="p-3 bg-yellow-500/10 rounded-lg">
-                            <MinusCircle className="w-6 h-6 text-yellow-500" />
-                        </div>
-                    </div>
-                </div>
+              <StatCard 
+                title="Attendance Today"
+                value={attendanceToday ? attendanceToday.status.charAt(0).toUpperCase() + attendanceToday.status.slice(1) : 'N/A'}
+                subtext={attendanceToday ? format(new Date(), 'MMMM d, yyyy') : 'Not yet marked'}
+                icon={<CalendarDays className={`w-6 h-6 ${attendanceToday?.status === 'present' ? 'text-green-400' : attendanceToday?.status === 'absent' ? 'text-red-400' : 'text-yellow-400'}`} />}
+              />
+              <StatCard 
+                title="Monthly Attendance"
+                value={monthlyAttendancePercentage !== null ? `${monthlyAttendancePercentage.toFixed(0)}%` : 'N/A'}
+                subtext={monthlyAttendance.total > 0 ? `${monthlyAttendance.present} / ${monthlyAttendance.total} days` : 'No records this month'}
+                icon={<Percent className="w-6 h-6 text-secondary" />}
+              />
+              <StatCard 
+                title="Fee Status"
+                value={feeStatus ? feeStatus.status.charAt(0).toUpperCase() + feeStatus.status.slice(1) : 'N/A'}
+                subtext={feeStatus?.status === 'unpaid' ? `Due: $${(feeStatus.amount - feeStatus.discount).toFixed(2)}` : (feeStatus ? 'Cleared' : 'No fees posted')}
+                icon={<Wallet className={`w-6 h-6 ${feeStatus?.status === 'paid' ? 'text-green-400' : feeStatus?.status === 'unpaid' ? 'text-red-400' : 'text-muted-foreground' }`} />}
+              />
             </div>
 
             <div className="mt-12 grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div className="p-6 bg-background/60 backdrop-blur-sm border border-secondary/30 rounded-xl shadow-lg">
+                <div className="p-6 bg-background/60 backdrop-blur-sm border border-border rounded-xl shadow-lg">
                     <div className="flex items-center gap-3 mb-4">
                         <ClipboardCheck className="w-6 h-6 text-secondary"/>
                         <h3 className="text-xl font-semibold text-foreground">Grades</h3>
@@ -214,7 +230,7 @@ export default function ParentDashboard() {
                     </div>
                 </div>
 
-                <div className="p-6 bg-background/60 backdrop-blur-sm border border-secondary/30 rounded-xl shadow-lg">
+                <div className="p-6 bg-background/60 backdrop-blur-sm border border-border rounded-xl shadow-lg">
                     <h3 className="text-xl font-semibold text-foreground mb-4">Enrolled Classes</h3>
                     {classes.length > 0 ? (
                         <div className="space-y-4">
@@ -239,7 +255,7 @@ export default function ParentDashboard() {
             <Users className="mx-auto h-16 w-16 text-primary" />
             <h2 className="mt-6 text-2xl font-bold text-foreground">Welcome, Parent!</h2>
             <p className="mt-2 text-md text-muted-foreground max-w-prose mx-auto">
-              This is your dashboard where you will be able to see your child's classes, grades, and attendance records.
+              This is your dashboard where you can see your child's classes, grades, and attendance records.
             </p>
             <div className="mt-6 p-4 bg-primary/10 rounded-lg">
                 <p className="text-primary/90">
