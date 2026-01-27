@@ -1,11 +1,10 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { collection, query, onSnapshot, orderBy, doc, writeBatch, where, getDocs, getDoc, arrayRemove, deleteField } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
-import { UserPlus, Users, Briefcase, UserCircle, Trash2, Pencil } from 'lucide-react';
+import { UserPlus, Users, Briefcase, UserCircle, Trash2, Pencil, GraduationCap, Shield, HardHat } from 'lucide-react';
 import toast from 'react-hot-toast';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import { SkeletonListRow } from '@/components/Skeleton';
@@ -23,6 +22,7 @@ export default function AdminUsersPage() {
   const db = useFirestore();
   const { t } = useTranslation();
   
+  const [filter, setFilter] = useState('all');
   const [users, setUsers] = useState<UserData[]>([]);
   const [isLoadingUsers, setIsLoadingUsers] = useState(true);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
@@ -39,7 +39,16 @@ export default function AdminUsersPage() {
   const [linkedStudentIds, setLinkedStudentIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
-    const q = query(collection(db, 'users'), orderBy('createdAt', 'desc'));
+    setIsLoadingUsers(true);
+    let q;
+    const usersCollection = collection(db, 'users');
+    
+    if (filter === 'all') {
+      q = query(usersCollection, orderBy('createdAt', 'desc'));
+    } else {
+      q = query(usersCollection, where('role', '==', filter), orderBy('createdAt', 'desc'));
+    }
+
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
       const usersData: UserData[] = [];
       querySnapshot.forEach((doc) => {
@@ -54,7 +63,7 @@ export default function AdminUsersPage() {
     });
 
     return () => unsubscribe();
-  }, [db]);
+  }, [db, filter]);
 
   const handleEditClick = async (user: UserData) => {
     if (user.role === 'admin') {
@@ -204,38 +213,13 @@ export default function AdminUsersPage() {
     }
   };
 
-  if (isLoadingUsers) {
-    return (
-      <main className="flex min-h-screen flex-col items-center p-4 sm:p-8 bg-transparent">
-        <div className="w-full max-w-6xl">
-          <div className="flex justify-between items-center mb-8">
-            <div className="h-6 w-40 bg-muted rounded-md animate-pulse"></div>
-          </div>
-          <div className="flex justify-between items-center mb-8">
-            <div className="h-10 w-72 bg-muted rounded-md animate-pulse"></div>
-            <div className="h-12 w-36 bg-muted rounded-lg animate-pulse"></div>
-          </div>
-
-          <div className="p-6 bg-background/60 backdrop-blur-sm border border-border rounded-xl shadow-lg">
-            <div className="h-8 w-40 bg-muted rounded-md animate-pulse mb-4"></div>
-            <div className="space-y-3">
-              <SkeletonListRow />
-              <SkeletonListRow />
-              <SkeletonListRow />
-              <SkeletonListRow />
-            </div>
-          </div>
-        </div>
-      </main>
-    );
-  }
-  
   const getRoleIcon = (role: string) => {
     switch (role) {
-      case 'admin': return <Briefcase className="w-5 h-5 text-secondary" />;
-      case 'teacher': return <Users className="w-5 h-5 text-primary" />;
-      case 'student': return <UserCircle className="w-5 h-5 text-accent" />;
+      case 'admin': return <Shield className="w-5 h-5 text-destructive" />;
+      case 'teacher': return <Briefcase className="w-5 h-5 text-primary" />;
+      case 'student': return <GraduationCap className="w-5 h-5 text-accent" />;
       case 'parent': return <UserCircle className="w-5 h-5 text-green-400" />;
+      case 'staff': return <HardHat className="w-5 h-5 text-secondary" />;
       default: return <UserCircle className="w-5 h-5 text-muted-foreground" />;
     }
   };
@@ -243,8 +227,19 @@ export default function AdminUsersPage() {
   const getRoleName = (role: string) => {
     const roleKey = `adminUsers.${role.toLowerCase()}`;
     const translatedRole = t(roleKey);
-    return translatedRole === roleKey ? role : translatedRole;
-  }
+    if (translatedRole === roleKey) {
+        return role.charAt(0).toUpperCase() + role.slice(1);
+    }
+    return translatedRole;
+  };
+  
+  const filterOptions = [
+    { role: 'all', icon: Users, label: t('adminUsers.all') },
+    { role: 'student', icon: GraduationCap, label: t('adminUsers.student') },
+    { role: 'teacher', icon: Briefcase, label: t('adminUsers.teacher') },
+    { role: 'parent', icon: UserCircle, label: t('adminUsers.parent') },
+    { role: 'staff', icon: HardHat, label: t('adminUsers.staff') },
+  ];
 
   return (
     <main className="flex min-h-screen flex-col items-center p-4 sm:p-8 bg-transparent">
@@ -261,11 +256,36 @@ export default function AdminUsersPage() {
                 </button>
             </Link>
         </div>
+        
+        <div className="mb-6 flex flex-wrap items-center gap-2">
+            {filterOptions.map(({ role, icon: Icon, label }) => (
+            <button
+                key={role}
+                onClick={() => setFilter(role)}
+                className={`flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
+                filter === role
+                    ? 'bg-primary text-primary-foreground shadow-lg'
+                    : 'bg-background/50 text-muted-foreground hover:bg-muted/30'
+                }`}
+            >
+                <Icon size={16} />
+                <span>{label}</span>
+            </button>
+            ))}
+        </div>
 
         <div className="p-6 bg-background/60 backdrop-blur-sm border border-border rounded-xl shadow-lg">
-          <h2 className="text-2xl font-semibold text-foreground mb-4">{t('adminUsers.allUsers')}</h2>
+          <h2 className="text-2xl font-semibold text-foreground mb-4">
+            {filter === 'all' ? t('adminUsers.allUsers') : `${getRoleName(filter)}s`} ({users.length})
+          </h2>
           <div className="space-y-3">
-            {users.length > 0 ? (
+            {isLoadingUsers ? (
+                <>
+                    <SkeletonListRow />
+                    <SkeletonListRow />
+                    <SkeletonListRow />
+                </>
+            ) : users.length > 0 ? (
               users.map((user) => (
                 <div key={user.id} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center p-4 bg-background/50 border border-muted/20 rounded-lg transition-all hover:border-primary/50">
                   <div className="font-medium text-foreground/90">{user.fullName}</div>
