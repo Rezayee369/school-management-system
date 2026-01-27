@@ -44,7 +44,7 @@
         "staffType": {
             "type": "string",
             "description": "The type of staff member.",
-            "enum": ["Cleaner", "Guard", "Office Staff", "Maintenance"]
+            "enum": ["manager", "accountant", "clerk", "supervisor", "guard", "IT"]
         }
       },
       "required": ["fullName", "email", "role", "createdAt"]

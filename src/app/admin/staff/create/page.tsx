@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -25,10 +26,10 @@ export default function CreateStaffPage() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [phone, setPhone] = useState('');
-    const [staffType, setStaffType] = useState('Office Staff');
+    const [staffType, setStaffType] = useState('manager');
     const [isLoading, setIsLoading] = useState(false);
     
-    const staffTypes = ["Office Staff", "Cleaner", "Guard", "Maintenance"];
+    const staffTypes = ["manager", "accountant", "clerk", "supervisor", "guard", "IT"];
 
     const handleCreateUser = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -150,7 +151,7 @@ export default function CreateStaffPage() {
                                 className="w-full pl-12 pr-4 py-3 appearance-none rounded-xl bg-background/50 text-foreground focus:ring-2 focus:ring-ring focus:outline-none border border-secondary/30"
                             >
                                 {staffTypes.map(type => (
-                                    <option key={type} value={type}>{type}</option>
+                                    <option key={type} value={type} className="capitalize">{type}</option>
                                 ))}
                             </select>
                         </div>

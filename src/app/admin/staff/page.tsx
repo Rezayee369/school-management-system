@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -74,9 +75,11 @@ export default function AdminStaffPage() {
     const deletionToast = toast.loading(`Deleting ${staffToDelete.fullName}...`);
 
     try {
+        // This action ONLY deletes the Firestore document, not the Firebase Auth user.
+        // Deleting Auth users requires admin privileges and a backend environment (e.g., Cloud Functions).
         const userDocRef = doc(db, 'users', staffToDelete.id);
         await deleteDoc(userDocRef);
-        toast.success(`Staff member ${staffToDelete.fullName} deleted successfully.`, { id: deletionToast });
+        toast.success(`Staff member ${staffToDelete.fullName} removed from database.`, { id: deletionToast });
 
     } catch (err: any) {
         console.error("Error deleting staff member:", err);
