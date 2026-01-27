@@ -86,6 +86,14 @@ const config: Config = {
             transform: "translate(0px, 0px) scale(1)",
           },
         },
+        float: {
+          "0%, 100%": {
+            transform: "translateY(0px)",
+          },
+          "50%": {
+            transform: "translateY(-10px)",
+          }
+        }
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -93,6 +101,7 @@ const config: Config = {
         "fade-in-slide-up": "fade-in-slide-up 0.4s ease-out forwards",
         "fade-in-scale": "fade-in-scale 0.2s ease-out forwards",
         "blob": "blob 7s infinite",
+        "float": "float 3s ease-in-out infinite",
       },
       backgroundImage: {
         "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",

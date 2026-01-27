@@ -4,6 +4,7 @@ import "./globals.css";
 import { FirebaseClientProvider } from "@/firebase";
 import { Toaster } from 'react-hot-toast';
 import { LanguageProvider } from "@/i18n";
+import AnimatedShaderBackground from "@/components/ui/animated-shader-background";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -20,10 +21,7 @@ export default function RootLayout({
   return (
     <html lang="fa" dir="rtl" className="dark" suppressHydrationWarning>
       <body className={`${inter.className} bg-background`} suppressHydrationWarning>
-        <div className="absolute top-0 left-0 w-full h-full z-0 overflow-hidden">
-            <div className="absolute top-1/4 -left-32 w-96 h-96 bg-primary/10 rounded-full filter blur-3xl animate-blob opacity-50"></div>
-            <div className="absolute bottom-1/4 -right-32 w-96 h-96 bg-secondary/10 rounded-full filter blur-3xl animate-blob animation-delay-2000 opacity-50"></div>
-        </div>
+        <AnimatedShaderBackground />
         <div className="relative z-10">
           <LanguageProvider>
             <FirebaseClientProvider>
