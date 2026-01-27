@@ -55,19 +55,19 @@
     --card-foreground: 220 15% 25%;
     --popover: 220 20% 100%;
     --popover-foreground: 220 15% 25%;
-    --primary: 215 80% 50%; /* Corporate Blue */
+    --primary: 215 60% 50%; /* Calm, Trustworthy Blue */
     --primary-foreground: 0 0% 100%;
-    --secondary: 10 80% 55%; /* Corporate Orange */
+    --secondary: 170 45% 45%; /* Professional Teal */
     --secondary-foreground: 0 0% 100%;
     --muted: 220 20% 94%;
     --muted-foreground: 220 10% 45%;
-    --accent: 30 90% 60%; /* Accent Yellow/Gold */
+    --accent: 45 70% 60%; /* Soft Gold */
     --accent-foreground: 220 15% 15%;
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
     --border: 220 15% 88%;
     --input: 220 15% 88%;
-    --ring: 215 80% 50%;
+    --ring: 215 60% 50%;
   }
 }
 
