@@ -25,9 +25,8 @@ export default function AdminUsersPage() {
   const { t } = useTranslation();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const roleParam = searchParams.get('role');
+  const filter = searchParams.get('role') || 'all';
   
-  const [filter, setFilter] = useState(roleParam || 'all');
   const [users, setUsers] = useState<UserData[]>([]);
   const [isLoadingUsers, setIsLoadingUsers] = useState(true);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
@@ -42,11 +41,6 @@ export default function AdminUsersPage() {
 
   const [allStudents, setAllStudents] = useState<UserData[]>([]);
   const [linkedStudentIds, setLinkedStudentIds] = useState<Set<string>>(new Set());
-
-  useEffect(() => {
-    // Sync filter state with URL parameter
-    setFilter(roleParam || 'all');
-  }, [roleParam]);
 
   useEffect(() => {
     setIsLoadingUsers(true);
@@ -450,7 +444,3 @@ export default function AdminUsersPage() {
     </main>
   );
 }
-
-    
-
-    
