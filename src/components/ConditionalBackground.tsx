@@ -5,7 +5,10 @@ import dynamic from 'next/dynamic';
 
 const AnimatedShaderBackground = dynamic(
   () => import('@/components/ui/animated-shader-background'),
-  { ssr: false }
+  { 
+    ssr: false,
+    loading: () => null,
+  }
 );
 
 export default function ConditionalBackground() {
