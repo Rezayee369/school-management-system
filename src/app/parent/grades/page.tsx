@@ -177,7 +177,7 @@ export default function ParentGradesPage() {
 
     const doc = new jsPDF();
     
-    // Add Vazirmatn font for Persian support
+    // Add Vazirmatn font for Persian support. This is required for RTL languages.
     doc.addFileToVFS('Vazirmatn-Regular.ttf', vazirmatnFont);
     doc.addFont('Vazirmatn-Regular.ttf', 'Vazirmatn', 'normal');
     doc.setFont('Vazirmatn');
@@ -185,7 +185,6 @@ export default function ParentGradesPage() {
 
     const pageWidth = doc.internal.pageSize.getWidth();
     const margin = 15;
-    const contentWidth = pageWidth - margin * 2;
     let y = 20;
 
     // Header
@@ -201,16 +200,18 @@ export default function ParentGradesPage() {
     doc.text(`نام دانش‌آموز: ${selectedStudent.name}`, pageWidth - margin, y, { align: 'right' });
     y += 7;
     doc.text(`صنف: ${className}`, pageWidth - margin, y, { align: 'right' });
-    doc.text(`تاریخ صدور: ${format(new Date(), 'yyyy/MM/dd')}`, margin, y, { align: 'left' });
-    y += 10;
+    doc.text(`تاریخ صدور: ${format(new Date(), 'yyyy/MM/dd')}`, pageWidth - margin, y, { align: 'right' });
+    y += 12;
 
     // Grades Table
-    const tableHead = [['درصد', 'حداکثر نمره', 'نمره', 'موضوع امتحان']];
+    // The order in the array is reversed by jsPDF-autotable in RTL mode.
+    // So this is effectively: [Subject, Score, Max Score, Percentage]
+    const tableHead = [['موضوع امتحان', 'نمره', 'حداکثر نمره', 'درصد']];
     const tableBody = reportCardItems.map(item => [
-      `%${item.percentage.toFixed(1)}`,
-      item.maxScore,
+      `${item.subject} (${item.type})`,
       item.score,
-      `${item.subject} (${item.type})`
+      item.maxScore,
+      `%${item.percentage.toFixed(1)}`
     ]);
 
     autoTable(doc, {
@@ -220,22 +221,19 @@ export default function ParentGradesPage() {
         theme: 'grid',
         styles: {
             font: 'Vazirmatn',
-            halign: 'center',
-            cellPadding: 2,
+            cellPadding: 3, // Increased padding
+            halign: 'center', // Center-align by default
         },
         headStyles: {
-            fillColor: [45, 55, 72], // a neutral dark color
+            fillColor: [45, 55, 72],
             textColor: 255,
             fontStyle: 'bold',
         },
         alternateRowStyles: {
-            fillColor: [247, 250, 252] // light gray for rows, but will be white on pdf
+            fillColor: [248, 249, 250]
         },
-        didParseCell: function (data) {
-            // Right align body cells for RTL
-            if (data.section === 'body') {
-                data.cell.styles.halign = 'right';
-            }
+        columnStyles: {
+            0: { halign: 'right' }, // Right-align subject names
         }
     });
 
