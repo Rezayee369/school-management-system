@@ -1,12 +1,13 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
+import Link from 'next/link';
 import { useAuthGuard } from '@/hooks/useAuthGuard';
 import DashboardHeader from '@/components/DashboardHeader';
 import PermissionDenied from '@/components/PermissionDenied';
 import { useUser, useFirestore } from '@/firebase';
 import { collection, doc, onSnapshot, query, where, documentId, getDocs, orderBy } from 'firebase/firestore';
-import { BookOpen, Users, ClipboardCheck, Percent, CalendarDays, Wallet, CalendarClock } from 'lucide-react';
+import { BookOpen, Users, Percent, CalendarDays, Wallet, CalendarClock, Award } from 'lucide-react';
 import { format, parse } from 'date-fns';
 
 interface StudentData {
@@ -23,12 +24,6 @@ interface ClassData {
 interface AttendanceData {
   status: 'present' | 'absent' | 'leave';
   date: string; // YYYY-MM-DD
-}
-
-interface GradeData {
-  className: string;
-  examScore: number;
-  assignmentScore: number;
 }
 
 interface FeeData {
@@ -63,7 +58,6 @@ export default function ParentDashboard() {
 
   // Data for the selected student
   const [classes, setClasses] = useState<ClassData[]>([]);
-  const [grades, setGrades] = useState<GradeData[]>([]);
   const [allAttendance, setAllAttendance] = useState<AttendanceData[]>([]);
   const [allFees, setAllFees] = useState<FeeData[]>([]);
 
@@ -105,7 +99,7 @@ export default function ParentDashboard() {
   // Fetch data for the selected student
   useEffect(() => {
     if (!selectedStudentId || !db) {
-      setClasses([]); setGrades([]); setAllAttendance([]); setAllFees([]);
+      setClasses([]); setAllAttendance([]); setAllFees([]);
       return;
     }
 
@@ -114,10 +108,6 @@ export default function ParentDashboard() {
     // Classes
     const classesQuery = query(collection(db, 'classes'), where('studentIds', 'array-contains', selectedStudentId));
     unsubscribes.push(onSnapshot(classesQuery, snap => setClasses(snap.docs.map(d => ({ id: d.id, ...d.data() } as ClassData)))));
-
-    // Grades
-    const gradesQuery = query(collection(db, 'grades'), where('studentId', '==', selectedStudentId));
-    unsubscribes.push(onSnapshot(gradesQuery, snap => setGrades(snap.docs.map(d => d.data() as GradeData))));
 
     // Attendance (all records)
     const attendanceQuery = query(collection(db, 'attendance'), where('studentId', '==', selectedStudentId));
@@ -166,12 +156,6 @@ export default function ParentDashboard() {
     return (monthlyAttendance.present / monthlyAttendance.total) * 100;
   }, [monthlyAttendance]);
   
-  const getAverageColor = (avg: number) => {
-    if (avg >= 90) return 'text-primary'; if (avg >= 80) return 'text-green-400';
-    if (avg >= 70) return 'text-yellow-400'; if (avg >= 60) return 'text-orange-400';
-    return 'text-red-400';
-  }
-
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'present': return 'bg-green-500/20 text-green-300 border-green-500/50';
@@ -255,26 +239,13 @@ export default function ParentDashboard() {
 
             <div className="mt-12 grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <div className="grid grid-cols-1 gap-8 content-start">
-                    <div className="p-6 bg-background/60 backdrop-blur-sm border border-border rounded-xl shadow-lg">
-                        <div className="flex items-center gap-3 mb-4">
-                            <ClipboardCheck className="w-6 h-6 text-secondary"/>
-                            <h3 className="text-xl font-semibold text-foreground">Grades</h3>
+                    <Link href="/parent/grades" className="block group">
+                        <div className="flex flex-col justify-center text-center h-full p-6 bg-background/60 backdrop-blur-sm rounded-xl shadow-lg transition-all duration-300 border border-border hover:border-primary hover:shadow-xl hover:shadow-primary/20 hover:-translate-y-1 hover:scale-[1.02]">
+                            <Award className="w-8 h-8 text-primary mx-auto mb-3 transition-transform duration-300 group-hover:scale-110" />
+                            <h3 className="text-xl font-semibold text-foreground group-hover:text-primary transition-colors">View Report Card</h3>
+                            <p className="text-sm text-muted-foreground mt-1">See detailed exam scores and performance.</p>
                         </div>
-                        <div className="space-y-2">
-                            {grades.length > 0 ? grades.map((grade, i) => {
-                                 const avg = (grade.examScore + grade.assignmentScore) / 2;
-                                return (
-                                    <div key={i} className="grid grid-cols-4 items-center p-3 bg-background/30 border-b border-muted/20">
-                                        <p className="col-span-2 font-medium">{grade.className}</p>
-                                        <p className="text-center text-muted-foreground">{grade.examScore}</p>
-                                        <p className={`text-right font-bold ${getAverageColor(avg)}`}>{avg.toFixed(1)}%</p>
-                                    </div>
-                                )
-                            }) : (
-                                 <p className="text-muted-foreground text-center py-4">No grades posted.</p>
-                            )}
-                        </div>
-                    </div>
+                    </Link>
                     <div className="p-6 bg-background/60 backdrop-blur-sm border border-border rounded-xl shadow-lg">
                         <div className="flex items-center gap-3 mb-4">
                             <Wallet className="w-6 h-6 text-secondary"/>
