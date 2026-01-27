@@ -10,9 +10,8 @@ service cloud.firestore {
     }
 
     function getUserRole(userId) {
-      // This get() call requires read access to the users collection.
-      // This is granted below. It's safe because only admins can read all profiles,
-      // and other users can only read non-staff profiles or their own.
+      // This get() call requires the user to have read access to their own user document.
+      // This is granted in the /users/{userId} rule below.
       return get(/databases/$(database)/documents/users/$(userId)).data.role;
     }
 
@@ -42,16 +41,9 @@ service cloud.firestore {
     // --- Collection Rules ---
 
     match /users/{userId} {
-      // Admins can read any profile.
-      // Users can read their own profile.
-      // Staff can only read their own profile.
-      // Other authenticated users can read profiles of non-staff members. This protects staff data
-      // from being read by other non-admin roles.
-      allow read: if request.auth != null && (
-                    isAdmin() || 
-                    isOwner(userId) ||
-                    resource.data.role != 'staff'
-                  );
+      // Admins can read any user profile, which allows collection queries.
+      // Other authenticated users can only read their own profile.
+      allow read: if request.auth != null && (isAdmin() || isOwner(userId));
       
       // Admins can perform any write operation.
       // Users can create their own profile (but not as an admin).
