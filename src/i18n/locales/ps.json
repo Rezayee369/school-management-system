@@ -22,7 +22,9 @@
     "emailRequiredForReset": "مهرباني وکړئ خپل برېښنالیک پته ولیکئ.",
     "resetLinkSent": "د پټ نوم بیا تنظیمولو لینک ستاسو برېښنالیک ته واستول شو!",
     "roleMismatch": "ننوتل ناکام شول: تاسو '{{selectedRole}}' رول ټاکلی، خو ستاسو حساب '{{actualRole}}' دی.",
-    "invalidEmailOrPassword": "هغه برېښنالیک یا پټ نوم چې تاسو داخل کړی ناسم دی."
+    "invalidEmailOrPassword": "هغه برېښنالیک یا پټ نوم چې تاسو داخل کړی ناسم دی.",
+    "showPassword": "پټ نوم ښکاره کړئ",
+    "hidePassword": "پټ نوم پټ کړئ"
   },
   "dashboardHeader": {
     "admin": "د مدیر ډشبورډ",

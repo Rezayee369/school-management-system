@@ -22,7 +22,9 @@
     "emailRequiredForReset": "Please enter your email address.",
     "resetLinkSent": "Password reset link sent to your email!",
     "roleMismatch": "Login failed: You selected '{{selectedRole}}' but your account is a '{{actualRole}}'.",
-    "invalidEmailOrPassword": "The email or password you entered is incorrect."
+    "invalidEmailOrPassword": "The email or password you entered is incorrect.",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password"
   },
   "dashboardHeader": {
     "admin": "Admin Dashboard",

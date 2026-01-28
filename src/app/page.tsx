@@ -12,7 +12,7 @@ import {
 } from 'firebase/auth';
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { useAuth, useFirestore, useUser } from '@/firebase';
-import { Mail, Lock, GraduationCap, Shield, Briefcase, User as UserIcon, HardHat, X } from 'lucide-react';
+import { Mail, Lock, GraduationCap, Shield, Briefcase, User as UserIcon, HardHat, X, Eye, EyeOff } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useTranslation } from '@/i18n';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
@@ -32,6 +32,7 @@ const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
 export default function HomePage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [selectedRole, setSelectedRole] = useState('student');
   const [isLoading, setIsLoading] = useState(false);
   const [isResettingPassword, setIsResettingPassword] = useState(false);
@@ -257,7 +258,7 @@ export default function HomePage() {
                 ref={passwordInputRef}
                 id="password"
                 name="password"
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 autoComplete="current-password"
                 required
                 value={password}
@@ -265,8 +266,16 @@ export default function HomePage() {
                 onKeyDown={handleKeyDown}
                 placeholder={t('login.passwordPlaceholder')}
                 disabled={isLoading}
-                className="w-full py-3 rounded-lg bg-background/50 text-foreground placeholder-muted-foreground focus:ring-2 focus:ring-ring focus:outline-none border border-input transition-all duration-300 ps-12 pe-4"
+                className="w-full py-3 rounded-lg bg-background/50 text-foreground placeholder-muted-foreground focus:ring-2 focus:ring-ring focus:outline-none border border-input transition-all duration-300 ps-12 pe-12"
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute inset-y-0 end-4 my-auto h-5 w-5 text-muted-foreground hover:text-foreground"
+                aria-label={showPassword ? t('login.hidePassword') : t('login.showPassword')}
+              >
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
             </div>
 
             <div className="text-center">

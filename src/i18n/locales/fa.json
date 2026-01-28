@@ -22,7 +22,9 @@
     "emailRequiredForReset": "لطفاً آدرس ایمیل خود را وارد کنید.",
     "resetLinkSent": "لینک بازیابی رمز عبور به ایمیل شما ارسال شد!",
     "roleMismatch": "ورود ناموفق: شما نقش '{{selectedRole}}' را انتخاب کردید اما حساب شما یک '{{actualRole}}' است.",
-    "invalidEmailOrPassword": "ایمیل یا رمز عبور وارد شده اشتباه است."
+    "invalidEmailOrPassword": "ایمیل یا رمز عبور وارد شده اشتباه است.",
+    "showPassword": "نمایش رمز عبور",
+    "hidePassword": "پنهان کردن رمز عبور"
   },
   "dashboardHeader": {
     "admin": "داشبورد مدیر",
