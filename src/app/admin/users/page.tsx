@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
@@ -251,7 +250,7 @@ export default function AdminUsersPage() {
 
   const handleFilterClick = useCallback((role: string) => {
     const href = role === 'all' ? '/admin/users' : `/admin/users?role=${role}`;
-    router.push(href);
+    router.replace(href);
   }, [router]);
 
   return (

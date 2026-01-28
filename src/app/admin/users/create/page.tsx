@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -70,7 +69,7 @@ export default function CreateUserPage() {
             await setDoc(doc(db, 'users', newUser.uid), userData);
 
             toast.success(t('adminUsers.createUserSuccess'), { id: loadingToastId });
-            router.push('/admin/users');
+            router.replace('/admin/users');
 
         } catch (error: any) {
             console.error('Error creating user:', error);
