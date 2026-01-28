@@ -24,7 +24,11 @@
     "roleMismatch": "Login failed: You selected '{{selectedRole}}' but your account is a '{{actualRole}}'.",
     "invalidEmailOrPassword": "The email or password you entered is incorrect.",
     "showPassword": "Show password",
-    "hidePassword": "Hide password"
+    "hidePassword": "Hide password",
+    "capsLockWarning": "Caps Lock is on",
+    "roleAriaLabel": "Select your role",
+    "emailAriaLabel": "Email Address",
+    "passwordAriaLabel": "Password"
   },
   "dashboardHeader": {
     "admin": "Admin Dashboard",
@@ -126,7 +130,10 @@
     "deleteSuccess": "User data for {{user}} deleted successfully.",
     "deleteError": "Failed to delete user",
     "linkedStudents": "Linked Students",
-    "noStudentsToLink": "No students available to link."
+    "noStudentsToLink": "No students available to link.",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
+    "capsLockWarning": "Caps Lock is on"
   },
   "adminClasses": {
     "manageClasses": "Manage Classes",
@@ -420,6 +427,11 @@
   },
   "common": {
     "back": "Back",
-    "close": "Close"
+    "close": "Close",
+    "passwordStrength": {
+      "weak": "Weak",
+      "medium": "Medium",
+      "strong": "Strong"
+    }
   }
 }

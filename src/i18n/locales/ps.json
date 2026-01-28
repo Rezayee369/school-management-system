@@ -24,7 +24,11 @@
     "roleMismatch": "ننوتل ناکام شول: تاسو '{{selectedRole}}' رول ټاکلی، خو ستاسو حساب '{{actualRole}}' دی.",
     "invalidEmailOrPassword": "هغه برېښنالیک یا پټ نوم چې تاسو داخل کړی ناسم دی.",
     "showPassword": "پټ نوم ښکاره کړئ",
-    "hidePassword": "پټ نوم پټ کړئ"
+    "hidePassword": "پټ نوم پټ کړئ",
+    "capsLockWarning": "Caps Lock فعال دی",
+    "roleAriaLabel": "خپل رول وټاکئ",
+    "emailAriaLabel": "برېښنالیک پته",
+    "passwordAriaLabel": "پټ نوم"
   },
   "dashboardHeader": {
     "admin": "د مدیر ډشبورډ",
@@ -126,7 +130,10 @@
     "deleteSuccess": "د {{user}} کاروونکي معلومات په بریالیتوب سره حذف شول.",
     "deleteError": "د کاروونکي په حذف کولو کې پاتې راغی",
     "linkedStudents": "تړلي زده‌کوونکي",
-    "noStudentsToLink": "د تړلو لپاره هیڅ زده‌کوونکی نشته."
+    "noStudentsToLink": "د تړلو لپاره هیڅ زده‌کوونکی نشته.",
+    "showPassword": "پټ نوم ښکاره کړئ",
+    "hidePassword": "پټ نوم پټ کړئ",
+    "capsLockWarning": "Caps Lock فعال دی"
   },
   "adminClasses": {
     "manageClasses": "د ټولګیو مدیریت",
@@ -420,6 +427,11 @@
   },
   "common": {
     "back": "شاته",
-    "close": "تړل"
+    "close": "تړل",
+    "passwordStrength": {
+      "weak": "کمزوری",
+      "medium": "منځنی",
+      "strong": "قوی"
+    }
   }
 }

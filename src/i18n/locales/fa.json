@@ -24,7 +24,11 @@
     "roleMismatch": "ورود ناموفق: شما نقش '{{selectedRole}}' را انتخاب کردید اما حساب شما یک '{{actualRole}}' است.",
     "invalidEmailOrPassword": "ایمیل یا رمز عبور وارد شده اشتباه است.",
     "showPassword": "نمایش رمز عبور",
-    "hidePassword": "پنهان کردن رمز عبور"
+    "hidePassword": "پنهان کردن رمز عبور",
+    "capsLockWarning": "Caps Lock روشن است",
+    "roleAriaLabel": "نقش خود را انتخاب کنید",
+    "emailAriaLabel": "آدرس ایمیل",
+    "passwordAriaLabel": "رمز عبور"
   },
   "dashboardHeader": {
     "admin": "داشبورد مدیر",
@@ -126,7 +130,10 @@
     "deleteSuccess": "اطلاعات کاربری {{user}} با موفقیت حذف شد.",
     "deleteError": "حذف کاربر با مشکل مواجه شد",
     "linkedStudents": "شاگردان مرتبط",
-    "noStudentsToLink": "هیچ شاگردی برای مرتبط‌سازی موجود نیست."
+    "noStudentsToLink": "هیچ شاگردی برای مرتبط‌سازی موجود نیست.",
+    "showPassword": "نمایش رمز عبور",
+    "hidePassword": "پنهان کردن رمز عبور",
+    "capsLockWarning": "Caps Lock روشن است"
   },
   "adminClasses": {
     "manageClasses": "مدیریت صنف‌ها",
@@ -420,6 +427,11 @@
   },
   "common": {
     "back": "بازگشت",
-    "close": "بستن"
+    "close": "بستن",
+    "passwordStrength": {
+      "weak": "ضعیف",
+      "medium": "متوسط",
+      "strong": "قوی"
+    }
   }
 }

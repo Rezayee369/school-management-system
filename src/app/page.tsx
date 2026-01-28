@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useCallback, useRef, type KeyboardEvent } from 'react';
@@ -37,6 +38,7 @@ export default function HomePage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isResettingPassword, setIsResettingPassword] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
+  const [isCapsLockOn, setIsCapsLockOn] = useState(false);
 
   const router = useRouter();
   const auth = useAuth();
@@ -227,6 +229,7 @@ export default function HomePage() {
                     onChange={(e) => setSelectedRole(e.target.value)}
                     onKeyDown={handleKeyDown}
                     disabled={isLoading}
+                    aria-label={t('login.roleAriaLabel')}
                     className="w-full py-3 ps-12 pe-4 rounded-lg appearance-none bg-background/50 text-foreground focus:ring-2 focus:ring-ring focus:outline-none border border-input transition-all duration-300"
                 >
                     {roleOptions.map(role => (
@@ -247,6 +250,7 @@ export default function HomePage() {
                 onChange={(e) => setEmail(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder={t('login.emailPlaceholder')}
+                aria-label={t('login.emailAriaLabel')}
                 disabled={isLoading}
                 className="w-full py-3 rounded-lg bg-background/50 text-foreground placeholder-muted-foreground focus:ring-2 focus:ring-ring focus:outline-none border border-input transition-all duration-300 ps-12 pe-4"
               />
@@ -264,7 +268,9 @@ export default function HomePage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 onKeyDown={handleKeyDown}
+                onKeyUp={(e: React.KeyboardEvent) => setIsCapsLockOn(e.getModifierState('CapsLock'))}
                 placeholder={t('login.passwordPlaceholder')}
+                aria-label={t('login.passwordAriaLabel')}
                 disabled={isLoading}
                 className="w-full py-3 rounded-lg bg-background/50 text-foreground placeholder-muted-foreground focus:ring-2 focus:ring-ring focus:outline-none border border-input transition-all duration-300 ps-12 pe-12"
               />
@@ -277,6 +283,9 @@ export default function HomePage() {
                 {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
             </div>
+            
+            {isCapsLockOn && <p className="text-xs text-yellow-500 text-center -mt-4">{t('login.capsLockWarning')}</p>}
+
 
             <div className="text-center">
                 <button type="button" onClick={() => setIsResettingPassword(true)} className="text-sm font-medium text-primary hover:underline focus:outline-none">

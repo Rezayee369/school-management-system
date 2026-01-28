@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useRef, useEffect, type KeyboardEvent } from 'react';
@@ -9,9 +10,10 @@ import toast from 'react-hot-toast';
 import { initializeApp, deleteApp } from 'firebase/app';
 import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
 import { setDoc, doc, serverTimestamp } from 'firebase/firestore';
-import { User, Mail, Lock, UserCheck, Phone, HardHat } from 'lucide-react';
+import { User, Mail, Lock, UserCheck, Phone, HardHat, Eye, EyeOff } from 'lucide-react';
 import BackButton from '@/components/BackButton';
 import { useTranslation } from '@/i18n';
+import PasswordStrength from '@/components/PasswordStrength';
 
 export default function CreateUserPage() {
     const router = useRouter();
@@ -25,6 +27,8 @@ export default function CreateUserPage() {
     const [phone, setPhone] = useState('');
     const [staffType, setStaffType] = useState('manager');
     const [isLoading, setIsLoading] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
+    const [isCapsLockOn, setIsCapsLockOn] = useState(false);
 
     const staffTypes = ["manager", "accountant", "clerk", "supervisor", "guard", "IT"];
 
@@ -164,17 +168,30 @@ export default function CreateUserPage() {
                                 className="w-full pl-12 pr-4 py-3 rounded-xl bg-background/50 text-foreground placeholder-gray-400 focus:ring-2 focus:ring-ring focus:outline-none border border-secondary/30"
                             />
                         </div>
-                        <div className="relative">
-                            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-secondary/60 w-5 h-5" />
-                            <input
-                                ref={passwordRef}
-                                type="password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                onKeyDown={(e) => handleKeyDown(e, roleRef)}
-                                placeholder={t('adminUsers.password')}
-                                className="w-full pl-12 pr-4 py-3 rounded-xl bg-background/50 text-foreground placeholder-gray-400 focus:ring-2 focus:ring-ring focus:outline-none border border-secondary/30"
-                            />
+                        <div>
+                            <div className="relative">
+                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-secondary/60 w-5 h-5" />
+                                <input
+                                    ref={passwordRef}
+                                    type={showPassword ? 'text' : 'password'}
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    onKeyDown={(e) => handleKeyDown(e, roleRef)}
+                                    onKeyUp={(e: React.KeyboardEvent) => setIsCapsLockOn(e.getModifierState('CapsLock'))}
+                                    placeholder={t('adminUsers.password')}
+                                    className="w-full pl-12 pr-12 py-3 rounded-xl bg-background/50 text-foreground placeholder-gray-400 focus:ring-2 focus:ring-ring focus:outline-none border border-secondary/30"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute inset-y-0 right-4 my-auto h-5 w-5 text-muted-foreground hover:text-foreground"
+                                    aria-label={showPassword ? t('adminUsers.hidePassword') : t('adminUsers.showPassword')}
+                                >
+                                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                </button>
+                            </div>
+                            <PasswordStrength password={password} />
+                            {isCapsLockOn && <p className="text-xs text-yellow-500 mt-1">{t('adminUsers.capsLockWarning')}</p>}
                         </div>
                         <div className="relative">
                             <UserCheck className="absolute left-4 top-1/2 -translate-y-1/2 text-secondary/60 w-5 h-5" />
