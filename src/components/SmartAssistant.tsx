@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'use client';
+import { useState, useEffect, useRef } from 'react';
 import { MessageSquare, X, Send, Sparkles } from 'lucide-react';
 import { useTranslation } from '@/i18n';
 
