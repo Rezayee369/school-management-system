@@ -58,10 +58,10 @@ export default function RootLayout({
                   },
                 }}
               />
+              <SmartAssistant />
               </FirebaseClientProvider>
           </LanguageProvider>
         </ThemeProvider>
-        <SmartAssistant />
       </body>
     </html>
   );
