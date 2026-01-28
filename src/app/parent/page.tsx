@@ -82,7 +82,7 @@ export default function ParentDashboard() {
 
   // Fetch parent's linked students
   useEffect(() => {
-    if (!isAuthorized || !user || !db) {
+    if (!isAuthorized || !user || !db || isLoadingAuth) {
         if (!isLoadingAuth) setIsLoadingData(false);
         return;
     }
@@ -104,10 +104,10 @@ export default function ParentDashboard() {
                 } else {
                     setLinkedStudents([]);
                     setSelectedStudentId(null);
-                    setIsLoadingData(false); // Fix: Ensure loading stops if no students are linked
+                    setIsLoadingData(false);
                 }
             } else {
-                 setIsLoadingData(false); // Fix: Ensure loading stops if parent document doesn't exist
+                 setIsLoadingData(false);
             }
         } catch (error) {
             console.error("Error fetching linked students:", error);
@@ -118,11 +118,12 @@ export default function ParentDashboard() {
 
     fetchLinkedStudents();
 
-  }, [isAuthorized, user, db, selectedStudentId, isLoadingAuth]);
+  }, [isAuthorized, user, db, isLoadingAuth]);
 
   // Fetch data for the selected student
   useEffect(() => {
     if (!selectedStudentId || !db) {
+      if (linkedStudents.length === 0) setIsLoadingData(false);
       setClasses([]); setAllAttendance([]); setAllFees([]);
       return;
     }
@@ -149,7 +150,7 @@ export default function ParentDashboard() {
     }
     
     fetchStudentData();
-  }, [selectedStudentId, db]);
+  }, [selectedStudentId, db, linkedStudents]);
 
   // Fetch notifications separately
   useEffect(() => {
@@ -240,7 +241,9 @@ export default function ParentDashboard() {
     }
   };
   
-  const selectedStudent = linkedStudents.find(s => s.id === selectedStudentId);
+  const selectedStudent = useMemo(() => {
+    return linkedStudents.find(s => s.id === selectedStudentId);
+  }, [linkedStudents, selectedStudentId]);
 
   if (isLoadingAuth || isLoadingData) {
     return (
@@ -276,7 +279,7 @@ export default function ParentDashboard() {
            <>
              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
                 <h2 className="text-2xl font-semibold text-foreground">
-                    {t('parentDashboard.showingDataFor')}: <span className="text-primary">{selectedStudent.name}</span>
+                    {t('parentDashboard.showingDataFor')}: <span className="font-bold text-primary">{selectedStudent.name}</span>
                 </h2>
                 {linkedStudents.length > 1 && (
                     <select
@@ -464,5 +467,3 @@ export default function ParentDashboard() {
     </main>
   );
 }
-
-    

@@ -44,12 +44,13 @@ service cloud.firestore {
     // --- Collection Rules ---
 
     match /users/{userId} {
-      // A user can always read their own document. This is the non-recursive base case
-      // that allows helper functions like isAdmin() to safely check a user's role.
-      allow get: if isOwner(userId);
+      // A user can always read their own document.
+      // A parent can read the documents of their linked children.
+      // An admin can read any user document.
+      allow get: if isOwner(userId) || isParentOf(userId) || isAdmin();
       
-      // Admins can list the collection (for aggregation queries) and get any individual user document.
-      allow list, get: if isAdmin();
+      // Admins can list the collection (for aggregation queries).
+      allow list: if isAdmin();
 
       // WRITE: An admin can create/update/delete anyone.
       // A user can create themselves (but not as admin), and update themselves (but not change role).
@@ -67,15 +68,14 @@ service cloud.firestore {
     }
     
     match /attendance/{attendanceId} {
-      // GET: Admins, the teacher, the student, or parent can get a single record.
-      allow get: if isAdmin() || 
+      // GET: Admins, Staff, the teacher, the student, or parent can get a single record.
+      allow get: if isAdmin() || isStaff() ||
                    (isTeacher() && resource.data.teacherId == request.auth.uid) ||
                    (request.auth != null && resource.data.studentId == request.auth.uid) ||
                    isParentOf(resource.data.studentId);
 
-      // LIST: Admins, Teachers, and Parents can perform queries.
-      // The GET rule will secure the results of the query row-by-row.
-      allow list: if isAdmin() || isTeacher() || isParent();
+      // LIST: Admins, Teachers, Parents, and Staff can perform queries.
+      allow list: if isAdmin() || isTeacher() || isParent() || isStaff();
       
       // WRITE: Admins or the assigned class teacher can write.
       allow write: if isAdmin() ||
