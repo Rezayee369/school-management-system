@@ -25,7 +25,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fa" dir="rtl" className={`${ptSans.variable}`} suppressHydrationWarning>
-      <body className={`font-sans bg-background`} suppressHydrationWarning>
+      <body className={`font-sans`} suppressHydrationWarning>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
