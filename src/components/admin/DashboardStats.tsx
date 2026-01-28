@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { useFirestore } from '@/firebase';
 import { collection, query, where, getCountFromServer } from 'firebase/firestore';
 import { Users, BookOpen, HardHat } from 'lucide-react';
@@ -10,19 +11,25 @@ interface Stat {
   title: string;
   count: number;
   icon: React.ReactNode;
+  link: string;
 }
 
 const StatCard = ({ stat }: { stat: Stat }) => (
-  <div className="p-6 bg-background/60 backdrop-blur-sm rounded-xl shadow-lg border border-border">
-    <div className="flex items-start justify-between">
-      <div>
-        <p className="text-sm text-muted-foreground">{stat.title}</p>
-        <p className="text-4xl font-bold text-foreground mt-2">{stat.count}</p>
+  <Link href={stat.link} className="group">
+    <div className="p-6 bg-background/60 backdrop-blur-sm rounded-xl shadow-lg border border-border transition-all duration-300 hover:border-primary hover:shadow-xl hover:shadow-primary/20 hover:-translate-y-1">
+      <div className="flex items-start justify-between">
+        <div>
+          <p className="text-sm text-muted-foreground">{stat.title}</p>
+          <p className="text-4xl font-bold text-foreground mt-2 transition-colors duration-300 group-hover:text-primary">{stat.count}</p>
+        </div>
+        <div className="p-3 bg-primary/10 rounded-lg transition-all duration-300 group-hover:bg-primary/20 group-hover:shadow-[0_0_15px_hsl(var(--primary))]">
+          {stat.icon}
+        </div>
       </div>
-      <div className="p-3 bg-primary/10 rounded-lg">{stat.icon}</div>
     </div>
-  </div>
+  </Link>
 );
+
 
 const StatCardSkeleton = () => (
     <div className="p-6 bg-background/60 backdrop-blur-sm rounded-xl shadow-lg border border-border animate-pulse">
@@ -66,10 +73,10 @@ export default function DashboardStats() {
         ]);
 
         const fetchedStats: Stat[] = [
-          { title: t('adminDashboard.totalStudents'), count: studentsSnapshot.data().count, icon: <Users className="w-6 h-6 text-primary" /> },
-          { title: t('adminDashboard.totalTeachers'), count: teachersSnapshot.data().count, icon: <Users className="w-6 h-6 text-primary" /> },
-          { title: t('adminDashboard.totalStaff'), count: staffSnapshot.data().count, icon: <HardHat className="w-6 h-6 text-primary" /> },
-          { title: t('adminDashboard.totalClasses'), count: classesSnapshot.data().count, icon: <BookOpen className="w-6 h-6 text-primary" /> },
+          { title: t('adminDashboard.totalStudents'), count: studentsSnapshot.data().count, icon: <Users className="w-6 h-6 text-primary" />, link: '/admin/users?role=student' },
+          { title: t('adminDashboard.totalTeachers'), count: teachersSnapshot.data().count, icon: <Users className="w-6 h-6 text-primary" />, link: '/admin/users?role=teacher' },
+          { title: t('adminDashboard.totalStaff'), count: staffSnapshot.data().count, icon: <HardHat className="w-6 h-6 text-primary" />, link: '/admin/users?role=staff' },
+          { title: t('adminDashboard.totalClasses'), count: classesSnapshot.data().count, icon: <BookOpen className="w-6 h-6 text-primary" />, link: '/admin/classes' },
         ];
         
         setStats(fetchedStats);
