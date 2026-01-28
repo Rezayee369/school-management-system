@@ -10,6 +10,7 @@ service cloud.firestore {
     }
 
     function getUserRole(userId) {
+      // This function relies on the `get` rule for /users/{userId} allowing this read.
       return get(/databases/$(database)/documents/users/$(userId)).data.role;
     }
 
@@ -42,8 +43,8 @@ service cloud.firestore {
     // --- Collection Rules ---
 
     match /users/{userId} {
-      // GET: A user can get their own doc, OR an admin can get any doc.
-      // The isOwner check is vital to break the recursion for isAdmin().
+      // GET: A user can get their own doc (to read their role), OR an admin can get any doc.
+      // The isOwner check is vital to break the potential recursion for isAdmin().
       allow get: if isOwner(userId) || isAdmin();
       
       // LIST: Only an admin can perform queries on the users collection.
@@ -64,29 +65,33 @@ service cloud.firestore {
     }
     
     match /attendance/{attendanceId} {
-      // An Admin can read any record.
-      // A Teacher can read records for their own students (more fine-grained would check class teacher).
-      // A Student can read their own records.
-      // A Parent can read records of their linked children.
-      allow read: if isAdmin() || 
+      // GET: Admins, the specific teacher, the specific student, or the student's parent can get a single record.
+      allow get: if isAdmin() || 
                    (isTeacher() && resource.data.teacherId == request.auth.uid) ||
                    (request.auth != null && resource.data.studentId == request.auth.uid) ||
                    isParentOf(resource.data.studentId);
+
+      // LIST: Only Admins can perform broad queries needed for the dashboard.
+      // Other roles would need more specific rules combined with query constraints.
+      allow list: if isAdmin();
       
-      // Admins can write any attendance record.
-      // A teacher can write a record only if they are the teacher of that specific class.
+      // WRITE: Admins or the assigned class teacher can write.
       allow write: if isAdmin() ||
                    (isTeacher() && isClassTeacher(request.resource.data.classId, request.auth.uid));
     }
 
     match /grades/{gradeId} {
-      // Admins, the specific teacher, the specific student, or the student's parent can read.
-      allow read: if isAdmin() ||
+      // GET: Admins, the specific teacher, the specific student, or the student's parent can read.
+      allow get: if isAdmin() ||
                    (isTeacher() && resource.data.teacherId == request.auth.uid) || 
                    (request.auth != null && resource.data.studentId == request.auth.uid) ||
                    isParentOf(resource.data.studentId);
+        
+      // LIST: Only Admins and Teachers can perform queries.
+      // Student/Parent queries must be more constrained.
+      allow list: if isAdmin() || isTeacher();
                    
-      // Admins or the assigned teacher can write grades.
+      // WRITE: Admins or the assigned teacher can write grades.
       allow write: if isAdmin() ||
                    (isTeacher() && request.resource.data.teacherId == request.auth.uid);
     }
@@ -96,12 +101,15 @@ service cloud.firestore {
         return feeId.split('_')[0];
       }
 
-      // Admins, the student, or the student's parent can read.
-      allow read: if isAdmin() ||
+      // GET: Admins, the student, or the student's parent can read.
+      allow get: if isAdmin() ||
                    (request.auth != null && getStudentIdFromFeeId(feeId) == request.auth.uid) ||
                    isParentOf(getStudentIdFromFeeId(feeId));
+
+      // LIST: Only Admins can query the fees collection for reports.
+      allow list: if isAdmin();
                    
-      // Only Admins can create, update, or delete fee records.
+      // WRITE: Only Admins can create, update, or delete fee records.
       allow write: if isAdmin();
     }
 
@@ -116,11 +124,14 @@ service cloud.firestore {
     }
 
     match /examGrades/{examGradeId} {
-      // Admins, the specific teacher, the specific student, or the student's parent can read.
-      allow read: if isAdmin() ||
+      // GET: Admins, the specific teacher, the specific student, or the student's parent can read.
+      allow get: if isAdmin() ||
                    (isTeacher() && resource.data.teacherId == request.auth.uid) ||
                    (request.auth != null && resource.data.studentId == request.auth.uid) ||
                    isParentOf(resource.data.studentId);
+
+      // LIST: Admins and Teachers can query.
+      allow list: if isAdmin() || isTeacher();
 
       // A teacher can create a grade for a student if they teach that class.
       // The score must be valid. Once created, teachers cannot update/delete (admins can).
