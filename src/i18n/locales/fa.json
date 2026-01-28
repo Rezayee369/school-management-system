@@ -30,6 +30,21 @@
     "roleStaff": "کارمند",
     "roleUnknown": "نقش نامشخص"
   },
+  "profile": {
+    "title": "پروفایل من",
+    "subtitle": "اطلاعات شخصی و تنظیمات خود را به‌روز کنید.",
+    "fullNameLabel": "نام کامل",
+    "phoneLabel": "شماره تلفن",
+    "emailLabel": "آدرس ایمیل (غیرقابل تغییر)",
+    "roleLabel": "نقش شما (غیرقابل تغییر)",
+    "languageLabel": "زبان",
+    "saveButton": "ذخیره تغییرات",
+    "savingButton": "در حال ذخیره...",
+    "updateSuccess": "پروفایل با موفقیت به‌روز شد!",
+    "updateError": "به‌روزرسانی پروفایل با مشکل مواجه شد.",
+    "fetchError": "بارگیری اطلاعات پروفایل شما ممکن نبود.",
+    "validationError": "نام کامل الزامی است."
+  },
   "adminDashboard": {
     "studentsPresentToday": "شاگردان حاضر امروز",
     "totalTeachers": "مجموع استادان",

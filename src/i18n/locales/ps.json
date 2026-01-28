@@ -30,6 +30,21 @@
     "roleStaff": "کارکوونکی",
     "roleUnknown": "نامعلوم رول"
   },
+  "profile": {
+    "title": "زما پروفایل",
+    "subtitle": "خپل شخصي معلومات او غوره توبونه تازه کړئ.",
+    "fullNameLabel": "بشپړ نوم",
+    "phoneLabel": "د تلیفون شمیره",
+    "emailLabel": "برېښنالیک پته (د بدلولو وړ نه ده)",
+    "roleLabel": "ستاسو رول (د بدلولو وړ نه دی)",
+    "languageLabel": "ژبه",
+    "saveButton": "بدلونونه خوندي کړئ",
+    "savingButton": "د خوندي کولو په حال کې...",
+    "updateSuccess": "پروفایل په بریالیتوب سره تازه شو!",
+    "updateError": "د پروفایل په تازه کولو کې پاتې راغی.",
+    "fetchError": "ستاسو د پروفایل معلوماتو په بارولو کې پاتې راغی.",
+    "validationError": "بشپړ نوم اړین دی."
+  },
   "adminDashboard": {
     "studentsPresentToday": "نن حاضر زده‌کوونکي",
     "totalTeachers": "ټول ښوونکي",

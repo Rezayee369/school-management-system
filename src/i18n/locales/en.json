@@ -30,6 +30,21 @@
     "roleStaff": "Staff",
     "roleUnknown": "Unknown Role"
   },
+  "profile": {
+    "title": "My Profile",
+    "subtitle": "Update your personal information and preferences.",
+    "fullNameLabel": "Full Name",
+    "phoneLabel": "Phone Number",
+    "emailLabel": "Email Address (Cannot be changed)",
+    "roleLabel": "Your Role (Cannot be changed)",
+    "languageLabel": "Language",
+    "saveButton": "Save Changes",
+    "savingButton": "Saving...",
+    "updateSuccess": "Profile updated successfully!",
+    "updateError": "Failed to update profile.",
+    "fetchError": "Could not load your profile data.",
+    "validationError": "Full name is required."
+  },
   "adminDashboard": {
     "studentsPresentToday": "Students Present Today",
     "totalTeachers": "Total Teachers",
@@ -179,9 +194,9 @@
     "studentName": "Student Name",
     "class": "Class",
     "feeMonth": "Fee Month",
-    "feeAmount": "Fee Amount (AFN)",
-    "discount": "Discount (AFN)",
-    "amountDue": "Amount Due (AFN)",
+    "feeAmount": "Fee Amount",
+    "discount": "Discount",
+    "amountDue": "Amount Due",
     "noUnpaidFees": "No Unpaid Fees Found",
     "noOutstanding": "There are no outstanding fees.",
     "noUnpaidForMonth": "No unpaid fees were found for the selected month."
