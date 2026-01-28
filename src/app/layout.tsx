@@ -6,6 +6,7 @@ import { FirebaseClientProvider } from "@/firebase";
 import { Toaster } from 'react-hot-toast';
 import { LanguageProvider } from "@/i18n";
 import { ThemeProvider } from "@/components/theme-provider";
+import SmartAssistant from "@/components/SmartAssistant";
 
 const ptSans = PT_Sans({
   subsets: ['latin'],
@@ -60,6 +61,7 @@ export default function RootLayout({
               </FirebaseClientProvider>
           </LanguageProvider>
         </ThemeProvider>
+        <SmartAssistant />
       </body>
     </html>
   );
