@@ -4,7 +4,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { collection, query, orderBy, doc, writeBatch, where, getDocs, deleteField } from 'firebase/firestore';
+import { collection, query, orderBy, doc, writeBatch, where, getDocs, deleteField, deleteDoc } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
 import { UserPlus, Users, Briefcase, UserCircle, Trash2, Pencil, GraduationCap, Shield, HardHat, Phone } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -471,3 +471,5 @@ export default function AdminUsersPage() {
     </main>
   );
 }
+
+    
