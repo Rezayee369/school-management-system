@@ -1,34 +1,42 @@
+
 'use client';
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useFirestore, useAuth } from '@/firebase';
+import { useFirestore } from '@/firebase';
 import { firebaseConfig } from '@/firebase/config';
 import toast from 'react-hot-toast';
 
 import { initializeApp, deleteApp } from 'firebase/app';
 import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
 import { setDoc, doc, serverTimestamp } from 'firebase/firestore';
-import { User, Mail, Lock, UserCheck } from 'lucide-react';
+import { User, Mail, Lock, UserCheck, Phone, HardHat } from 'lucide-react';
 import BackButton from '@/components/BackButton';
 import { useTranslation } from '@/i18n';
 
 export default function CreateUserPage() {
     const router = useRouter();
     const db = useFirestore();
-    const auth = useAuth();
     const { t } = useTranslation();
 
     const [fullName, setFullName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [role, setRole] = useState('student');
+    const [phone, setPhone] = useState('');
+    const [staffType, setStaffType] = useState('manager');
     const [isLoading, setIsLoading] = useState(false);
+
+    const staffTypes = ["manager", "accountant", "clerk", "supervisor", "guard", "IT"];
 
     const handleCreateUser = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!fullName || !email || !password || !role) {
             toast.error('All fields are required.');
+            return;
+        }
+        if (role === 'staff' && (!phone || !staffType)) {
+            toast.error('Phone and Staff Type are required for staff members.');
             return;
         }
         setIsLoading(true);
@@ -43,14 +51,23 @@ export default function CreateUserPage() {
             const userCredential = await createUserWithEmailAndPassword(tempAuth, email, password);
             const newUser = userCredential.user;
 
-            await setDoc(doc(db, 'users', newUser.uid), {
-                fullName: fullName,
-                email: email,
-                role: role,
+            const userData: any = {
+                fullName,
+                email,
+                role,
                 createdAt: serverTimestamp(),
                 photoURL: null,
-                ...(role === 'parent' && { studentIds: [] })
-            });
+            };
+
+            if (role === 'parent') {
+                userData.studentIds = [];
+            }
+            if (role === 'staff') {
+                userData.phone = phone;
+                userData.staffType = staffType;
+            }
+
+            await setDoc(doc(db, 'users', newUser.uid), userData);
 
             toast.success(t('adminUsers.createUserSuccess'), { id: loadingToastId });
             router.push('/admin/users');
@@ -129,8 +146,36 @@ export default function CreateUserPage() {
                                 <option value="student">{t('adminUsers.student')}</option>
                                 <option value="teacher">{t('adminUsers.teacher')}</option>
                                 <option value="parent">{t('adminUsers.parent')}</option>
+                                <option value="staff">{t('adminUsers.staff')}</option>
                             </select>
                         </div>
+                        
+                        {role === 'staff' && (
+                            <>
+                                <div className="relative">
+                                    <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-secondary/60 w-5 h-5" />
+                                    <input
+                                        type="tel"
+                                        value={phone}
+                                        onChange={(e) => setPhone(e.target.value)}
+                                        placeholder={t('adminStaff.phone')}
+                                        className="w-full pl-12 pr-4 py-3 rounded-xl bg-background/50 text-foreground placeholder-gray-400 focus:ring-2 focus:ring-ring focus:outline-none border border-secondary/30"
+                                    />
+                                </div>
+                                <div className="relative">
+                                    <HardHat className="absolute left-4 top-1/2 -translate-y-1/2 text-secondary/60 w-5 h-5" />
+                                    <select
+                                        value={staffType}
+                                        onChange={(e) => setStaffType(e.target.value)}
+                                        className="w-full pl-12 pr-4 py-3 appearance-none rounded-xl bg-background/50 text-foreground focus:ring-2 focus:ring-ring focus:outline-none border border-secondary/30"
+                                    >
+                                        {staffTypes.map(type => (
+                                            <option key={type} value={type} className="capitalize">{type}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </>
+                        )}
                         
                         <button
                             type="submit"

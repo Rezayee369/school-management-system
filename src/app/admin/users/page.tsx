@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { collection, query, orderBy, doc, writeBatch, where, getDocs, deleteField } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
-import { UserPlus, Users, Briefcase, UserCircle, Trash2, Pencil, GraduationCap, Shield, HardHat } from 'lucide-react';
+import { UserPlus, Users, Briefcase, UserCircle, Trash2, Pencil, GraduationCap, Shield, HardHat, Phone } from 'lucide-react';
 import toast from 'react-hot-toast';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import { SkeletonListRow } from '@/components/Skeleton';
@@ -19,6 +19,8 @@ interface UserData {
   email: string;
   role: string;
   studentIds?: string[];
+  phone?: string;
+  staffType?: string;
 }
 
 export default function AdminUsersPage() {
@@ -36,12 +38,16 @@ export default function AdminUsersPage() {
   const [isUpdating, setIsUpdating] = useState(false);
   const [updatedFullName, setUpdatedFullName] = useState('');
   const [updatedRole, setUpdatedRole] = useState('');
+  const [updatedPhone, setUpdatedPhone] = useState('');
+  const [updatedStaffType, setUpdatedStaffType] = useState('manager');
   
   const [userToDelete, setUserToDelete] = useState<UserData | null>(null);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
   const [allStudents, setAllStudents] = useState<UserData[]>([]);
   const [linkedStudentIds, setLinkedStudentIds] = useState<Set<string>>(new Set());
+
+  const staffTypes = ["manager", "accountant", "clerk", "supervisor", "guard", "IT"];
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -79,6 +85,8 @@ export default function AdminUsersPage() {
     setEditingUser(user);
     setUpdatedFullName(user.fullName);
     setUpdatedRole(user.role);
+    setUpdatedPhone(user.phone || '');
+    setUpdatedStaffType(user.staffType || 'manager');
     setLinkedStudentIds(new Set(user.studentIds || []));
 
     if ((user.role === 'parent' || updatedRole === 'parent') && allStudents.length === 0) {
@@ -122,13 +130,21 @@ export default function AdminUsersPage() {
             newUserData.studentIds = deleteField();
         }
 
+        if (updatedRole === 'staff') {
+            newUserData.phone = updatedPhone;
+            newUserData.staffType = updatedStaffType;
+        } else if (editingUser.role === 'staff' && updatedRole !== 'staff') {
+            newUserData.phone = deleteField();
+            newUserData.staffType = deleteField();
+        }
+
         batch.update(userDocRef, newUserData);
 
         await batch.commit();
 
         // Update local state for instant UI feedback
         setUsers(prevUsers => prevUsers.map(u => 
-            u.id === editingUser.id ? { ...u, fullName: updatedFullName, role: updatedRole, studentIds: newUserData.studentIds } : u
+            u.id === editingUser.id ? { ...u, ...newUserData } : u
         ));
 
         toast.success(t('adminUsers.updateSuccess'), { id: updateToast });
@@ -268,17 +284,30 @@ export default function AdminUsersPage() {
             ) : users.length > 0 ? (
               users.map((user) => (
                 <div key={user.id} className="p-4 bg-background/50 border border-muted/20 rounded-lg transition-all hover:border-primary/50">
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                      <div className="flex-1 mb-2 sm:mb-0">
-                          <p className="font-medium text-foreground/90">{user.fullName}</p>
-                          <p className="text-sm text-muted-foreground truncate">{user.email}</p>
-                      </div>
-                      <div className="flex items-center justify-between w-full sm:w-auto sm:gap-4">
-                          <div className="flex items-center gap-2">
-                              {getRoleIcon(user.role)}
-                              <span className="text-sm font-semibold capitalize">{getRoleName(user.role)}</span>
-                          </div>
-                          <div className="flex items-center gap-2">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                        <div className="flex-1">
+                            <p className="font-medium text-foreground/90">{user.fullName}</p>
+                            <p className="text-sm text-muted-foreground truncate">{user.email}</p>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
+                            <div className="flex items-center gap-2 text-muted-foreground">
+                                {getRoleIcon(user.role)}
+                                <span className="font-semibold capitalize">{getRoleName(user.role)}</span>
+                            </div>
+                            {user.role === 'staff' && (
+                                <>
+                                    <div className="flex items-center gap-2 text-muted-foreground">
+                                        <Phone className="w-4 h-4 text-accent" />
+                                        <span className="font-semibold capitalize">{user.phone || 'N/A'}</span>
+                                    </div>
+                                    <div className="flex items-center gap-2 text-muted-foreground">
+                                        <HardHat className="w-4 h-4 text-secondary" />
+                                        <span className="font-semibold capitalize">{user.staffType}</span>
+                                    </div>
+                                </>
+                            )}
+                        </div>
+                        <div className="flex justify-end items-center gap-2">
                               <button
                                   onClick={() => handleEditClick(user)}
                                   disabled={user.role === 'admin'}
@@ -295,8 +324,7 @@ export default function AdminUsersPage() {
                               >
                                   {isDeleting === user.id ? <div className="w-5 h-5 border-2 border-destructive border-t-transparent rounded-full animate-spin"></div> : <Trash2 size={18} />}
                               </button>
-                          </div>
-                      </div>
+                        </div>
                   </div>
                 </div>
               ))
@@ -372,6 +400,35 @@ export default function AdminUsersPage() {
                         )) : <p className="text-sm text-muted-foreground">{t('adminUsers.noStudentsToLink')}</p>}
                     </div>
                 </div>
+              )}
+
+              {updatedRole === 'staff' && (
+                <>
+                  <div>
+                    <label htmlFor="phone" className="block text-sm font-medium text-muted-foreground mb-2">{t('adminStaff.phone')}</label>
+                    <input
+                      id="phone"
+                      type="tel"
+                      value={updatedPhone}
+                      onChange={(e) => setUpdatedPhone(e.target.value)}
+                      placeholder={t('adminStaff.phone')}
+                      className="w-full px-4 py-2 bg-background/50 text-foreground placeholder-muted-foreground border border-input rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="staffType" className="block text-sm font-medium text-muted-foreground mb-2">{t('adminStaff.staffType')}</label>
+                    <select
+                      id="staffType"
+                      value={updatedStaffType}
+                      onChange={(e) => setUpdatedStaffType(e.target.value)}
+                      className="w-full appearance-none px-4 py-2 bg-background/50 text-foreground border border-input rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                    >
+                      {staffTypes.map(type => (
+                          <option key={type} value={type} className="capitalize">{type}</option>
+                      ))}
+                    </select>
+                  </div>
+                </>
               )}
 
               <div className="flex justify-end gap-4 pt-4">

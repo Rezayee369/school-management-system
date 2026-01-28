@@ -54,7 +54,7 @@ export default function AdminDashboard() {
             getCountFromServer(staffQuery),
             getCountFromServer(classesQuery),
             getCountFromServer(adminQuery),
-            getCountFromServer(presentQuery)
+            getCountFromServer(presentSnap)
         ]);
         
         // Set state with the counts from the aggregation result
@@ -214,7 +214,7 @@ export default function AdminDashboard() {
                     <p className="text-muted-foreground">{t('adminDashboard.manageUsersDesc')}</p>
                   </div>
                 </Link>
-                 <Link href="/admin/staff" className="group">
+                 <Link href="/admin/users?role=staff" className="group">
                   <div className="flex flex-col h-full p-6 bg-background/60 backdrop-blur-sm rounded-xl shadow-lg transition-all duration-300 border border-border hover:border-accent hover:shadow-xl hover:shadow-accent/20 hover:-translate-y-1 hover:scale-[1.02]">
                     <div className="flex items-center gap-4 mb-3">
                       <div className="p-3 bg-accent/10 rounded-lg transition-all duration-300 group-hover:bg-accent/20 group-hover:shadow-[0_0_15px_hsl(var(--accent))]">
@@ -303,7 +303,3 @@ export default function AdminDashboard() {
     </main>
   );
 }
-
-    
-
-    
