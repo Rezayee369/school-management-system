@@ -1,7 +1,6 @@
-
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, type KeyboardEvent } from 'react';
 import Link from 'next/link';
 import { useAuthGuard } from '@/hooks/useAuthGuard';
 import { useFirestore, useUser } from '@/firebase';
@@ -53,6 +52,29 @@ export default function TeacherExamsPage() {
   const [isLoadingExams, setIsLoadingExams] = useState(true);
   const [examToDelete, setExamToDelete] = useState<ExamData | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // Refs for keyboard navigation
+  const formRef = useRef<HTMLFormElement>(null);
+  const classSelectRef = useRef<HTMLSelectElement>(null);
+  const subjectRef = useRef<HTMLInputElement>(null);
+  const examTypeRef = useRef<HTMLSelectElement>(null);
+  const maxScoreRef = useRef<HTMLInputElement>(null);
+  const dateRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    classSelectRef.current?.focus();
+  }, [classes]);
+
+  const handleKeyDown = (e: KeyboardEvent, nextFieldRef?: React.RefObject<HTMLElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (nextFieldRef?.current) {
+        nextFieldRef.current.focus();
+      } else {
+        formRef.current?.requestSubmit();
+      }
+    }
+  };
 
 
   // Fetch teacher's classes for the form dropdown
@@ -129,13 +151,13 @@ export default function TeacherExamsPage() {
         classId: selectedClassId,
         subject: subject.trim(),
         type: examType,
-        maxScore: score,
         date: format(date, 'yyyy-MM-dd'),
         className: classes.find(c => c.id === selectedClassId)?.name
-      }
+      } as ExamData;
       setExams(prev => [newExam, ...prev]);
       toast.success(t('teacherExams.createSuccess'));
       setSubject(''); setMaxScore('100'); setExamType('monthly');
+      classSelectRef.current?.focus();
     } catch (error) {
       toast.error(t('teacherExams.createError'));
     } finally {
@@ -174,36 +196,36 @@ export default function TeacherExamsPage() {
             </div>
             <h1 className="text-4xl font-bold text-foreground mb-8">{t('teacherExams.title')}</h1>
             
-            <form onSubmit={handleSubmit} className="p-6 bg-background/60 backdrop-blur-sm border border-secondary/30 rounded-xl shadow-lg space-y-6">
+            <form ref={formRef} onSubmit={handleSubmit} className="p-6 bg-background/60 backdrop-blur-sm border border-secondary/30 rounded-xl shadow-lg space-y-6">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                     <div>
                         <label htmlFor="class-select" className="block text-sm font-medium text-muted-foreground mb-2">{t('teacherExams.classLabel')}</label>
-                        <select id="class-select" value={selectedClassId} onChange={(e) => setSelectedClassId(e.target.value)} disabled={isLoadingClasses || classes.length === 0} className="w-full appearance-none px-4 py-3 bg-background/50 text-foreground border border-input rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50">
+                        <select id="class-select" ref={classSelectRef} value={selectedClassId} onChange={(e) => setSelectedClassId(e.target.value)} onKeyDown={(e) => handleKeyDown(e, subjectRef)} disabled={isLoadingClasses || classes.length === 0} className="w-full appearance-none px-4 py-3 bg-background/50 text-foreground border border-input rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50">
                         {isLoadingClasses ? <option>{t('teacherExams.loading')}</option> : classes.length > 0 ? classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>) : <option>{t('teacherExams.noClasses')}</option>}
                         </select>
                     </div>
                     <div>
                         <label htmlFor="subject" className="block text-sm font-medium text-muted-foreground mb-2">{t('teacherExams.subjectLabel')}</label>
-                        <input id="subject" type="text" value={subject} onChange={(e) => setSubject(e.target.value)} placeholder={t('teacherExams.subjectPlaceholder')} className="w-full px-4 py-3 bg-background/50 text-foreground placeholder-muted-foreground/50 border border-input rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring" required />
+                        <input id="subject" ref={subjectRef} type="text" value={subject} onChange={(e) => setSubject(e.target.value)} onKeyDown={(e) => handleKeyDown(e, examTypeRef)} placeholder={t('teacherExams.subjectPlaceholder')} className="w-full px-4 py-3 bg-background/50 text-foreground placeholder-muted-foreground/50 border border-input rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring" required />
                     </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                     <div>
                         <label htmlFor="exam-type" className="block text-sm font-medium text-muted-foreground mb-2">{t('teacherExams.typeLabel')}</label>
-                        <select id="exam-type" value={examType} onChange={(e) => setExamType(e.target.value)} className="w-full appearance-none px-4 py-3 bg-background/50 text-foreground border border-input rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring">
+                        <select id="exam-type" ref={examTypeRef} value={examType} onChange={(e) => setExamType(e.target.value)} onKeyDown={(e) => handleKeyDown(e, maxScoreRef)} className="w-full appearance-none px-4 py-3 bg-background/50 text-foreground border border-input rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring">
                             <option value="monthly">{t('teacherExams.typeMonthly')}</option> <option value="midterm">{t('teacherExams.typeMidterm')}</option> <option value="final">{t('teacherExams.typeFinal')}</option>
                         </select>
                     </div>
                     <div>
                         <label htmlFor="max-score" className="block text-sm font-medium text-muted-foreground mb-2">{t('teacherExams.maxScoreLabel')}</label>
-                        <input id="max-score" type="number" value={maxScore} onChange={(e) => setMaxScore(e.target.value)} placeholder="e.g., 100" className="w-full px-4 py-3 bg-background/50 text-foreground placeholder-muted-foreground/50 border border-input rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring" required />
+                        <input id="max-score" ref={maxScoreRef} type="number" value={maxScore} onChange={(e) => setMaxScore(e.target.value)} onKeyDown={(e) => handleKeyDown(e, dateRef)} placeholder="e.g., 100" className="w-full px-4 py-3 bg-background/50 text-foreground placeholder-muted-foreground/50 border border-input rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring" required />
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-muted-foreground mb-2">{t('teacherExams.dateLabel')}</label>
                         <Popover>
                             <PopoverTrigger asChild>
-                            <Button variant={"outline"} className={cn("w-full justify-start text-left font-normal py-3 h-auto", !date && "text-muted-foreground")}>
+                            <Button ref={dateRef} variant={"outline"} className={cn("w-full justify-start text-left font-normal py-3 h-auto", !date && "text-muted-foreground")}>
                                 <CalendarIcon className="mr-2 h-4 w-4" />
                                 {date ? format(date, "PPP") : <span>{t('teacherExams.pickDate')}</span>}
                             </Button>

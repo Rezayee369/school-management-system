@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, type KeyboardEvent } from 'react';
 import { useFirestore } from '@/firebase';
 import { collection, query, where, getDocs, doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { Loader2 } from 'lucide-react';
@@ -41,6 +41,29 @@ export default function AdminFeesPage() {
   const [isSaving, setIsSaving] = useState(false);
   
   const monthOptions = getMonthOptions();
+
+  // Refs for keyboard navigation
+  const formRef = useRef<HTMLFormElement>(null);
+  const studentSelectRef = useRef<HTMLSelectElement>(null);
+  const monthSelectRef = useRef<HTMLSelectElement>(null);
+  const amountRef = useRef<HTMLInputElement>(null);
+  const discountRef = useRef<HTMLInputElement>(null);
+  
+  useEffect(() => {
+    studentSelectRef.current?.focus();
+  }, [students]);
+
+  const handleKeyDown = (e: KeyboardEvent, nextFieldRef?: React.RefObject<HTMLElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (nextFieldRef?.current) {
+        nextFieldRef.current.focus();
+      } else {
+        formRef.current?.requestSubmit();
+      }
+    }
+  };
+
 
   useEffect(() => {
     if (!db) return;
@@ -109,6 +132,7 @@ export default function AdminFeesPage() {
       setAmount('');
       setDiscount('');
       setStatus('unpaid');
+      studentSelectRef.current?.focus();
       
     } catch (error) {
       toast.error(t('adminFees.saveError'));
@@ -126,14 +150,16 @@ export default function AdminFeesPage() {
         </div>
         <h1 className="text-4xl font-bold text-foreground mb-8">{t('adminFees.title')}</h1>
         
-        <form onSubmit={handleSubmit} className="p-6 bg-background/60 backdrop-blur-sm border border-secondary/30 rounded-xl shadow-lg space-y-6">
+        <form ref={formRef} onSubmit={handleSubmit} className="p-6 bg-background/60 backdrop-blur-sm border border-secondary/30 rounded-xl shadow-lg space-y-6">
           
           <div>
             <label htmlFor="student-select" className="block text-sm font-medium text-muted-foreground mb-2">{t('adminFees.studentLabel')}</label>
             <select
               id="student-select"
+              ref={studentSelectRef}
               value={selectedStudentId}
               onChange={(e) => setSelectedStudentId(e.target.value)}
+              onKeyDown={(e) => handleKeyDown(e, monthSelectRef)}
               disabled={isLoadingStudents || students.length === 0}
               className="w-full appearance-none px-4 py-3 bg-background/50 text-foreground border border-input rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
             >
@@ -152,8 +178,10 @@ export default function AdminFeesPage() {
               <label htmlFor="month-select" className="block text-sm font-medium text-muted-foreground mb-2">{t('adminFees.monthLabel')}</label>
               <select
                 id="month-select"
+                ref={monthSelectRef}
                 value={month}
                 onChange={(e) => setMonth(e.target.value)}
+                onKeyDown={(e) => handleKeyDown(e, amountRef)}
                 className="w-full appearance-none px-4 py-3 bg-background/50 text-foreground border border-input rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
               >
                 {monthOptions.map(m => <option key={m} value={m}>{m}</option>)}
@@ -163,9 +191,11 @@ export default function AdminFeesPage() {
               <label htmlFor="amount" className="block text-sm font-medium text-muted-foreground mb-2">{t('adminFees.amountLabel')}</label>
               <input
                 id="amount"
+                ref={amountRef}
                 type="number"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
+                onKeyDown={(e) => handleKeyDown(e, discountRef)}
                 placeholder={t('adminFees.amountPlaceholder')}
                 className="w-full px-4 py-3 bg-background/50 text-foreground placeholder-muted-foreground/50 border border-input rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
                 required
@@ -178,9 +208,11 @@ export default function AdminFeesPage() {
               <label htmlFor="discount" className="block text-sm font-medium text-muted-foreground mb-2">{t('adminFees.discountLabel')}</label>
               <input
                 id="discount"
+                ref={discountRef}
                 type="number"
                 value={discount}
                 onChange={(e) => setDiscount(e.target.value)}
+                onKeyDown={(e) => handleKeyDown(e)}
                 placeholder={t('adminFees.discountPlaceholder')}
                 className="w-full px-4 py-3 bg-background/50 text-foreground placeholder-muted-foreground/50 border border-input rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
               />

@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useCallback, useRef, type KeyboardEvent } from 'react';
@@ -38,6 +37,8 @@ export default function HomePage() {
   const { t } = useTranslation();
   const user = useUser();
 
+  const formRef = useRef<HTMLFormElement>(null);
+  const emailInputRef = useRef<HTMLInputElement>(null);
   const passwordInputRef = useRef<HTMLInputElement>(null);
 
   // This effect will run whenever the `user` object changes.
@@ -61,8 +62,11 @@ export default function HomePage() {
         }
         // If user is logged in but has no role, they stay on the login page
         // until the role is assigned or an error is shown.
+    } else if (user === null) {
+      // User is not logged in, focus the email input
+      emailInputRef.current?.focus();
     }
-    // If user is `null` or `undefined`, do nothing, just show the login page.
+    // If user is `undefined`, do nothing, just show the login page.
   }, [user, router, auth, t]);
 
 
@@ -123,10 +127,14 @@ export default function HomePage() {
     // On success, loading remains true while redirection happens
   }, [auth, db]);
 
-  const handleEmailKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      passwordInputRef.current?.focus();
+      if (e.currentTarget === emailInputRef.current) {
+        passwordInputRef.current?.focus();
+      } else if (e.currentTarget === passwordInputRef.current) {
+        formRef.current?.requestSubmit();
+      }
     }
   };
 
@@ -152,10 +160,11 @@ export default function HomePage() {
             </p>
           </div>
 
-          <form onSubmit={handleEmailLogin} className="space-y-6">
+          <form ref={formRef} onSubmit={handleEmailLogin} className="space-y-6">
             <div className="relative">
               <Mail className="absolute inset-y-0 start-4 my-auto h-5 w-5 text-primary/60" />
               <input
+                ref={emailInputRef}
                 id="email"
                 name="email"
                 type="email"
@@ -163,7 +172,7 @@ export default function HomePage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                onKeyDown={handleEmailKeyDown}
+                onKeyDown={handleKeyDown}
                 placeholder={t('login.emailPlaceholder')}
                 disabled={isLoading}
                 className="w-full py-3 rounded-lg bg-background/50 text-foreground placeholder-muted-foreground focus:ring-2 focus:ring-ring focus:outline-none border border-input transition-all duration-300 ps-12 pe-4"
@@ -181,6 +190,7 @@ export default function HomePage() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                onKeyDown={handleKeyDown}
                 placeholder={t('login.passwordPlaceholder')}
                 disabled={isLoading}
                 className="w-full py-3 rounded-lg bg-background/50 text-foreground placeholder-muted-foreground focus:ring-2 focus:ring-ring focus:outline-none border border-input transition-all duration-300 ps-12 pe-4"

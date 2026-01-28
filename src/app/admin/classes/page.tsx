@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, type KeyboardEvent } from 'react';
 import Link from 'next/link';
 import { collection, addDoc, serverTimestamp, query, getDocs, orderBy, where, deleteDoc, doc } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
@@ -38,6 +38,26 @@ export default function AdminClassesPage() {
 
   const [classToDelete, setClassToDelete] = useState<ClassData | null>(null);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+
+  // Refs for keyboard navigation
+  const formRef = useRef<HTMLFormElement>(null);
+  const classNameRef = useRef<HTMLInputElement>(null);
+  const teacherSelectRef = useRef<HTMLSelectElement>(null);
+
+  useEffect(() => {
+    classNameRef.current?.focus();
+  }, [teachers]); // Refocus when teachers load
+
+  const handleKeyDown = (e: KeyboardEvent, nextFieldRef?: React.RefObject<HTMLElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (nextFieldRef?.current) {
+        nextFieldRef.current.focus();
+      } else {
+        formRef.current?.requestSubmit();
+      }
+    }
+  };
 
   useEffect(() => {
     if (!db) return;
@@ -115,6 +135,7 @@ export default function AdminClassesPage() {
       }, ...prev]);
       setNewClassName('');
       toast.success(`Class "${newClassName}" created.`);
+      classNameRef.current?.focus();
     } catch (err) {
       console.error('Error adding class:', err);
       toast.error('Failed to add class. Check permissions.');
@@ -201,18 +222,22 @@ export default function AdminClassesPage() {
           {isLoadingTeachers ? (
             <p className="text-muted-foreground">Loading available teachers...</p>
           ) : teachers.length > 0 ? (
-            <form onSubmit={handleAddClass} className="flex flex-col gap-4">
+            <form ref={formRef} onSubmit={handleAddClass} className="flex flex-col gap-4">
                 <div className='flex flex-col sm:flex-row gap-4'>
                     <input
+                      ref={classNameRef}
                       type="text"
                       value={newClassName}
                       onChange={(e) => setNewClassName(e.target.value)}
+                      onKeyDown={(e) => handleKeyDown(e, teacherSelectRef)}
                       placeholder={t('adminClasses.classNamePlaceholder')}
                       className="flex-grow px-4 py-2 bg-background/50 text-foreground placeholder-muted-foreground border border-input rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
                     />
                     <select
+                        ref={teacherSelectRef}
                         value={selectedTeacherId}
                         onChange={(e) => setSelectedTeacherId(e.target.value)}
+                        onKeyDown={(e) => handleKeyDown(e)}
                         className="flex-grow px-4 py-2 appearance-none bg-background/50 text-foreground border border-input rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
                         >
                         {teachers.map(teacher => (

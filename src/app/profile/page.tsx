@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, type KeyboardEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUser, useFirestore } from '@/firebase';
 import { doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
@@ -31,6 +31,30 @@ export default function ProfilePage() {
     const [fullName, setFullName] = useState('');
     const [phone, setPhone] = useState('');
     
+    // Refs for keyboard navigation
+    const formRef = useRef<HTMLFormElement>(null);
+    const fullNameRef = useRef<HTMLInputElement>(null);
+    const phoneRef = useRef<HTMLInputElement>(null);
+    const languageRef = useRef<HTMLSelectElement>(null);
+
+    useEffect(() => {
+        if (!isLoading) {
+            fullNameRef.current?.focus();
+        }
+    }, [isLoading]);
+
+    const handleKeyDown = (e: KeyboardEvent, nextFieldRef?: React.RefObject<HTMLElement>) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            if (nextFieldRef?.current) {
+                nextFieldRef.current.focus();
+            } else {
+                formRef.current?.requestSubmit();
+            }
+        }
+    };
+
+
     // Redirect if not logged in
     useEffect(() => {
         if (user === null) {
@@ -123,7 +147,7 @@ export default function ProfilePage() {
                 <h1 className="text-4xl font-bold text-foreground mb-2">{t('profile.title')}</h1>
                 <p className="text-muted-foreground mb-8">{t('profile.subtitle')}</p>
                 
-                <form onSubmit={handleSaveProfile} className="p-8 bg-background/60 backdrop-blur-sm border border-secondary/30 rounded-xl shadow-lg space-y-8">
+                <form ref={formRef} onSubmit={handleSaveProfile} className="p-8 bg-background/60 backdrop-blur-sm border border-secondary/30 rounded-xl shadow-lg space-y-8">
                     
                     {/* Full Name */}
                     <div>
@@ -132,9 +156,11 @@ export default function ProfilePage() {
                             <User className="absolute left-4 top-1/2 -translate-y-1/2 text-secondary/60 w-5 h-5" />
                             <input
                                 id="fullName"
+                                ref={fullNameRef}
                                 type="text"
                                 value={fullName}
                                 onChange={(e) => setFullName(e.target.value)}
+                                onKeyDown={(e) => handleKeyDown(e, phoneRef)}
                                 className="w-full pl-12 pr-4 py-3 bg-background/50 text-foreground border border-input rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
                             />
                         </div>
@@ -147,9 +173,11 @@ export default function ProfilePage() {
                             <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-secondary/60 w-5 h-5" />
                             <input
                                 id="phone"
+                                ref={phoneRef}
                                 type="tel"
                                 value={phone}
                                 onChange={(e) => setPhone(e.target.value)}
+                                onKeyDown={(e) => handleKeyDown(e, languageRef)}
                                 className="w-full pl-12 pr-4 py-3 bg-background/50 text-foreground border border-input rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
                             />
                         </div>
@@ -180,8 +208,10 @@ export default function ProfilePage() {
                             <Globe className="absolute left-4 top-1/2 -translate-y-1/2 text-secondary/60 w-5 h-5" />
                             <select
                                 id="language"
+                                ref={languageRef}
                                 value={language}
                                 onChange={(e) => setLanguage(e.target.value as Language)}
+                                onKeyDown={(e) => handleKeyDown(e)}
                                 className="w-full pl-12 pr-4 py-3 appearance-none bg-background/50 text-foreground border border-input rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
                             >
                                 <option value="en">English</option>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect, type KeyboardEvent } from 'react';
 import { useFirestore } from '@/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import toast from 'react-hot-toast';
@@ -28,6 +28,30 @@ export default function AdminNotificationsPage() {
   const [message, setMessage] = useState('');
   const [targetRole, setTargetRole] = useState<TargetRole>('all');
   const [isSaving, setIsSaving] = useState(false);
+
+  // Refs for keyboard navigation
+  const formRef = useRef<HTMLFormElement>(null);
+  const titleRef = useRef<HTMLInputElement>(null);
+  const messageRef = useRef<HTMLTextAreaElement>(null);
+  const targetRoleRef = useRef<HTMLSelectElement>(null);
+
+  useEffect(() => {
+    titleRef.current?.focus();
+  }, []);
+
+  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>, nextFieldRef?: React.RefObject<HTMLElement>) => {
+    if (e.key === 'Enter' && e.target instanceof HTMLElement) {
+      if (e.target.tagName !== 'TEXTAREA') {
+        e.preventDefault();
+        if (nextFieldRef?.current) {
+          nextFieldRef.current.focus();
+        } else {
+          formRef.current?.requestSubmit();
+        }
+      }
+    }
+  };
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,6 +83,7 @@ export default function AdminNotificationsPage() {
       setTitle('');
       setMessage('');
       setTargetRole('all');
+      titleRef.current?.focus();
 
     } catch (error) {
       toast.error(t('adminNotifications.sendError'));
@@ -76,15 +101,17 @@ export default function AdminNotificationsPage() {
         </div>
         <h1 className="text-4xl font-bold text-foreground mb-8">{t('adminNotifications.title')}</h1>
         
-        <form onSubmit={handleSubmit} className="p-6 bg-background/60 backdrop-blur-sm border border-secondary/30 rounded-xl shadow-lg space-y-6">
+        <form ref={formRef} onSubmit={handleSubmit} className="p-6 bg-background/60 backdrop-blur-sm border border-secondary/30 rounded-xl shadow-lg space-y-6">
           
           <div>
             <label htmlFor="title" className="block text-sm font-medium text-muted-foreground mb-2">{t('adminNotifications.formTitle')}</label>
             <input
               id="title"
+              ref={titleRef}
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
+              onKeyDown={(e) => handleKeyDown(e, messageRef)}
               placeholder={t('adminNotifications.formTitlePlaceholder')}
               className="w-full px-4 py-3 bg-background/50 text-foreground placeholder-muted-foreground/50 border border-input rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
               required
@@ -95,6 +122,7 @@ export default function AdminNotificationsPage() {
             <label htmlFor="message" className="block text-sm font-medium text-muted-foreground mb-2">{t('adminNotifications.formMessage')}</label>
             <textarea
               id="message"
+              ref={messageRef}
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               placeholder={t('adminNotifications.formMessagePlaceholder')}
@@ -108,8 +136,10 @@ export default function AdminNotificationsPage() {
             <label htmlFor="target-role" className="block text-sm font-medium text-muted-foreground mb-2">{t('adminNotifications.formAudience')}</label>
             <select
                 id="target-role"
+                ref={targetRoleRef}
                 value={targetRole}
                 onChange={(e) => setTargetRole(e.target.value as TargetRole)}
+                onKeyDown={(e) => handleKeyDown(e)}
                 className="w-full appearance-none px-4 py-3 bg-background/50 text-foreground border border-input rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
                 >
                 {roles.map(role => (

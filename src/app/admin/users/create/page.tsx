@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect, type KeyboardEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { useFirestore } from '@/firebase';
 import { firebaseConfig } from '@/firebase/config';
@@ -27,6 +27,41 @@ export default function CreateUserPage() {
     const [isLoading, setIsLoading] = useState(false);
 
     const staffTypes = ["manager", "accountant", "clerk", "supervisor", "guard", "IT"];
+
+    // Refs for keyboard navigation
+    const formRef = useRef<HTMLFormElement>(null);
+    const fullNameRef = useRef<HTMLInputElement>(null);
+    const emailRef = useRef<HTMLInputElement>(null);
+    const passwordRef = useRef<HTMLInputElement>(null);
+    const roleRef = useRef<HTMLSelectElement>(null);
+    const phoneRef = useRef<HTMLInputElement>(null);
+    const staffTypeRef = useRef<HTMLSelectElement>(null);
+
+    useEffect(() => {
+        fullNameRef.current?.focus();
+    }, []);
+
+    const handleKeyDown = (e: KeyboardEvent, nextFieldRef?: React.RefObject<HTMLElement>) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            if (nextFieldRef?.current) {
+                nextFieldRef.current.focus();
+            } else {
+                formRef.current?.requestSubmit();
+            }
+        }
+    };
+
+    const handleRoleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            if (role === 'staff') {
+                phoneRef.current?.focus();
+            } else {
+                formRef.current?.requestSubmit();
+            }
+        }
+    };
 
     const handleCreateUser = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -104,13 +139,15 @@ export default function CreateUserPage() {
                         </p>
                     </div>
 
-                    <form onSubmit={handleCreateUser} className="space-y-6">
+                    <form ref={formRef} onSubmit={handleCreateUser} className="space-y-6">
                         <div className="relative">
                             <User className="absolute left-4 top-1/2 -translate-y-1/2 text-secondary/60 w-5 h-5" />
                             <input
+                                ref={fullNameRef}
                                 type="text"
                                 value={fullName}
                                 onChange={(e) => setFullName(e.target.value)}
+                                onKeyDown={(e) => handleKeyDown(e, emailRef)}
                                 placeholder={t('adminUsers.fullName')}
                                 className="w-full pl-12 pr-4 py-3 rounded-xl bg-background/50 text-foreground placeholder-gray-400 focus:ring-2 focus:ring-ring focus:outline-none border border-secondary/30"
                             />
@@ -118,9 +155,11 @@ export default function CreateUserPage() {
                         <div className="relative">
                             <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-secondary/60 w-5 h-5" />
                             <input
+                                ref={emailRef}
                                 type="email"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
+                                onKeyDown={(e) => handleKeyDown(e, passwordRef)}
                                 placeholder={t('adminUsers.email')}
                                 className="w-full pl-12 pr-4 py-3 rounded-xl bg-background/50 text-foreground placeholder-gray-400 focus:ring-2 focus:ring-ring focus:outline-none border border-secondary/30"
                             />
@@ -128,9 +167,11 @@ export default function CreateUserPage() {
                         <div className="relative">
                             <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-secondary/60 w-5 h-5" />
                             <input
+                                ref={passwordRef}
                                 type="password"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
+                                onKeyDown={(e) => handleKeyDown(e, roleRef)}
                                 placeholder={t('adminUsers.password')}
                                 className="w-full pl-12 pr-4 py-3 rounded-xl bg-background/50 text-foreground placeholder-gray-400 focus:ring-2 focus:ring-ring focus:outline-none border border-secondary/30"
                             />
@@ -138,8 +179,10 @@ export default function CreateUserPage() {
                         <div className="relative">
                             <UserCheck className="absolute left-4 top-1/2 -translate-y-1/2 text-secondary/60 w-5 h-5" />
                             <select
+                                ref={roleRef}
                                 value={role}
                                 onChange={(e) => setRole(e.target.value)}
+                                onKeyDown={handleRoleKeyDown}
                                 className="w-full pl-12 pr-4 py-3 appearance-none rounded-xl bg-background/50 text-foreground focus:ring-2 focus:ring-ring focus:outline-none border border-secondary/30"
                             >
                                 <option value="student">{t('adminUsers.student')}</option>
@@ -154,9 +197,11 @@ export default function CreateUserPage() {
                                 <div className="relative">
                                     <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-secondary/60 w-5 h-5" />
                                     <input
+                                        ref={phoneRef}
                                         type="tel"
                                         value={phone}
                                         onChange={(e) => setPhone(e.target.value)}
+                                        onKeyDown={(e) => handleKeyDown(e, staffTypeRef)}
                                         placeholder={t('adminStaff.phone')}
                                         className="w-full pl-12 pr-4 py-3 rounded-xl bg-background/50 text-foreground placeholder-gray-400 focus:ring-2 focus:ring-ring focus:outline-none border border-secondary/30"
                                     />
@@ -164,8 +209,10 @@ export default function CreateUserPage() {
                                 <div className="relative">
                                     <HardHat className="absolute left-4 top-1/2 -translate-y-1/2 text-secondary/60 w-5 h-5" />
                                     <select
+                                        ref={staffTypeRef}
                                         value={staffType}
                                         onChange={(e) => setStaffType(e.target.value)}
+                                        onKeyDown={(e) => handleKeyDown(e)}
                                         className="w-full pl-12 pr-4 py-3 appearance-none rounded-xl bg-background/50 text-foreground focus:ring-2 focus:ring-ring focus:outline-none border border-secondary/30"
                                     >
                                         {staffTypes.map(type => (
