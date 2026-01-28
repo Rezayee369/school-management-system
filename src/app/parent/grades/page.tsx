@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useAuthGuard } from '@/hooks/useAuthGuard';
 import PermissionDenied from '@/components/PermissionDenied';
 import { useUser, useFirestore } from '@/firebase';
@@ -87,7 +87,7 @@ export default function ParentGradesPage() {
     }, () => setIsLoading(false));
 
     return () => unsubscribe();
-  }, [isAuthorized, user, db]);
+  }, [isAuthorized, user, db, selectedStudentId]);
 
   // Fetch grades for the selected student
   useEffect(() => {
@@ -169,7 +169,7 @@ export default function ParentGradesPage() {
 
   const selectedStudent = linkedStudents.find(s => s.id === selectedStudentId);
 
-  const handleDownloadPdf = () => {
+  const handleDownloadPdf = useCallback(() => {
     if (!selectedStudent || reportCardItems.length === 0 || isLoading) return;
 
     const doc = new jsPDF();
@@ -265,7 +265,7 @@ export default function ParentGradesPage() {
     }
 
     doc.save(`${t('pdfReport.fileName', { name: selectedStudent.name.replace(/ /g, '_') })}.pdf`);
-  };
+  }, [selectedStudent, reportCardItems, className, t, isLoading]);
 
   if (isLoadingAuth) {
     return <main className="flex min-h-screen items-center justify-center p-8 bg-background"><p>Loading...</p></main>;
@@ -397,3 +397,5 @@ export default function ParentGradesPage() {
     </main>
   );
 }
+
+    

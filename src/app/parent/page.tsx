@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import { useAuthGuard } from '@/hooks/useAuthGuard';
 import DashboardHeader from '@/components/DashboardHeader';
@@ -111,7 +111,7 @@ export default function ParentDashboard() {
 
     fetchLinkedStudents().catch(console.error);
 
-  }, [isAuthorized, user, db]);
+  }, [isAuthorized, user, db, selectedStudentId]);
 
   // Fetch data for the selected student
   useEffect(() => {
@@ -176,7 +176,7 @@ export default function ParentDashboard() {
     return notifications.filter(notif => !readNotificationIds.has(notif.id)).length;
   }, [notifications, readNotificationIds]);
 
-  const handleNotificationClick = async (notificationId: string) => {
+  const handleNotificationClick = useCallback(async (notificationId: string) => {
     if (!user || readNotificationIds.has(notificationId)) return;
     
     const newReadIds = new Set(readNotificationIds).add(notificationId);
@@ -194,7 +194,7 @@ export default function ParentDashboard() {
       revertedIds.delete(notificationId);
       setReadNotificationIds(revertedIds);
     }
-  };
+  }, [user, readNotificationIds, db, t]);
   
   const feeStatus = useMemo(() => {
     const currentMonthForFee = format(new Date(), 'yyyy-MM');
@@ -458,3 +458,5 @@ export default function ParentDashboard() {
     </main>
   );
 }
+
+    

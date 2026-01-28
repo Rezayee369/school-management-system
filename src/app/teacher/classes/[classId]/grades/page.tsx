@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import { useAuthGuard } from '@/hooks/useAuthGuard';
 import { useFirestore, useUser } from '@/firebase';
@@ -113,15 +113,16 @@ export default function ManageGradesPage() {
     return () => unsubscribeGrades();
   }, [classId, db]);
 
-  const handleScoreChange = (studentId: string, type: 'exam' | 'assignment', value: string) => {
-    const updatedScores = new Map(scores);
-    const currentScores = updatedScores.get(studentId) || { exam: '', assignment: '' };
-    currentScores[type] = value;
-    updatedScores.set(studentId, currentScores);
-    setScores(updatedScores);
-  };
+  const handleScoreChange = useCallback((studentId: string, type: 'exam' | 'assignment', value: string) => {
+    setScores(prevScores => {
+        const newScores = new Map(prevScores);
+        const currentScores = newScores.get(studentId) || { exam: '', assignment: '' };
+        newScores.set(studentId, { ...currentScores, [type]: value });
+        return newScores;
+    });
+  }, []);
 
-  const handleSaveGrades = async (student: StudentData) => {
+  const handleSaveGrades = useCallback(async (student: StudentData) => {
     if (!classData || !user) return;
     
     const studentScores = scores.get(student.id) || { exam: '0', assignment: '0' };
@@ -161,16 +162,16 @@ export default function ManageGradesPage() {
         return newSet;
       });
     }
-  };
+  }, [classData, user, scores, db, t]);
   
-  const calculateAverage = (studentId: string) => {
+  const calculateAverage = useCallback((studentId: string) => {
     const studentScores = scores.get(studentId);
     if (!studentScores) return 'N/A';
     const exam = parseFloat(studentScores.exam);
     const assignment = parseFloat(studentScores.assignment);
     if (isNaN(exam) || isNaN(assignment)) return 'N/A';
     return ((exam + assignment) / 2).toFixed(1);
-  };
+  }, [scores]);
 
   if (isLoadingData || isLoadingAuth) {
     return <main className="flex min-h-screen items-center justify-center p-8 bg-background"><p>Loading...</p></main>;
@@ -256,3 +257,5 @@ export default function ManageGradesPage() {
     </main>
   );
 }
+
+    

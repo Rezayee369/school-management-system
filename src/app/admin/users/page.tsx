@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { collection, query, orderBy, doc, writeBatch, where, getDocs, deleteField, deleteDoc } from 'firebase/firestore';
@@ -76,7 +76,7 @@ export default function AdminUsersPage() {
     fetchUsers();
   }, [db, filter, t]);
 
-  const handleEditClick = async (user: UserData) => {
+  const handleEditClick = useCallback(async (user: UserData) => {
     if (user.role === 'admin') {
       toast.error(t('adminUsers.editAdminError'));
       return;
@@ -94,9 +94,9 @@ export default function AdminUsersPage() {
         const querySnapshot = await getDocs(studentsQuery);
         setAllStudents(querySnapshot.docs.map(d => ({ id: d.id, ...d.data() } as UserData)));
     }
-  };
+  }, [db, t, updatedRole, allStudents.length]);
 
-  const handleStudentLinkToggle = (studentId: string) => {
+  const handleStudentLinkToggle = useCallback((studentId: string) => {
     setLinkedStudentIds(prev => {
         const newSet = new Set(prev);
         if (newSet.has(studentId)) {
@@ -106,9 +106,9 @@ export default function AdminUsersPage() {
         }
         return newSet;
     });
-  };
+  }, []);
 
-  const handleUpdateUser = async (e: React.FormEvent) => {
+  const handleUpdateUser = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingUser) return;
     
@@ -139,13 +139,30 @@ export default function AdminUsersPage() {
         }
 
         batch.update(userDocRef, newUserData);
-
         await batch.commit();
 
         // Update local state for instant UI feedback
-        setUsers(prevUsers => prevUsers.map(u => 
-            u.id === editingUser.id ? { ...u, ...newUserData } : u
-        ));
+        setUsers(prevUsers => prevUsers.map(u => {
+            if (u.id !== editingUser.id) return u;
+            const updatedUser: UserData = {
+                ...u,
+                fullName: updatedFullName,
+                role: updatedRole,
+            };
+            if (updatedRole === 'parent') {
+                updatedUser.studentIds = Array.from(linkedStudentIds);
+            } else {
+                delete updatedUser.studentIds;
+            }
+            if (updatedRole === 'staff') {
+                updatedUser.phone = updatedPhone;
+                updatedUser.staffType = updatedStaffType;
+            } else {
+                delete updatedUser.phone;
+                delete updatedUser.staffType;
+            }
+            return updatedUser;
+        }));
 
         toast.success(t('adminUsers.updateSuccess'), { id: updateToast });
         setEditingUser(null);
@@ -155,23 +172,23 @@ export default function AdminUsersPage() {
     } finally {
         setIsUpdating(false);
     }
-  };
+  }, [editingUser, db, updatedFullName, updatedRole, linkedStudentIds, updatedPhone, updatedStaffType, t]);
 
-  const handleDeleteClick = (user: UserData) => {
+  const handleDeleteClick = useCallback((user: UserData) => {
     if (user.role === 'admin') {
         toast.error(t('adminUsers.deleteAdminError'));
         return;
     }
     setUserToDelete(user);
     setIsConfirmOpen(true);
-  };
+  }, [t]);
 
-  const handleCancelDelete = () => {
+  const handleCancelDelete = useCallback(() => {
     setIsConfirmOpen(false);
     setUserToDelete(null);
-  };
+  }, []);
 
-  const handleConfirmDelete = async () => {
+  const handleConfirmDelete = useCallback(async () => {
     if (!userToDelete) return;
 
     setIsConfirmOpen(false);
@@ -196,7 +213,7 @@ export default function AdminUsersPage() {
         setIsDeleting(null);
         setUserToDelete(null);
     }
-  };
+  }, [userToDelete, db, t]);
 
   const getRoleIcon = (role: string) => {
     switch (role) {
@@ -209,20 +226,20 @@ export default function AdminUsersPage() {
     }
   };
 
-  const getRoleName = (role: string) => {
+  const getRoleName = useCallback((role: string) => {
     const roleKey = `adminUsers.${role.toLowerCase()}`;
     const translatedRole = t(roleKey);
     // Fallback to capitalized role if translation not found
     return translatedRole === roleKey ? role.charAt(0).toUpperCase() + role.slice(1) : translatedRole;
-  };
+  }, [t]);
   
-  const getPageTitle = () => {
+  const getPageTitle = useCallback(() => {
     if (filter === 'all' || !filter) {
       return t('adminUsers.userManagement');
     }
     const roleName = getRoleName(filter);
     return t('adminUsers.filteredUserManagement', { role: roleName });
-  };
+  }, [filter, getRoleName, t]);
   
   const filterOptions = [
     { role: 'all', icon: Users, label: t('adminUsers.all') },
@@ -232,10 +249,10 @@ export default function AdminUsersPage() {
     { role: 'staff', icon: HardHat, label: t('adminUsers.staff') },
   ];
 
-  const handleFilterClick = (role: string) => {
+  const handleFilterClick = useCallback((role: string) => {
     const href = role === 'all' ? '/admin/users' : `/admin/users?role=${role}`;
     router.push(href);
-  };
+  }, [router]);
 
   return (
     <main className="flex min-h-screen flex-col items-center p-4 sm:p-8 bg-transparent">
@@ -471,5 +488,7 @@ export default function AdminUsersPage() {
     </main>
   );
 }
+
+    
 
     

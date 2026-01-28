@@ -1,6 +1,7 @@
+
 'use client';
 
-import { createContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 
 import en from './locales/en.json';
@@ -44,7 +45,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     document.documentElement.dir = ['fa', 'ps'].includes(lang) ? 'rtl' : 'ltr';
   };
   
-  const t = (key: string, replacements?: Record<string, string>): string => {
+  const t = useCallback((key: string, replacements?: Record<string, string>): string => {
     // On server or before mount, use default language to prevent mismatch.
     const effectiveLanguage = isMounted ? language : defaultLanguage;
     const keys = key.split('.');
@@ -65,7 +66,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     }
 
     return result || key;
-  };
+  }, [isMounted, language]);
 
 
   return (
@@ -74,3 +75,5 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     </LanguageContext.Provider>
   );
 }
+
+    

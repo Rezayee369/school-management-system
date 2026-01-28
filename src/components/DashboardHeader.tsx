@@ -1,6 +1,7 @@
+
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { signOut } from 'firebase/auth';
@@ -51,14 +52,14 @@ export default function DashboardHeader({ userRole }: DashboardHeaderProps) {
     };
   }, []);
 
-  const handleLogout = async () => {
+  const handleLogout = useCallback(async () => {
     try {
       await signOut(auth);
       router.push('/');
     } catch (error) {
       console.error('Logout Error:', error);
     }
-  };
+  }, [auth, router]);
 
   const getInitials = (email: string | null | undefined) => {
     return email ? email.charAt(0).toUpperCase() : <UserIcon size={20} />;
@@ -180,3 +181,5 @@ export default function DashboardHeader({ userRole }: DashboardHeaderProps) {
     </header>
   );
 }
+
+    

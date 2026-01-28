@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   signInWithEmailAndPassword,
@@ -69,7 +69,7 @@ export default function HomePage() {
     // For now, it's implicitly handled.
   };
 
-  const handleEmailLogin = async (e: React.FormEvent) => {
+  const handleEmailLogin = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
@@ -88,9 +88,9 @@ export default function HomePage() {
       setIsLoading(false); // Only set loading to false on error
     } 
     // On success, loading remains true while redirection happens
-  };
+  }, [auth, email, password]);
 
-  const handleGoogleLogin = async () => {
+  const handleGoogleLogin = useCallback(async () => {
     setIsLoading(true);
     const provider = new GoogleAuthProvider();
 
@@ -118,7 +118,7 @@ export default function HomePage() {
       setIsLoading(false); // Only set loading to false on error
     }
     // On success, loading remains true while redirection happens
-  };
+  }, [auth, db]);
 
   return (
     <main className="flex min-h-screen w-full items-center justify-center p-4">
@@ -217,3 +217,5 @@ export default function HomePage() {
     </main>
   );
 }
+
+    

@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuthGuard } from '@/hooks/useAuthGuard';
 import { useFirestore, useUser } from '@/firebase';
 import { collection, query, where, onSnapshot, getDocs, setDoc, doc, serverTimestamp, documentId } from 'firebase/firestore';
@@ -68,7 +68,7 @@ export default function TeacherAttendancePage() {
         setIsLoadingClasses(false);
     };
     fetchClasses().catch(() => setIsLoadingClasses(false));
-  }, [isAuthorized, user, db]);
+  }, [isAuthorized, user, db, selectedClassId]);
 
   // Fetch students and attendance when class or date changes
   useEffect(() => {
@@ -125,7 +125,7 @@ export default function TeacherAttendancePage() {
     };
   }, [selectedClassId, date, db, t]);
 
-  const handleMarkAttendance = async (student: StudentData, status: 'present' | 'absent' | 'leave') => {
+  const handleMarkAttendance = useCallback(async (student: StudentData, status: 'present' | 'absent' | 'leave') => {
     if (!selectedClassId || !date || !user || !db || marking) return;
 
     const currentRecord = attendance.get(student.id);
@@ -161,7 +161,7 @@ export default function TeacherAttendancePage() {
     } finally {
         setMarking(null);
     }
-  };
+  }, [selectedClassId, date, user, db, marking, attendance, classes, t]);
   
   const getStatusColor = (status: string | undefined) => {
     switch (status) {
@@ -280,3 +280,5 @@ export default function TeacherAttendancePage() {
     </main>
   );
 }
+
+    

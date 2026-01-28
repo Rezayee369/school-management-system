@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   signInWithEmailAndPassword,
@@ -36,7 +36,7 @@ export default function LoginPage() {
   const db = useFirestore();
   const { t } = useTranslation();
 
-  const handleSuccessfulLogin = async (user: User) => {
+  const handleSuccessfulLogin = useCallback(async (user: User) => {
     try {
       const userDocRef = doc(db, 'users', user.uid);
       const userDoc = await getDoc(userDocRef);
@@ -72,9 +72,9 @@ export default function LoginPage() {
       toast.error(t('login.postLoginError', { message: error.message }));
       await signOut(auth);
     }
-  };
+  }, [db, router, auth, t]);
 
-  const handleEmailLogin = async (e: React.FormEvent) => {
+  const handleEmailLogin = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
@@ -93,9 +93,9 @@ export default function LoginPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [auth, email, password, handleSuccessfulLogin]);
 
-  const handleGoogleLogin = async () => {
+  const handleGoogleLogin = useCallback(async () => {
     setIsLoading(true);
     const provider = new GoogleAuthProvider();
 
@@ -125,7 +125,7 @@ export default function LoginPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [auth, db, handleSuccessfulLogin]);
 
   return (
     <main className="flex min-h-screen w-full items-center justify-center p-4 bg-transparent">
@@ -223,3 +223,5 @@ export default function LoginPage() {
     </main>
   );
 }
+
+    
