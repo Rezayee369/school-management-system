@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef, type KeyboardEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   signInWithEmailAndPassword,
@@ -37,6 +37,8 @@ export default function HomePage() {
   const db = useFirestore();
   const { t } = useTranslation();
   const user = useUser();
+
+  const passwordInputRef = useRef<HTMLInputElement>(null);
 
   // This effect will run whenever the `user` object changes.
   // It redirects already logged-in users to their respective dashboards.
@@ -120,6 +122,13 @@ export default function HomePage() {
     // On success, loading remains true while redirection happens
   }, [auth, db]);
 
+  const handleEmailKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      passwordInputRef.current?.focus();
+    }
+  };
+
   return (
     <main className="flex min-h-screen w-full items-center justify-center p-4">
       <div className="absolute top-4 end-4 z-20 flex items-center gap-2">
@@ -153,6 +162,7 @@ export default function HomePage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                onKeyDown={handleEmailKeyDown}
                 placeholder={t('login.emailPlaceholder')}
                 disabled={isLoading}
                 className="w-full py-3 rounded-lg bg-background/50 text-foreground placeholder-muted-foreground focus:ring-2 focus:ring-ring focus:outline-none border border-input transition-all duration-300 ps-12 pe-4"
@@ -162,6 +172,7 @@ export default function HomePage() {
             <div className="relative">
               <Lock className="absolute inset-y-0 start-4 my-auto h-5 w-5 text-primary/60" />
               <input
+                ref={passwordInputRef}
                 id="password"
                 name="password"
                 type="password"
@@ -217,5 +228,3 @@ export default function HomePage() {
     </main>
   );
 }
-
-    
