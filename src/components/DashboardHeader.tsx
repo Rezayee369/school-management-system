@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
@@ -157,8 +156,9 @@ export default function DashboardHeader({ userRole }: DashboardHeaderProps) {
                 )}
               </div>
               <div className="p-1">
-                <Link href="/profile" onClick={() => setIsDropdownOpen(false)} passHref legacyBehavior>
+                <Link href="/profile" passHref legacyBehavior>
                     <a
+                        onClick={() => setIsDropdownOpen(false)}
                         className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-muted/50 hover:text-foreground cursor-pointer"
                         role="menuitem"
                     >
@@ -182,5 +182,3 @@ export default function DashboardHeader({ userRole }: DashboardHeaderProps) {
     </header>
   );
 }
-
-    
