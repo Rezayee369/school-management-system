@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useFirestore } from '@/firebase';
-import { collection, query, where, getCountFromServer } from 'firebase/firestore';
+import { useFirebaseApp } from '@/firebase';
+import { getFunctions, httpsCallable } from 'firebase/functions';
 import { Users, BookOpen, HardHat } from 'lucide-react';
 import { useTranslation } from '@/i18n';
 
@@ -47,49 +47,44 @@ const StatCardSkeleton = () => (
 
 
 export default function DashboardStats() {
-  const db = useFirestore();
+  const app = useFirebaseApp();
   const { t } = useTranslation();
   const [stats, setStats] = useState<Stat[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (!db) return;
+    if (!app) return;
 
     const fetchStats = async () => {
       try {
-        const usersCollection = collection(db, 'users');
-        const classesCollection = collection(db, 'classes');
-
-        const [
-          studentsSnapshot,
-          teachersSnapshot,
-          staffSnapshot,
-          classesSnapshot,
-        ] = await Promise.all([
-          getCountFromServer(query(usersCollection, where('role', '==', 'student'))),
-          getCountFromServer(query(usersCollection, where('role', '==', 'teacher'))),
-          getCountFromServer(query(usersCollection, where('role', '==', 'staff'))),
-          getCountFromServer(classesCollection),
-        ]);
+        const functions = getFunctions(app);
+        const getDashboardStats = httpsCallable(functions, 'getDashboardStats');
+        const result = await getDashboardStats();
+        
+        const data = result.data as {
+            studentsCount: number;
+            teachersCount: number;
+            staffCount: number;
+            classesCount: number;
+        };
 
         const fetchedStats: Stat[] = [
-          { title: t('adminDashboard.totalStudents'), count: studentsSnapshot.data().count, icon: <Users className="w-6 h-6 text-primary" />, link: '/admin/users?role=student' },
-          { title: t('adminDashboard.totalTeachers'), count: teachersSnapshot.data().count, icon: <Users className="w-6 h-6 text-primary" />, link: '/admin/users?role=teacher' },
-          { title: t('adminDashboard.totalStaff'), count: staffSnapshot.data().count, icon: <HardHat className="w-6 h-6 text-primary" />, link: '/admin/users?role=staff' },
-          { title: t('adminDashboard.totalClasses'), count: classesSnapshot.data().count, icon: <BookOpen className="w-6 h-6 text-primary" />, link: '/admin/classes' },
+          { title: t('adminDashboard.totalStudents'), count: data.studentsCount, icon: <Users className="w-6 h-6 text-primary" />, link: '/admin/users?role=student' },
+          { title: t('adminDashboard.totalTeachers'), count: data.teachersCount, icon: <Users className="w-6 h-6 text-primary" />, link: '/admin/users?role=teacher' },
+          { title: t('adminDashboard.totalStaff'), count: data.staffCount, icon: <HardHat className="w-6 h-6 text-primary" />, link: '/admin/users?role=staff' },
+          { title: t('adminDashboard.totalClasses'), count: data.classesCount, icon: <BookOpen className="w-6 h-6 text-primary" />, link: '/admin/classes' },
         ];
         
         setStats(fetchedStats);
       } catch (error) {
-        console.error("Error fetching dashboard stats:", error);
-        // Don't show toast for this, UI will show loading state or empty state
+        console.error("Error fetching dashboard stats via Cloud Function:", error);
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchStats();
-  }, [db, t]);
+  }, [app, t]);
 
   if (isLoading) {
       return (
@@ -103,7 +98,7 @@ export default function DashboardStats() {
   }
 
   if (stats.length === 0 && !isLoading) {
-      return null; // Don't show anything if stats failed to load, to prevent a broken look.
+      return null;
   }
 
   return (
