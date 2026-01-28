@@ -42,18 +42,17 @@ service cloud.firestore {
     // --- Collection Rules ---
 
     match /users/{userId} {
-      // Admins can perform any read/write operation. This rule is checked first.
-      allow read, write: if isAdmin();
+      // GET: A user can get their own doc, OR an admin can get any doc.
+      // The isOwner check is vital to break the recursion for isAdmin().
+      allow get: if isOwner(userId) || isAdmin();
+      
+      // LIST: Only an admin can perform queries on the users collection.
+      allow list: if isAdmin();
 
-      // Non-admin users have more restricted access, checked if the admin rule fails.
-      // An authenticated user can read their own document.
-      allow get: if isOwner(userId);
-      
-      // A new user can create their own profile (but cannot assign themselves as admin).
-      allow create: if isOwner(userId) && request.resource.data.role != 'admin';
-      
-      // A user can update their own profile, but cannot change their role.
-      allow update: if isOwner(userId) && request.resource.data.role == resource.data.role;
+      // WRITE Operations:
+      allow create: if (isOwner(userId) && request.resource.data.role != 'admin') || isAdmin();
+      allow update: if (isOwner(userId) && request.resource.data.role == resource.data.role) || isAdmin();
+      allow delete: if isAdmin();
     }
     
     match /classes/{classId} {
