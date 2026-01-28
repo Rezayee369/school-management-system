@@ -12,7 +12,17 @@
     "signingIn": "Signing in...",
     "roleInvalid": "Login successful, but role ('{{role}}') is invalid. Contact admin.",
     "noProfile": "Login successful, but no user profile found in database. Contact admin.",
-    "postLoginError": "Post-login error: {{message}}. Signing out."
+    "postLoginError": "Post-login error. Please try again.",
+    "roleLabel": "I am a...",
+    "forgotPassword": "Forgot password?",
+    "resetPasswordTitle": "Reset Password",
+    "resetPasswordSubtitle": "Enter your email to receive a password reset link.",
+    "sendResetLink": "Send Reset Link",
+    "sendingResetLink": "Sending...",
+    "emailRequiredForReset": "Please enter your email address.",
+    "resetLinkSent": "Password reset link sent to your email!",
+    "roleMismatch": "Login failed: You selected '{{selectedRole}}' but your account is a '{{actualRole}}'.",
+    "invalidEmailOrPassword": "The email or password you entered is incorrect."
   },
   "dashboardHeader": {
     "admin": "Admin Dashboard",
@@ -406,6 +416,7 @@
     "goToNewPage": "Go to New Attendance Page"
   },
   "common": {
-    "back": "Back"
+    "back": "Back",
+    "close": "Close"
   }
 }

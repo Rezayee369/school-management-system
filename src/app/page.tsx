@@ -7,15 +7,17 @@ import {
   GoogleAuthProvider,
   signInWithPopup,
   signOut,
+  sendPasswordResetEmail,
   type User,
 } from 'firebase/auth';
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { useAuth, useFirestore, useUser } from '@/firebase';
-import { Mail, Lock, GraduationCap } from 'lucide-react';
+import { Mail, Lock, GraduationCap, Shield, Briefcase, User as UserIcon, HardHat, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useTranslation } from '@/i18n';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { getFirebaseAuthErrorMessageFA } from '@/lib/auth-errors';
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="24px" height="24px" {...props}>
@@ -30,7 +32,11 @@ const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
 export default function HomePage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [selectedRole, setSelectedRole] = useState('student');
   const [isLoading, setIsLoading] = useState(false);
+  const [isResettingPassword, setIsResettingPassword] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
+
   const router = useRouter();
   const auth = useAuth();
   const db = useFirestore();
@@ -38,43 +44,67 @@ export default function HomePage() {
   const user = useUser();
 
   const formRef = useRef<HTMLFormElement>(null);
+  const roleSelectRef = useRef<HTMLSelectElement>(null);
   const emailInputRef = useRef<HTMLInputElement>(null);
   const passwordInputRef = useRef<HTMLInputElement>(null);
+  const resetEmailInputRef = useRef<HTMLInputElement>(null);
 
-  // This effect will run whenever the `user` object changes.
-  // It redirects already logged-in users to their respective dashboards.
   useEffect(() => {
-    if (user) { // user is logged in
-        const role = user.role;
-        if (role) {
-            switch (role) {
-                case 'admin':   router.replace('/admin');   break;
-                case 'teacher': router.replace('/teacher'); break;
-                case 'student': router.replace('/student'); break;
-                case 'parent':  router.replace('/parent');  break;
-                case 'staff':   router.replace('/profile'); break;
-                default:
-                    // If role is invalid, log them out to be safe
-                    toast.error(t('login.roleInvalid', { role }));
-                    signOut(auth);
-                    break;
-            }
+    if (user) {
+      const role = user.role;
+      if (role) {
+        switch (role) {
+          case 'admin': router.replace('/admin'); break;
+          case 'teacher': router.replace('/teacher'); break;
+          case 'student': router.replace('/student'); break;
+          case 'parent': router.replace('/parent'); break;
+          case 'staff': router.replace('/profile'); break;
+          default:
+            toast.error(t('login.roleInvalid', { role }));
+            signOut(auth);
+            break;
         }
-        // If user is logged in but has no role, they stay on the login page
-        // until the role is assigned or an error is shown.
+      }
     } else if (user === null) {
-      // User is not logged in, focus the email input
-      emailInputRef.current?.focus();
+        roleSelectRef.current?.focus();
     }
-    // If user is `undefined`, do nothing, just show the login page.
   }, [user, router, auth, t]);
 
+  const handleLoginSuccess = useCallback(async (loggedInUser: User, roleToCheck: string) => {
+    const userDocRef = doc(db, 'users', loggedInUser.uid);
+    try {
+        const userDoc = await getDoc(userDocRef);
+        if (!userDoc.exists()) {
+            toast.error(t('login.noProfile'));
+            await signOut(auth);
+            setIsLoading(false);
+            return;
+        }
 
-  const handleSuccessfulLogin = async (loggedInUser: User) => {
-    // The useEffect hook above will handle the redirection.
-    // This function can be kept for any additional post-login logic if needed in the future.
-    // For now, it's implicitly handled.
-  };
+        const firestoreRole = userDoc.data()?.role;
+        if (firestoreRole !== roleToCheck) {
+            const roleNameMap: {[key: string]: string} = {
+              admin: t('dashboardHeader.roleAdmin'),
+              teacher: t('dashboardHeader.roleTeacher'),
+              student: t('dashboardHeader.roleStudent'),
+              parent: t('dashboardHeader.roleParent'),
+              staff: t('dashboardHeader.roleStaff'),
+            };
+            toast.error(t('login.roleMismatch', {
+                selectedRole: roleNameMap[roleToCheck] || roleToCheck,
+                actualRole: roleNameMap[firestoreRole] || firestoreRole
+            }), { duration: 5000 });
+            await signOut(auth);
+            setIsLoading(false);
+            return;
+        }
+        // Let useEffect handle redirection
+    } catch (error) {
+        toast.error(t('login.postLoginError'));
+        await signOut(auth);
+        setIsLoading(false);
+    }
+  }, [db, auth, t]);
 
   const handleEmailLogin = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
@@ -88,14 +118,13 @@ export default function HomePage() {
 
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      // Let the useEffect hook handle redirection
+      await handleLoginSuccess(userCredential.user, selectedRole);
     } catch (error: any) {
       console.error("Login process failed:", error);
-      toast.error(`Error: ${error.code} - ${error.message}`);
-      setIsLoading(false); // Only set loading to false on error
-    } 
-    // On success, loading remains true while redirection happens
-  }, [auth, email, password]);
+      toast.error(getFirebaseAuthErrorMessageFA(error.code));
+      setIsLoading(false);
+    }
+  }, [auth, email, password, selectedRole, handleLoginSuccess]);
 
   const handleGoogleLogin = useCallback(async () => {
     setIsLoading(true);
@@ -103,40 +132,68 @@ export default function HomePage() {
 
     try {
       const result = await signInWithPopup(auth, provider);
-      const user = result.user;
-      const userDocRef = doc(db, 'users', user.uid);
+      const googleUser = result.user;
+      const userDocRef = doc(db, 'users', googleUser.uid);
       const userDoc = await getDoc(userDocRef);
 
       if (!userDoc.exists()) {
         await setDoc(userDocRef, {
-          fullName: user.displayName,
-          email: user.email,
-          role: 'student', // Default role for new Google sign-ups
+          fullName: googleUser.displayName,
+          email: googleUser.email,
+          role: 'student',
           createdAt: serverTimestamp(),
-          photoURL: user.photoURL
+          photoURL: googleUser.photoURL
         });
       }
-      // Let the useEffect hook handle redirection
+      await handleLoginSuccess(googleUser, selectedRole);
     } catch (error: any) {
       if (error.code !== 'auth/popup-closed-by-user') {
         console.error("Google Sign-In Error: ", error);
-        toast.error(`${error.code}: ${error.message}` || 'An error occurred during Google Sign-In.');
+        toast.error(getFirebaseAuthErrorMessageFA(error.code));
       }
-      setIsLoading(false); // Only set loading to false on error
+      setIsLoading(false);
     }
-    // On success, loading remains true while redirection happens
-  }, [auth, db]);
+  }, [auth, db, selectedRole, handleLoginSuccess]);
 
-  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+  const handlePasswordReset = async () => {
+    if (!resetEmail) {
+        toast.error(t('login.emailRequiredForReset'));
+        return;
+    }
+    setIsLoading(true);
+    const loadingToast = toast.loading(t('login.sendingResetLink'));
+    try {
+        await sendPasswordResetEmail(auth, resetEmail);
+        toast.success(t('login.resetLinkSent'), { id: loadingToast });
+        setIsResettingPassword(false);
+        setResetEmail('');
+    } catch (error: any) {
+        toast.error(getFirebaseAuthErrorMessageFA(error.code), { id: loadingToast });
+    } finally {
+        setIsLoading(false);
+    }
+  };
+
+  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement | HTMLSelectElement>) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      if (e.currentTarget === emailInputRef.current) {
+      if (e.currentTarget === roleSelectRef.current) {
+        emailInputRef.current?.focus();
+      } else if (e.currentTarget === emailInputRef.current) {
         passwordInputRef.current?.focus();
       } else if (e.currentTarget === passwordInputRef.current) {
         formRef.current?.requestSubmit();
       }
     }
   };
+
+  const roleOptions = [
+    { value: 'student', labelKey: 'dashboardHeader.roleStudent', icon: GraduationCap },
+    { value: 'parent', labelKey: 'dashboardHeader.roleParent', icon: UserIcon },
+    { value: 'teacher', labelKey: 'dashboardHeader.roleTeacher', icon: Briefcase },
+    { value: 'staff', labelKey: 'dashboardHeader.roleStaff', icon: HardHat },
+    { value: 'admin', labelKey: 'dashboardHeader.roleAdmin', icon: Shield },
+  ];
 
   return (
     <main className="flex min-h-screen w-full items-center justify-center p-4">
@@ -161,6 +218,21 @@ export default function HomePage() {
           </div>
 
           <form ref={formRef} onSubmit={handleEmailLogin} className="space-y-6">
+            <div className="relative">
+                <Shield className="absolute inset-y-0 start-4 my-auto h-5 w-5 text-primary/60" />
+                <select
+                    ref={roleSelectRef}
+                    value={selectedRole}
+                    onChange={(e) => setSelectedRole(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    disabled={isLoading}
+                    className="w-full py-3 ps-12 pe-4 rounded-lg appearance-none bg-background/50 text-foreground focus:ring-2 focus:ring-ring focus:outline-none border border-input transition-all duration-300"
+                >
+                    {roleOptions.map(role => (
+                      <option key={role.value} value={role.value}>{t(role.labelKey)}</option>
+                    ))}
+                </select>
+            </div>
             <div className="relative">
               <Mail className="absolute inset-y-0 start-4 my-auto h-5 w-5 text-primary/60" />
               <input
@@ -195,6 +267,12 @@ export default function HomePage() {
                 disabled={isLoading}
                 className="w-full py-3 rounded-lg bg-background/50 text-foreground placeholder-muted-foreground focus:ring-2 focus:ring-ring focus:outline-none border border-input transition-all duration-300 ps-12 pe-4"
               />
+            </div>
+
+            <div className="text-end">
+                <button type="button" onClick={() => setIsResettingPassword(true)} className="text-sm font-medium text-primary hover:underline focus:outline-none">
+                    {t('login.forgotPassword')}
+                </button>
             </div>
 
             <button
@@ -236,6 +314,45 @@ export default function HomePage() {
           </button>
         </div>
       </div>
+
+      {isResettingPassword && (
+          <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex justify-center items-center z-50 animate-fade-in-scale">
+              <div className="bg-background/80 border border-border p-8 rounded-2xl shadow-2xl shadow-primary/10 w-full max-w-sm m-4 relative">
+                  <button onClick={() => setIsResettingPassword(false)} className="absolute top-4 right-4 text-muted-foreground hover:text-foreground">
+                      <X size={20} />
+                  </button>
+                  <h2 className="text-2xl font-bold text-foreground mb-2">{t('login.resetPasswordTitle')}</h2>
+                  <p className="text-muted-foreground mb-6">{t('login.resetPasswordSubtitle')}</p>
+                  
+                  <div className="space-y-4">
+                      <div className="relative">
+                          <Mail className="absolute inset-y-0 start-4 my-auto h-5 w-5 text-primary/60" />
+                          <input
+                              ref={resetEmailInputRef}
+                              type="email"
+                              value={resetEmail}
+                              onChange={(e) => setResetEmail(e.target.value)}
+                              placeholder={t('login.emailPlaceholder')}
+                              disabled={isLoading}
+                              className="w-full py-3 rounded-lg bg-background/50 text-foreground placeholder-muted-foreground focus:ring-2 focus:ring-ring focus:outline-none border border-input transition-all duration-300 ps-12 pe-4"
+                          />
+                      </div>
+                      <button
+                          onClick={handlePasswordReset}
+                          disabled={isLoading}
+                          className="w-full py-3 rounded-lg bg-gradient-to-r from-primary to-secondary text-primary-foreground font-bold tracking-wider uppercase flex items-center justify-center gap-3 hover:shadow-lg hover:shadow-primary/30 transition-all duration-300 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                          {isLoading ? (
+                              <>
+                                  <div className="w-5 h-5 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin"></div>
+                                  <span>{t('login.sendingResetLink')}</span>
+                              </>
+                          ) : t('login.sendResetLink')}
+                      </button>
+                  </div>
+              </div>
+          </div>
+      )}
     </main>
   );
 }
