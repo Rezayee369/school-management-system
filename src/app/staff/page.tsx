@@ -1,13 +1,11 @@
-
 'use client';
 
 import { useAuthGuard } from '@/hooks/useAuthGuard';
 import DashboardHeader from '@/components/DashboardHeader';
 import PermissionDenied from '@/components/PermissionDenied';
 import { useTranslation } from '@/i18n';
-import { HardHat, CalendarCheck, BookOpen, Bell } from 'lucide-react';
+import { CalendarCheck, BookOpen, Bell } from 'lucide-react';
 import Link from 'next/link';
-
 
 export default function StaffDashboard() {
   const { isLoading: isLoadingAuth, isAuthorized, userRole } = useAuthGuard('staff');
@@ -30,19 +28,19 @@ export default function StaffDashboard() {
           title: "Manage Attendance",
           description: "View and manage student attendance records.",
           icon: <CalendarCheck className="w-6 h-6 text-secondary" />,
-          link: "/staff/attendance" // Example link
+          link: "#"
       },
       {
           title: "View Timetables",
           description: "Access class schedules and timetables.",
           icon: <BookOpen className="w-6 h-6 text-primary" />,
-          link: "/staff/timetables" // Example link
+          link: "#"
       },
       {
           title: "School Announcements",
           description: "Stay updated with the latest school news.",
           icon: <Bell className="w-6 h-6 text-accent" />,
-          link: "/staff/announcements" // Example link
+          link: "#"
       },
   ]
 
