@@ -1,8 +1,8 @@
-
 'use client';
 
 import Link from 'next/link';
 import DashboardHeader from '@/components/DashboardHeader';
+import DashboardStats from '@/components/admin/DashboardStats';
 import { BookOpen, Users, HardHat, Megaphone, CreditCard, ListX, BarChart2, PieChart, ClipboardCheck } from 'lucide-react';
 import { useTranslation } from '@/i18n';
 
@@ -14,6 +14,8 @@ export default function AdminDashboard() {
       <div className="w-full max-w-7xl animate-fade-in-slide-up">
         <DashboardHeader userRole="admin" />
         
+        <DashboardStats />
+
         <div className="mt-12">
              <h2 className="text-2xl font-semibold text-foreground mb-6">{t('adminDashboard.quickActions')}</h2>
              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

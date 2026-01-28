@@ -9,25 +9,26 @@ service cloud.firestore {
       return request.auth != null && request.auth.uid == userId;
     }
 
-    function getUserRole(userId) {
-      // This function relies on the `get` rule for /users/{userId} allowing this read.
-      return get(/databases/$(database)/documents/users/$(userId)).data.role;
+    // This function reads the role of the CURRENTLY AUTHENTICATED user.
+    // It is safe because it relies on the explicit rule allowing users to read their own document.
+    function getRequestingUserRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('role', '');
     }
 
     function isAdmin() {
-      return request.auth != null && getUserRole(request.auth.uid) == 'admin';
+      return request.auth != null && getRequestingUserRole() == 'admin';
     }
 
     function isTeacher() {
-      return request.auth != null && getUserRole(request.auth.uid) == 'teacher';
+      return request.auth != null && getRequestingUserRole() == 'teacher';
     }
 
     function isParent() {
-      return request.auth != null && getUserRole(request.auth.uid) == 'parent';
+      return request.auth != null && getRequestingUserRole() == 'parent';
     }
     
     function isStaff() {
-      return request.auth != null && getUserRole(request.auth.uid) == 'staff';
+      return request.auth != null && getRequestingUserRole() == 'staff';
     }
 
     // Check if the user is the teacher assigned to a specific class.
@@ -43,16 +44,21 @@ service cloud.firestore {
     // --- Collection Rules ---
 
     match /users/{userId} {
-      // GET: A user can get their own doc (to read their role), OR an admin can get any doc.
-      // The isOwner check is vital to break the potential recursion for isAdmin().
-      allow get: if isOwner(userId) || isAdmin();
+      // RULE 1: A user can read their OWN document. This is crucial for the functions above to work.
+      // It MUST NOT depend on any other document reads (like calling isAdmin).
+      allow get: if isOwner(userId);
       
-      // LIST: Only an admin can perform queries on the users collection.
-      allow list: if isAdmin();
+      // RULE 2: An admin can read (get/list) any user document.
+      // This is safe because `isAdmin()` calls `getRequestingUserRole()`, which performs a `get`
+      // on the admin's own user document, which is permitted by RULE 1. The recursion is broken.
+      allow read: if isAdmin(); // 'read' is a shortcut for 'get' and 'list'
 
       // WRITE Operations:
+      // An admin can create anyone. A non-admin can only create themselves and cannot assign the 'admin' role.
       allow create: if (isOwner(userId) && request.resource.data.role != 'admin') || isAdmin();
+      // An admin can update anyone. A user can update themselves but cannot change their own role.
       allow update: if (isOwner(userId) && request.resource.data.role == resource.data.role) || isAdmin();
+      // Only admins can delete users.
       allow delete: if isAdmin();
     }
     
@@ -60,19 +66,19 @@ service cloud.firestore {
       // Admins can create, update, or delete any class.
       allow write: if isAdmin();
       
-      // Any authenticated user can read class information. This is generally safe.
+      // Any authenticated user can read class information. This is needed for stats and lists.
       allow read: if request.auth != null;
     }
     
     match /attendance/{attendanceId} {
-      // GET: Admins, the specific teacher, the specific student, or the student's parent can get a single record.
+      // GET: Admins, the teacher, the student, or parent can get a single record.
       allow get: if isAdmin() || 
                    (isTeacher() && resource.data.teacherId == request.auth.uid) ||
                    (request.auth != null && resource.data.studentId == request.auth.uid) ||
                    isParentOf(resource.data.studentId);
 
-      // LIST: Only Admins can perform broad queries needed for the dashboard.
-      // Other roles would need more specific rules combined with query constraints.
+      // LIST: Only Admins can perform broad queries.
+      // This is needed for the dashboard stats (e.g., "students present today").
       allow list: if isAdmin();
       
       // WRITE: Admins or the assigned class teacher can write.
@@ -148,8 +154,10 @@ service cloud.firestore {
       // Only admins can write notifications.
       allow write: if isAdmin();
       // Any authenticated user can read a notification if it's for 'all' or their specific role.
+      // NOTE: We cannot use getRequestingUserRole here, because this path doesn't know the userId.
+      // We must read the user's role from the /users/{userId} path.
       allow read: if request.auth != null && 
-                   (resource.data.targetRole == 'all' || resource.data.targetRole == getUserRole(request.auth.uid));
+                   (resource.data.targetRole == 'all' || resource.data.targetRole == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role);
     }
 
     match /userReadStates/{userId} {
