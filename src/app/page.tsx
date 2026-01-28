@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useCallback, useRef, type KeyboardEvent } from 'react';
@@ -270,7 +269,7 @@ export default function HomePage() {
               />
             </div>
 
-            <div className="text-end">
+            <div className="text-center">
                 <button type="button" onClick={() => setIsResettingPassword(true)} className="text-sm font-medium text-primary hover:underline focus:outline-none">
                     {t('login.forgotPassword')}
                 </button>
