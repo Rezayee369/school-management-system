@@ -68,6 +68,7 @@
     "teacher": "Teacher",
     "parent": "Parent",
     "staff": "Staff",
+    "admin": "Admin",
     "cancel": "Cancel",
     "saveChanges": "Save Changes",
     "saving": "Saving...",
