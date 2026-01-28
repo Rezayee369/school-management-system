@@ -44,10 +44,12 @@ service cloud.firestore {
     // --- Collection Rules ---
 
     match /users/{userId} {
-      // READ: An admin can list all users. Any user can get their own profile, and an admin can get any profile.
-      // This structure prevents recursion: isAdmin() needs to 'get' the user's own profile, which is allowed by 'isOwner(userId)'.
-      allow get: if isOwner(userId) || isAdmin();
-      allow list: if isAdmin();
+      // A user can always read their own document. This is the non-recursive base case
+      // that allows helper functions like isAdmin() to safely check a user's role.
+      allow get: if isOwner(userId);
+      
+      // Admins can list the collection (for aggregation queries) and get any individual user document.
+      allow list, get: if isAdmin();
 
       // WRITE: An admin can create/update/delete anyone.
       // A user can create themselves (but not as admin), and update themselves (but not change role).
@@ -71,8 +73,7 @@ service cloud.firestore {
                    (request.auth != null && resource.data.studentId == request.auth.uid) ||
                    isParentOf(resource.data.studentId);
 
-      // LIST: Only Admins can perform broad queries.
-      // This is needed for the dashboard stats (e.g., "students present today").
+      // LIST: Only Admins can perform broad queries (for aggregation/counts).
       allow list: if isAdmin();
       
       // WRITE: Admins or the assigned class teacher can write.
@@ -88,7 +89,6 @@ service cloud.firestore {
                    isParentOf(resource.data.studentId);
         
       // LIST: Only Admins and Teachers can perform queries.
-      // Student/Parent queries must be more constrained.
       allow list: if isAdmin() || isTeacher();
                    
       // WRITE: Admins or the assigned teacher can write grades.
@@ -106,7 +106,7 @@ service cloud.firestore {
                    (request.auth != null && getStudentIdFromFeeId(feeId) == request.auth.uid) ||
                    isParentOf(getStudentIdFromFeeId(feeId));
 
-      // LIST: Only Admins can query the fees collection for reports.
+      // LIST: Only Admins can query the fees collection (for aggregation/reports).
       allow list: if isAdmin();
                    
       // WRITE: Only Admins can create, update, or delete fee records.
@@ -134,7 +134,6 @@ service cloud.firestore {
       allow list: if isAdmin() || isTeacher();
 
       // A teacher can create a grade for a student if they teach that class.
-      // The score must be valid. Once created, teachers cannot update/delete (admins can).
       allow create: if isTeacher()
                      && request.resource.data.teacherId == request.auth.uid
                      && isClassTeacher(request.resource.data.classId, request.auth.uid)
@@ -147,11 +146,13 @@ service cloud.firestore {
     match /notifications/{notificationId} {
       // Only admins can write notifications.
       allow write: if isAdmin();
-      // Any authenticated user can read a notification if it's for 'all' or their specific role.
-      // NOTE: We cannot use getRequestingUserRole here, because this path doesn't know the userId.
-      // We must read the user's role from the /users/{userId} path.
-      allow read: if request.auth != null && 
+      
+      // GET: Any authenticated user can read a notification if it's for 'all' or their specific role.
+      allow get: if request.auth != null && 
                    (resource.data.targetRole == 'all' || resource.data.targetRole == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role);
+
+      // LIST: Only admins can list all notifications.
+      allow list: if isAdmin();
     }
 
     match /userReadStates/{userId} {
