@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -33,13 +34,13 @@
     --card-foreground: 210 40% 98%;
     --popover: 222 89% 9%;
     --popover-foreground: 210 40% 98%;
-    --primary: 190 95% 55%; /* Neon Cyan */
+    --primary: 190 95% 55%;
     --primary-foreground: 222 89% 11%;
-    --secondary: 280 85% 60%; /* Neon Purple */
+    --secondary: 280 85% 60%;
     --secondary-foreground: 210 40% 98%;
     --muted: 222 89% 18%;
     --muted-foreground: 215 20% 65%;
-    --accent: 140 75% 55%; /* Neon Green */
+    --accent: 140 75% 55%;
     --accent-foreground: 222 89% 11%;
     --destructive: 0 72% 51%;
     --destructive-foreground: 210 40% 98%;
@@ -47,33 +48,34 @@
     --input: 222 89% 18%;
     --ring: 190 95% 55%;
   }
-
+  
   .brand {
-    --background: 220 20% 98%;
-    --foreground: 220 15% 25%;
-    --card: 220 20% 100%;
-    --card-foreground: 220 15% 25%;
-    --popover: 220 20% 100%;
-    --popover-foreground: 220 15% 25%;
-    --primary: 215 60% 50%; /* Calm, Trustworthy Blue */
-    --primary-foreground: 0 0% 100%;
-    --secondary: 170 45% 45%; /* Professional Teal */
-    --secondary-foreground: 0 0% 100%;
-    --muted: 220 20% 94%;
-    --muted-foreground: 220 10% 45%;
-    --accent: 45 70% 60%; /* Soft Gold */
-    --accent-foreground: 220 15% 15%;
-    --destructive: 0 72% 51%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 220 15% 88%;
-    --input: 220 15% 88%;
-    --ring: 215 60% 50%;
+    --background: 206 67% 95%;
+    --foreground: 210 29% 29%;
+    --card: 206 67% 98%;
+    --card-foreground: 210 29% 29%;
+    --popover: 206 67% 98%;
+    --popover-foreground: 210 29% 29%;
+    --primary: 207 68% 62%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 167 40% 49%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 206 40% 92%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 167 40% 49%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 206 30% 88%;
+    --input: 206 30% 88%;
+    --ring: 207 68% 62%;
   }
+}
 
+@layer base {
   * {
     @apply border-border;
   }
-  
   body {
     @apply bg-background text-foreground;
     font-family: var(--font-pt-sans), sans-serif;

@@ -1,3 +1,4 @@
+
 import type { Metadata } from "next";
 import { PT_Sans } from "next/font/google";
 import "./globals.css";
@@ -24,43 +25,40 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fa" dir="rtl" className={`${ptSans.variable}`} suppressHydrationWarning>
-      <body className={`font-sans`} suppressHydrationWarning>
+      <body>
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"
           enableSystem
           disableTransitionOnChange
         >
-          <div className="fixed inset-0 -z-10 bg-background" />
-          <div className="relative z-10">
-            <LanguageProvider>
-              <FirebaseClientProvider>
-                {children}
-                <Toaster 
-                  position="top-right"
-                  toastOptions={{
-                    style: {
-                      background: 'hsl(var(--background))',
-                      color: 'hsl(var(--foreground))',
-                      border: '1px solid hsl(var(--border))',
+          <LanguageProvider>
+            <FirebaseClientProvider>
+              {children}
+              <Toaster 
+                position="top-right"
+                toastOptions={{
+                  style: {
+                    background: 'hsl(var(--background))',
+                    color: 'hsl(var(--foreground))',
+                    border: '1px solid hsl(var(--border))',
+                  },
+                  success: {
+                    iconTheme: {
+                      primary: 'hsl(var(--primary))',
+                      secondary: 'hsl(var(--background))',
                     },
-                    success: {
-                      iconTheme: {
-                        primary: 'hsl(var(--primary))',
-                        secondary: 'hsl(var(--background))',
-                      },
+                  },
+                  error: {
+                    iconTheme: {
+                      primary: 'hsl(var(--destructive))',
+                      secondary: 'hsl(var(--foreground))',
                     },
-                    error: {
-                      iconTheme: {
-                        primary: 'hsl(var(--destructive))',
-                        secondary: 'hsl(var(--foreground))',
-                      },
-                    },
-                  }}
-                />
-                </FirebaseClientProvider>
-            </LanguageProvider>
-          </div>
+                  },
+                }}
+              />
+              </FirebaseClientProvider>
+          </LanguageProvider>
         </ThemeProvider>
       </body>
     </html>
