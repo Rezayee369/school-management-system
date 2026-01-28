@@ -59,7 +59,7 @@ export default function LoginPage() {
             router.replace('/parent');
             break;
           case 'staff':
-            router.replace('/profile');
+            router.replace('/staff');
             break;
           default:
             toast.error(t('login.roleInvalid', { role: role || 'not set'}));

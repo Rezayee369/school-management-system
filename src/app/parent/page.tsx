@@ -88,35 +88,41 @@ export default function ParentDashboard() {
     }
 
     const fetchLinkedStudents = async () => {
-        setIsLoadingData(true);
         const parentRef = doc(db, 'users', user.uid);
-        const snap = await getDoc(parentRef);
-        if (snap.exists()) {
-            const studentIds = snap.data()?.studentIds || [];
-            if (studentIds.length > 0) {
-                const studentsQuery = query(collection(db, 'users'), where(documentId(), 'in', studentIds));
-                const studentSnaps = await getDocs(studentsQuery);
-                const studentsData = studentSnaps.docs.map(d => ({ id: d.id, name: d.data().fullName as string }));
-                setLinkedStudents(studentsData);
-                if (!selectedStudentId || !studentIds.includes(selectedStudentId)) {
-                    setSelectedStudentId(studentsData[0]?.id || null);
+        try {
+            const snap = await getDoc(parentRef);
+            if (snap.exists()) {
+                const studentIds = snap.data()?.studentIds || [];
+                if (studentIds.length > 0) {
+                    const studentsQuery = query(collection(db, 'users'), where(documentId(), 'in', studentIds));
+                    const studentSnaps = await getDocs(studentsQuery);
+                    const studentsData = studentSnaps.docs.map(d => ({ id: d.id, name: d.data().fullName as string }));
+                    setLinkedStudents(studentsData);
+                    if (!selectedStudentId || !studentIds.includes(selectedStudentId)) {
+                        setSelectedStudentId(studentsData[0]?.id || null);
+                    }
+                } else {
+                    setLinkedStudents([]);
+                    setSelectedStudentId(null);
+                    setIsLoadingData(false); // Fix: Ensure loading stops if no students are linked
                 }
             } else {
-                setLinkedStudents([]);
-                setSelectedStudentId(null);
+                 setIsLoadingData(false); // Fix: Ensure loading stops if parent document doesn't exist
             }
+        } catch (error) {
+            console.error("Error fetching linked students:", error);
+            toast.error("Failed to load child data.");
+            setIsLoadingData(false);
         }
-        // Loading is finished in the other useEffect
     };
 
-    fetchLinkedStudents().catch(console.error);
+    fetchLinkedStudents();
 
-  }, [isAuthorized, user, db, selectedStudentId]);
+  }, [isAuthorized, user, db, selectedStudentId, isLoadingAuth]);
 
   // Fetch data for the selected student
   useEffect(() => {
     if (!selectedStudentId || !db) {
-      if (!isLoadingData) setIsLoadingData(false);
       setClasses([]); setAllAttendance([]); setAllFees([]);
       return;
     }

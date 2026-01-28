@@ -82,6 +82,7 @@ export default function DashboardHeader({ userRole }: DashboardHeaderProps) {
       teacher: 'dashboardHeader.teacher',
       student: 'dashboardHeader.student',
       parent: 'dashboardHeader.parent',
+      staff: 'dashboardHeader.staff',
     };
     return roleMap[role] || role;
   }

@@ -29,6 +29,7 @@
     "teacher": "Teacher Dashboard",
     "student": "Student Dashboard",
     "parent": "Parent Dashboard",
+    "staff": "Staff Dashboard",
     "signedInAs": "Signed in as",
     "profile": "Profile",
     "logout": "Logout",
