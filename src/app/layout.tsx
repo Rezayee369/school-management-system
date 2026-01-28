@@ -5,7 +5,6 @@ import { FirebaseClientProvider } from "@/firebase";
 import { Toaster } from 'react-hot-toast';
 import { LanguageProvider } from "@/i18n";
 import { ThemeProvider } from "@/components/providers/theme-provider";
-import ConditionalBackground from "@/components/ConditionalBackground";
 
 const ptSans = PT_Sans({
   subsets: ['latin'],
@@ -32,7 +31,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <ConditionalBackground />
+          <div className="fixed inset-0 -z-10 bg-background" />
           <div className="relative z-10">
             <LanguageProvider>
               <FirebaseClientProvider>
