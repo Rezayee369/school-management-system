@@ -73,8 +73,9 @@ service cloud.firestore {
                    (request.auth != null && resource.data.studentId == request.auth.uid) ||
                    isParentOf(resource.data.studentId);
 
-      // LIST: Only Admins can perform broad queries (for aggregation/counts).
-      allow list: if isAdmin();
+      // LIST: Admins, Teachers, and Parents can perform queries.
+      // The GET rule will secure the results of the query row-by-row.
+      allow list: if isAdmin() || isTeacher() || isParent();
       
       // WRITE: Admins or the assigned class teacher can write.
       allow write: if isAdmin() ||
@@ -88,8 +89,8 @@ service cloud.firestore {
                    (request.auth != null && resource.data.studentId == request.auth.uid) ||
                    isParentOf(resource.data.studentId);
         
-      // LIST: Only Admins and Teachers can perform queries.
-      allow list: if isAdmin() || isTeacher();
+      // LIST: Admins, Teachers, and Parents can perform queries.
+      allow list: if isAdmin() || isTeacher() || isParent();
                    
       // WRITE: Admins or the assigned teacher can write grades.
       allow write: if isAdmin() ||
@@ -106,8 +107,8 @@ service cloud.firestore {
                    (request.auth != null && getStudentIdFromFeeId(feeId) == request.auth.uid) ||
                    isParentOf(getStudentIdFromFeeId(feeId));
 
-      // LIST: Only Admins can query the fees collection (for aggregation/reports).
-      allow list: if isAdmin();
+      // LIST: Admins and Parents can query the fees collection.
+      allow list: if isAdmin() || isParent();
                    
       // WRITE: Only Admins can create, update, or delete fee records.
       allow write: if isAdmin();
@@ -130,8 +131,8 @@ service cloud.firestore {
                    (request.auth != null && resource.data.studentId == request.auth.uid) ||
                    isParentOf(resource.data.studentId);
 
-      // LIST: Admins and Teachers can query.
-      allow list: if isAdmin() || isTeacher();
+      // LIST: Admins, Teachers, and Parents can query.
+      allow list: if isAdmin() || isTeacher() || isParent();
 
       // A teacher can create a grade for a student if they teach that class.
       allow create: if isTeacher()

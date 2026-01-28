@@ -51,6 +51,7 @@ export default function HomePage() {
                 case 'teacher': router.replace('/teacher'); break;
                 case 'student': router.replace('/student'); break;
                 case 'parent':  router.replace('/parent');  break;
+                case 'staff':   router.replace('/profile'); break;
                 default:
                     // If role is invalid, log them out to be safe
                     toast.error(t('login.roleInvalid', { role }));

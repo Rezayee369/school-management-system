@@ -58,6 +58,9 @@ export default function LoginPage() {
           case 'parent':
             router.replace('/parent');
             break;
+          case 'staff':
+            router.replace('/profile');
+            break;
           default:
             toast.error(t('login.roleInvalid', { role: role || 'not set'}));
             await signOut(auth);
