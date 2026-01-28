@@ -10,14 +10,10 @@ service cloud.firestore {
     }
 
     function getUserRole(userId) {
-      // This get() call requires the user to have read access to their own user document.
-      // This is granted in the /users/{userId} rule below.
       return get(/databases/$(database)/documents/users/$(userId)).data.role;
     }
 
     function isAdmin() {
-      // Important: For this to work, the rules for /users/{userId} MUST
-      // allow the currently authenticated user to read their own document.
       return request.auth != null && getUserRole(request.auth.uid) == 'admin';
     }
 
@@ -46,23 +42,18 @@ service cloud.firestore {
     // --- Collection Rules ---
 
     match /users/{userId} {
-      // Admins can query the entire collection.
-      allow list: if isAdmin();
+      // Admins can perform any read/write operation. This rule is checked first.
+      allow read, write: if isAdmin();
+
+      // Non-admin users have more restricted access, checked if the admin rule fails.
+      // An authenticated user can read their own document.
+      allow get: if isOwner(userId);
       
-      // Admins can get any user doc.
-      // Other users (teachers, parents, etc.) can only get their own doc.
-      allow get: if request.auth != null && (isAdmin() || isOwner(userId));
-      
-      // Admins can create any user.
       // A new user can create their own profile (but cannot assign themselves as admin).
-      allow create: if isAdmin() || (isOwner(userId) && request.resource.data.role != 'admin');
+      allow create: if isOwner(userId) && request.resource.data.role != 'admin';
       
-      // Admins can update any user.
       // A user can update their own profile, but cannot change their role.
-      allow update: if isAdmin() || (isOwner(userId) && request.resource.data.role == resource.data.role);
-      
-      // Only admins can delete user documents.
-      allow delete: if isAdmin();
+      allow update: if isOwner(userId) && request.resource.data.role == resource.data.role;
     }
     
     match /classes/{classId} {
