@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { collection, query, onSnapshot, orderBy, doc, deleteDoc, where } from 'firebase/firestore';
+import { collection, query, orderBy, doc, deleteDoc, where, getDocs } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
 import { UserPlus, Users, Trash2, HardHat, Phone } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -36,21 +36,24 @@ export default function AdminStaffPage() {
         setIsLoadingStaff(false);
         return;
     }
-    const q = query(collection(db, 'users'), where('role', '==', 'staff'), orderBy('createdAt', 'desc'));
-    const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      const staffData: StaffData[] = [];
-      querySnapshot.forEach((doc) => {
-        staffData.push({ id: doc.id, ...doc.data() } as StaffData);
-      });
-      setStaff(staffData);
-      setIsLoadingStaff(false);
-    }, (err) => {
-      console.error("Error fetching staff:", err);
-      toast.error("Failed to fetch staff members. Check Firestore permissions.");
-      setIsLoadingStaff(false);
-    });
-
-    return () => unsubscribe();
+    const fetchStaff = async () => {
+        setIsLoadingStaff(true);
+        try {
+            const q = query(collection(db, 'users'), where('role', '==', 'staff'), orderBy('createdAt', 'desc'));
+            const querySnapshot = await getDocs(q);
+            const staffData: StaffData[] = [];
+            querySnapshot.forEach((doc) => {
+                staffData.push({ id: doc.id, ...doc.data() } as StaffData);
+            });
+            setStaff(staffData);
+        } catch (err) {
+            console.error("Error fetching staff:", err);
+            toast.error("Failed to fetch staff members. Check Firestore permissions.");
+        } finally {
+            setIsLoadingStaff(false);
+        }
+    };
+    fetchStaff();
   }, [db]);
 
   const handleDeleteClick = (user: StaffData) => {
@@ -75,6 +78,8 @@ export default function AdminStaffPage() {
         // Deleting Auth users requires admin privileges and a backend environment (e.g., Cloud Functions).
         const userDocRef = doc(db, 'users', staffToDelete.id);
         await deleteDoc(userDocRef);
+        // Remove from state for instant UI update
+        setStaff(prev => prev.filter(s => s.id !== staffToDelete.id));
         toast.success(`Staff member ${staffToDelete.fullName} removed from database.`, { id: deletionToast });
 
     } catch (err: any) {

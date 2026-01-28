@@ -4,7 +4,7 @@
 import { useAuthGuard } from '@/hooks/useAuthGuard';
 import DashboardHeader from '@/components/DashboardHeader';
 import { useUser, useFirestore } from '@/firebase';
-import { collection, query, where, onSnapshot, doc, setDoc, arrayUnion, Timestamp, orderBy } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, setDoc, arrayUnion, Timestamp, orderBy } from 'firebase/firestore';
 import { useState, useEffect, useMemo } from 'react';
 import { BookOpen, CheckCircle, XCircle, MinusCircle, ClipboardCheck, Megaphone, MessageSquare } from 'lucide-react';
 import PermissionDenied from '@/components/PermissionDenied';
@@ -56,54 +56,49 @@ export default function StudentDashboard() {
         return;
     };
 
-    const unsubscribes: (() => void)[] = [];
+    const fetchData = async () => {
+        setIsLoadingData(true);
+        try {
+            // Fetch classes
+            const classesQuery = query(collection(db, 'classes'), where('studentIds', 'array-contains', user.uid));
+            const classesSnapshot = await getDocs(classesQuery);
+            setClasses(classesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as ClassData)));
 
-    // Fetch classes
-    const classesQuery = query(collection(db, 'classes'), where('studentIds', 'array-contains', user.uid));
-    unsubscribes.push(onSnapshot(classesQuery, (snapshot) => {
-      const classesData = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-      } as ClassData));
-      setClasses(classesData);
-      if(isLoadingData) setIsLoadingData(false);
-    }, (error) => {
-      console.error("Error fetching classes:", error);
-      if(isLoadingData) setIsLoadingData(false);
-    }));
+            // Fetch attendance
+            const attendanceQuery = query(collection(db, 'attendance'), where('studentId', '==', user.uid));
+            const attendanceSnapshot = await getDocs(attendanceQuery);
+            setAttendance(attendanceSnapshot.docs.map(doc => doc.data() as AttendanceData));
 
-    // Fetch attendance records
-    const attendanceQuery = query(collection(db, 'attendance'), where('studentId', '==', user.uid));
-    unsubscribes.push(onSnapshot(attendanceQuery, (snapshot) => {
-      const attendanceData = snapshot.docs.map(doc => doc.data() as AttendanceData);
-      setAttendance(attendanceData);
-    }));
+            // Fetch grades
+            const gradesQuery = query(collection(db, 'grades'), where('studentId', '==', user.uid));
+            const gradesSnapshot = await getDocs(gradesQuery);
+            setGrades(gradesSnapshot.docs.map(doc => doc.data() as GradeData));
 
-    // Fetch grades
-    const gradesQuery = query(collection(db, 'grades'), where('studentId', '==', user.uid));
-    unsubscribes.push(onSnapshot(gradesQuery, (snapshot) => {
-        const gradesData = snapshot.docs.map(doc => doc.data() as GradeData);
-        setGrades(gradesData);
-    }));
-    
-    // Fetch notifications
-    const notifQuery = query(collection(db, 'notifications'), where('targetRole', 'in', ['all', 'student']), orderBy('createdAt', 'desc'));
-    unsubscribes.push(onSnapshot(notifQuery, (snapshot) => {
-        const notifData = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as NotificationData));
-        setNotifications(notifData);
-    }));
+            // Fetch notifications
+            const notifQuery = query(collection(db, 'notifications'), where('targetRole', 'in', ['all', 'student']), orderBy('createdAt', 'desc'));
+            const notifSnapshot = await getDocs(notifQuery);
+            setNotifications(notifSnapshot.docs.map(d => ({ id: d.id, ...d.data() } as NotificationData)));
+            
+            // Fetch read status
+            const readStateRef = doc(db, 'userReadStates', user.uid);
+            const readStateSnap = await getDoc(readStateRef);
+            if (readStateSnap.exists()) {
+                const data = readStateSnap.data();
+                if (data && data.readNotificationIds) {
+                    setReadNotificationIds(new Set(data.readNotificationIds));
+                }
+            }
 
-    // Fetch read status
-    const readStateRef = doc(db, 'userReadStates', user.uid);
-    unsubscribes.push(onSnapshot(readStateRef, (doc) => {
-      const data = doc.data();
-      if (data && data.readNotificationIds) {
-        setReadNotificationIds(new Set(data.readNotificationIds));
-      }
-    }));
+        } catch (error) {
+            console.error("Error fetching student dashboard data:", error);
+            toast.error("Failed to load dashboard data.");
+        } finally {
+            setIsLoadingData(false);
+        }
+    };
 
+    fetchData();
 
-    return () => unsubscribes.forEach(unsub => unsub());
   }, [isLoadingAuth, isAuthorized, user, db]);
 
   const attendanceSummary = attendance.reduce((acc, record) => {
@@ -118,6 +113,9 @@ export default function StudentDashboard() {
   const handleNotificationClick = async (notificationId: string) => {
     if (!user || readNotificationIds.has(notificationId)) return;
     
+    const newReadIds = new Set(readNotificationIds).add(notificationId);
+    setReadNotificationIds(newReadIds); // Optimistic update
+
     const readStateRef = doc(db, 'userReadStates', user.uid);
     try {
       await setDoc(readStateRef, {
@@ -126,6 +124,10 @@ export default function StudentDashboard() {
     } catch (error) {
       console.error("Failed to mark notification as read:", error);
       toast.error(t('studentDashboard.readStatusError'));
+      // Revert optimistic update on error
+      const revertedIds = new Set(readNotificationIds);
+      revertedIds.delete(notificationId);
+      setReadNotificationIds(revertedIds);
     }
   };
 

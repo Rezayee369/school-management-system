@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { collection, addDoc, serverTimestamp, query, onSnapshot, orderBy, where, getDocs, deleteDoc, doc } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, query, getDocs, orderBy, where, deleteDoc, doc } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
 import { ChevronRight, UserPlus, Trash2, BookOpen } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -40,6 +40,7 @@ export default function AdminClassesPage() {
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
   useEffect(() => {
+    if (!db) return;
     setIsLoadingTeachers(true);
     const fetchTeachers = async () => {
       try {
@@ -64,22 +65,25 @@ export default function AdminClassesPage() {
   }, [db]);
 
   useEffect(() => {
-    setIsLoadingClasses(true);
-    const q = query(collection(db, 'classes'), orderBy('createdAt', 'desc'));
-    const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      const classesData: ClassData[] = [];
-      querySnapshot.forEach((doc) => {
-        classesData.push({ id: doc.id, ...doc.data() } as ClassData);
-      });
-      setClasses(classesData);
-      setIsLoadingClasses(false);
-    }, (err) => {
-      console.error("Error fetching classes:", err);
-      toast.error("Failed to fetch classes. Check permissions.");
-      setIsLoadingClasses(false);
-    });
-
-    return () => unsubscribe();
+    if (!db) return;
+    const fetchClasses = async () => {
+        setIsLoadingClasses(true);
+        try {
+            const q = query(collection(db, 'classes'), orderBy('createdAt', 'desc'));
+            const querySnapshot = await getDocs(q);
+            const classesData: ClassData[] = [];
+            querySnapshot.forEach((doc) => {
+                classesData.push({ id: doc.id, ...doc.data() } as ClassData);
+            });
+            setClasses(classesData);
+        } catch (err) {
+            console.error("Error fetching classes:", err);
+            toast.error("Failed to fetch classes. Check permissions.");
+        } finally {
+            setIsLoadingClasses(false);
+        }
+    };
+    fetchClasses();
   }, [db]);
 
   const handleAddClass = async (e: React.FormEvent) => {
@@ -97,12 +101,18 @@ export default function AdminClassesPage() {
 
     setIsAddingClass(true);
     try {
-      await addDoc(collection(db, 'classes'), {
+      const docRef = await addDoc(collection(db, 'classes'), {
         name: newClassName,
         teacherId: selectedTeacher.id,
         teacherName: selectedTeacher.fullName,
         createdAt: serverTimestamp(),
       });
+      // Add new class to state manually for instant feedback
+      setClasses(prev => [{
+          id: docRef.id,
+          name: newClassName,
+          teacherName: selectedTeacher.fullName,
+      }, ...prev]);
       setNewClassName('');
       toast.success(`Class "${newClassName}" created.`);
     } catch (err) {
@@ -132,6 +142,8 @@ export default function AdminClassesPage() {
 
     try {
         await deleteDoc(doc(db, 'classes', classToDelete.id));
+        // Remove from state for instant feedback
+        setClasses(prev => prev.filter(c => c.id !== classToDelete.id));
         toast.success(`Class "${classToDelete.name}" deleted successfully.`, { id: deletionToast });
     } catch (err) {
         console.error("Error deleting class:", err);

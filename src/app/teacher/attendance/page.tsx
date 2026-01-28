@@ -54,20 +54,20 @@ export default function TeacherAttendancePage() {
 
   // Fetch teacher's classes
   useEffect(() => {
-    if (!isAuthorized || !user) return;
+    if (!isAuthorized || !user || !db) return;
     
-    setIsLoadingClasses(true);
-    const classesQuery = query(collection(db, 'classes'), where('teacherId', '==', user.uid));
-    const unsubscribe = onSnapshot(classesQuery, (snapshot) => {
-      const classesData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as ClassData));
-      setClasses(classesData);
-      if (classesData.length > 0 && !selectedClassId) {
-        setSelectedClassId(classesData[0].id);
-      }
-      setIsLoadingClasses(false);
-    });
-
-    return () => unsubscribe();
+    const fetchClasses = async () => {
+        setIsLoadingClasses(true);
+        const classesQuery = query(collection(db, 'classes'), where('teacherId', '==', user.uid));
+        const snapshot = await getDocs(classesQuery);
+        const classesData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as ClassData));
+        setClasses(classesData);
+        if (classesData.length > 0 && !selectedClassId) {
+          setSelectedClassId(classesData[0].id);
+        }
+        setIsLoadingClasses(false);
+    };
+    fetchClasses().catch(() => setIsLoadingClasses(false));
   }, [isAuthorized, user, db]);
 
   // Fetch students and attendance when class or date changes
@@ -78,7 +78,6 @@ export default function TeacherAttendancePage() {
     };
 
     const dateString = format(date, 'yyyy-MM-dd');
-    let unsubscribeStudents = () => {};
     let unsubscribeAttendance = () => {};
 
     const fetchData = async () => {
@@ -87,25 +86,22 @@ export default function TeacherAttendancePage() {
         setAttendance(new Map());
 
         try {
-            // Get class doc to find student IDs
-            const classDocRef = doc(db, 'classes', selectedClassId);
-            const classSnap = await getDocs(query(collection(db, 'classes'), where(documentId(), '==', selectedClassId)));
-            const classData = classSnap.docs[0]?.data();
-            const studentIds = classData?.studentIds || [];
+            const classSnap = await getDoc(doc(db, 'classes', selectedClassId));
+            if (!classSnap.exists()) return;
+            
+            const studentIds = classSnap.data()?.studentIds || [];
 
             if (studentIds.length > 0) {
-                // Fetch student details
                 const studentsQuery = query(collection(db, 'users'), where(documentId(), 'in', studentIds));
                 const studentsSnapshot = await getDocs(studentsQuery);
-                const studentData = studentsSnapshot.docs.map(d => ({ id: d.id, name: d.data().fullName as string }));
-                setStudents(studentData);
+                setStudents(studentsSnapshot.docs.map(d => ({ id: d.id, name: d.data().fullName as string })));
                 
-                // Fetch today's attendance for the selected class
                 const attendanceQuery = query(
                   collection(db, 'attendance'),
                   where('classId', '==', selectedClassId),
                   where('date', '==', dateString)
                 );
+                // Keep this as onSnapshot to provide real-time feedback while marking
                 unsubscribeAttendance = onSnapshot(attendanceQuery, (snapshot) => {
                   const newAttendance = new Map<string, AttendanceRecord>();
                   snapshot.forEach(doc => {
@@ -113,7 +109,6 @@ export default function TeacherAttendancePage() {
                   });
                   setAttendance(newAttendance);
                 });
-
             }
         } catch (error) {
             console.error("Error fetching student/attendance data:", error);
@@ -126,7 +121,6 @@ export default function TeacherAttendancePage() {
     fetchData();
 
     return () => {
-      unsubscribeStudents();
       unsubscribeAttendance();
     };
   }, [selectedClassId, date, db, t]);

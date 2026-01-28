@@ -6,7 +6,7 @@ import { useAuthGuard } from '@/hooks/useAuthGuard';
 import DashboardHeader from '@/components/DashboardHeader';
 import Link from 'next/link';
 import { useFirestore, useUser } from '@/firebase';
-import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { collection, query, where, getDocs } from 'firebase/firestore';
 import { BookOpen, Users, ClipboardEdit, Calendar, FilePenLine } from 'lucide-react';
 import PermissionDenied from '@/components/PermissionDenied';
 import { useTranslation } from '@/i18n';
@@ -27,27 +27,29 @@ export default function TeacherDashboard() {
   const [isLoadingClasses, setIsLoadingClasses] = useState(true);
 
   useEffect(() => {
-    if (isLoadingAuth || !isAuthorized || !user) {
+    if (isLoadingAuth || !isAuthorized || !user || !db) {
         if (!isLoadingAuth) setIsLoadingClasses(false);
         return;
     };
 
-    setIsLoadingClasses(true);
-    const classesQuery = query(collection(db, 'classes'), where('teacherId', '==', user.uid));
+    const fetchClasses = async () => {
+        setIsLoadingClasses(true);
+        try {
+            const classesQuery = query(collection(db, 'classes'), where('teacherId', '==', user.uid));
+            const snapshot = await getDocs(classesQuery);
+            const classesData = snapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            } as ClassData));
+            setClasses(classesData);
+        } catch (error) {
+            console.error("Error fetching classes:", error);
+        } finally {
+            setIsLoadingClasses(false);
+        }
+    };
     
-    const unsubscribe = onSnapshot(classesQuery, (snapshot) => {
-      const classesData = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      } as ClassData));
-      setClasses(classesData);
-      setIsLoadingClasses(false);
-    }, (error) => {
-      console.error("Error fetching classes:", error);
-      setIsLoadingClasses(false);
-    });
-
-    return () => unsubscribe();
+    fetchClasses();
   }, [isLoadingAuth, isAuthorized, user, db]);
 
   if (isLoadingAuth || isLoadingClasses) {

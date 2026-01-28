@@ -7,7 +7,7 @@ import { useAuthGuard } from '@/hooks/useAuthGuard';
 import DashboardHeader from '@/components/DashboardHeader';
 import PermissionDenied from '@/components/PermissionDenied';
 import { useUser, useFirestore } from '@/firebase';
-import { collection, doc, onSnapshot, query, where, documentId, getDocs, orderBy, Timestamp, setDoc, arrayUnion } from 'firebase/firestore';
+import { collection, doc, getDoc, query, where, documentId, getDocs, orderBy, Timestamp, setDoc, arrayUnion } from 'firebase/firestore';
 import { BookOpen, Users, Percent, CalendarDays, Wallet, CalendarClock, Award, Megaphone, MessageSquare } from 'lucide-react';
 import { format, parse, formatDistanceToNow } from 'date-fns';
 import toast from 'react-hot-toast';
@@ -87,9 +87,10 @@ export default function ParentDashboard() {
         return;
     }
 
-    setIsLoadingData(true);
-    const parentRef = doc(db, 'users', user.uid);
-    const unsubscribe = onSnapshot(parentRef, async (snap) => {
+    const fetchLinkedStudents = async () => {
+        setIsLoadingData(true);
+        const parentRef = doc(db, 'users', user.uid);
+        const snap = await getDoc(parentRef);
         if (snap.exists()) {
             const studentIds = snap.data()?.studentIds || [];
             if (studentIds.length > 0) {
@@ -105,71 +106,70 @@ export default function ParentDashboard() {
                 setSelectedStudentId(null);
             }
         }
-        setIsLoadingData(false);
-    }, () => setIsLoadingData(false));
+        // Loading is finished in the other useEffect
+    };
 
-    return () => unsubscribe();
+    fetchLinkedStudents().catch(console.error);
+
   }, [isAuthorized, user, db]);
 
   // Fetch data for the selected student
   useEffect(() => {
     if (!selectedStudentId || !db) {
+      if (!isLoadingData) setIsLoadingData(false);
       setClasses([]); setAllAttendance([]); setAllFees([]);
       return;
     }
 
-    const unsubscribes: (() => void)[] = [];
+    const fetchStudentData = async () => {
+        setIsLoadingData(true);
+        try {
+            const [classesSnap, attendanceSnap, feesSnap] = await Promise.all([
+                getDocs(query(collection(db, 'classes'), where('studentIds', 'array-contains', selectedStudentId))),
+                getDocs(query(collection(db, 'attendance'), where('studentId', '==', selectedStudentId))),
+                getDocs(query(collection(db, 'fees'), where('studentId', '==', selectedStudentId), orderBy('month', 'desc')))
+            ]);
+            
+            setClasses(classesSnap.docs.map(d => ({ id: d.id, ...d.data() } as ClassData)));
+            setAllAttendance(attendanceSnap.docs.map(d => d.data() as AttendanceData).sort((a,b) => b.date.localeCompare(a.date)));
+            setAllFees(feesSnap.docs.map(d => ({id: d.id, ...d.data()}) as FeeData));
+
+        } catch(err) {
+            console.error(err);
+            toast.error("Failed to load student data.");
+        } finally {
+            setIsLoadingData(false);
+        }
+    }
     
-    // Classes
-    const classesQuery = query(collection(db, 'classes'), where('studentIds', 'array-contains', selectedStudentId));
-    unsubscribes.push(onSnapshot(classesQuery, snap => setClasses(snap.docs.map(d => ({ id: d.id, ...d.data() } as ClassData)))));
-
-    // Attendance (all records)
-    const attendanceQuery = query(collection(db, 'attendance'), where('studentId', '==', selectedStudentId));
-    unsubscribes.push(onSnapshot(attendanceQuery, (snapshot) => {
-        const records = snapshot.docs.map(d => d.data() as AttendanceData).sort((a,b) => b.date.localeCompare(a.date));
-        setAllAttendance(records);
-    }));
-
-    // Fetch all fees for the student
-    const feesQuery = query(collection(db, 'fees'), where('studentId', '==', selectedStudentId), orderBy('month', 'desc'));
-    unsubscribes.push(onSnapshot(feesQuery, snap => {
-        const feeData = snap.docs.map(d => ({id: d.id, ...d.data()}) as FeeData);
-        setAllFees(feeData);
-    }));
-
-    return () => unsubscribes.forEach(unsub => unsub());
+    fetchStudentData();
   }, [selectedStudentId, db]);
 
-  // Fetch notifications for the parent
+  // Fetch notifications separately
   useEffect(() => {
     if (!user || !db) return;
 
-    const notifQuery = query(
-      collection(db, 'notifications'),
-      where('targetRole', 'in', ['all', 'parent']),
-      orderBy('createdAt', 'desc')
-    );
-
-    const unsub = onSnapshot(notifQuery, (snapshot) => {
-      const notifData = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as NotificationData));
-      setNotifications(notifData);
-    });
-    
-    return () => unsub();
-  }, [user, db]);
-  
-  // Fetch read notification states
-  useEffect(() => {
-    if (!user || !db) return;
-    const readStateRef = doc(db, 'userReadStates', user.uid);
-    const unsub = onSnapshot(readStateRef, (doc) => {
-      const data = doc.data();
-      if (data && data.readNotificationIds) {
-        setReadNotificationIds(new Set(data.readNotificationIds));
-      }
-    });
-    return () => unsub();
+    const fetchNotifications = async () => {
+        try {
+            const notifQuery = query(
+                collection(db, 'notifications'),
+                where('targetRole', 'in', ['all', 'parent']),
+                orderBy('createdAt', 'desc')
+            );
+            const notifSnap = await getDocs(notifQuery);
+            setNotifications(notifSnap.docs.map(d => ({ id: d.id, ...d.data() } as NotificationData)));
+            
+            const readStateRef = doc(db, 'userReadStates', user.uid);
+            const readStateSnap = await getDoc(readStateRef);
+            if(readStateSnap.exists()) {
+                setReadNotificationIds(new Set(readStateSnap.data()?.readNotificationIds || []));
+            }
+        } catch (err) {
+            console.error(err);
+            toast.error("Failed to load notifications.");
+        }
+    };
+    fetchNotifications();
   }, [user, db]);
   
   const unreadCount = useMemo(() => {
@@ -179,6 +179,9 @@ export default function ParentDashboard() {
   const handleNotificationClick = async (notificationId: string) => {
     if (!user || readNotificationIds.has(notificationId)) return;
     
+    const newReadIds = new Set(readNotificationIds).add(notificationId);
+    setReadNotificationIds(newReadIds); // Optimistic update
+
     const readStateRef = doc(db, 'userReadStates', user.uid);
     try {
       await setDoc(readStateRef, {
@@ -187,6 +190,9 @@ export default function ParentDashboard() {
     } catch (error) {
       console.error("Failed to mark notification as read:", error);
       toast.error(t('parentDashboard.readStatusError'));
+      const revertedIds = new Set(readNotificationIds);
+      revertedIds.delete(notificationId);
+      setReadNotificationIds(revertedIds);
     }
   };
   
@@ -197,7 +203,6 @@ export default function ParentDashboard() {
   
   const feeHistory = allFees;
 
-  // Derived state for summary cards and history list
   const { attendanceToday, monthlyAttendance, filteredAttendanceHistory } = useMemo(() => {
     const todayStr = format(new Date(), 'yyyy-MM-dd');
     const monthStartStr = format(new Date(), 'yyyy-MM');

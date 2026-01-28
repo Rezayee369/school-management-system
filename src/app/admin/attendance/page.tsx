@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useFirestore } from '@/firebase';
-import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestore';
+import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
 import { Calendar as CalendarIcon, Users } from 'lucide-react';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
@@ -39,22 +39,24 @@ export default function AdminAttendancePage() {
   useEffect(() => {
     if (!db) return;
     
-    setIsLoadingClasses(true);
-    const classesQuery = query(collection(db, 'classes'), orderBy('name'));
-    const unsubscribe = onSnapshot(classesQuery, (snapshot) => {
-      const classesData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as ClassData));
-      setClasses(classesData);
-      if (classesData.length > 0 && !selectedClassId) {
-        setSelectedClassId(classesData[0].id);
-      }
-      setIsLoadingClasses(false);
-    }, (err) => {
-        toast.error("Failed to load classes.");
-        console.error(err);
-        setIsLoadingClasses(false);
-    });
-
-    return () => unsubscribe();
+    const fetchClasses = async () => {
+        setIsLoadingClasses(true);
+        try {
+            const classesQuery = query(collection(db, 'classes'), orderBy('name'));
+            const snapshot = await getDocs(classesQuery);
+            const classesData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as ClassData));
+            setClasses(classesData);
+            if (classesData.length > 0 && !selectedClassId) {
+                setSelectedClassId(classesData[0].id);
+            }
+        } catch (err) {
+            toast.error("Failed to load classes.");
+            console.error(err);
+        } finally {
+            setIsLoadingClasses(false);
+        }
+    };
+    fetchClasses();
   }, [db]);
 
   useEffect(() => {
@@ -63,29 +65,29 @@ export default function AdminAttendancePage() {
         return;
     };
 
-    setIsLoadingAttendance(true);
-    const dateString = format(date, 'yyyy-MM-dd');
-    
-    const attendanceQuery = query(
-      collection(db, 'attendance'),
-      where('classId', '==', selectedClassId),
-      where('date', '==', dateString)
-    );
-    
-    const unsubscribe = onSnapshot(attendanceQuery, (snapshot) => {
-      const records = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      } as AttendanceData));
-      setAttendanceRecords(records);
-      setIsLoadingAttendance(false);
-    }, (err) => {
-        toast.error("Failed to load attendance records.");
-        console.error(err);
-        setIsLoadingAttendance(false);
-    });
-
-    return () => unsubscribe();
+    const fetchAttendance = async () => {
+        setIsLoadingAttendance(true);
+        try {
+            const dateString = format(date, 'yyyy-MM-dd');
+            const attendanceQuery = query(
+              collection(db, 'attendance'),
+              where('classId', '==', selectedClassId),
+              where('date', '==', dateString)
+            );
+            const snapshot = await getDocs(attendanceQuery);
+            const records = snapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            } as AttendanceData));
+            setAttendanceRecords(records);
+        } catch (err) {
+            toast.error("Failed to load attendance records.");
+            console.error(err);
+        } finally {
+            setIsLoadingAttendance(false);
+        }
+    };
+    fetchAttendance();
   }, [selectedClassId, date, db]);
   
   const getStatusBadge = (status: string) => {

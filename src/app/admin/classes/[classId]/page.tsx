@@ -1,10 +1,9 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useFirestore } from '@/firebase';
-import { collection, doc, onSnapshot, query, where, updateDoc, arrayUnion, arrayRemove, documentId } from 'firebase/firestore';
+import { collection, doc, query, where, updateDoc, arrayUnion, arrayRemove, documentId, getDoc, getDocs } from 'firebase/firestore';
 import { UserPlus, Trash2, Users, UserCheck } from 'lucide-react';
 import toast from 'react-hot-toast';
 import ConfirmDialog from '@/components/ConfirmDialog';
@@ -40,52 +39,44 @@ export default function ManageStudentsPage() {
 
   useEffect(() => {
     if (!db || !classId) return;
-
-    // Fetch all students in the system (for the 'available' list)
-    const allStudentsQuery = query(collection(db, 'users'), where('role', '==', 'student'));
-    const unsubscribeAllStudents = onSnapshot(allStudentsQuery, (querySnapshot) => {
-        setAllStudents(querySnapshot.docs.map(doc => ({ id: doc.id, fullName: doc.data().fullName } as Student)));
-    }, (e) => {
-        console.error("Failed to fetch student list:", e);
-        toast.error("Failed to load student list.");
-    });
     
-    // Watch the class document for changes to studentIds
-    let unsubscribeEnrolledStudents: () => void = () => {};
-    const classDocRef = doc(db, 'classes', classId);
-    const unsubscribeClass = onSnapshot(classDocRef, (classSnap) => {
-        if (classSnap.exists()) {
-            const data = classSnap.data() as ClassData;
-            setClassData(data);
-            
-            unsubscribeEnrolledStudents(); // Unsubscribe from the previous listener
-            
-            const studentIds = data.studentIds || [];
-            if (studentIds.length > 0) {
-                const enrolledQuery = query(collection(db, 'users'), where(documentId(), 'in', studentIds));
-                unsubscribeEnrolledStudents = onSnapshot(enrolledQuery, (enrolledSnap) => {
-                    setEnrolledStudents(enrolledSnap.docs.map(doc => ({ id: doc.id, fullName: doc.data().fullName } as Student)));
-                }, (err) => {
-                     console.error("Error fetching enrolled students:", err);
-                     toast.error("Failed to load enrolled students.");
-                });
-            } else {
-                setEnrolledStudents([]);
-            }
-        } else {
-            toast.error("Class not found.");
-            router.push('/admin/classes');
-        }
-    }, (e) => {
-        console.error("Error fetching class details:", e);
-        toast.error("Failed to load class details.");
-    });
+    const fetchData = async () => {
+        try {
+            // Fetch all students in the system
+            const allStudentsQuery = query(collection(db, 'users'), where('role', '==', 'student'));
+            const allStudentsSnap = await getDocs(allStudentsQuery);
+            const allStudentsData = allStudentsSnap.docs.map(doc => ({ id: doc.id, fullName: doc.data().fullName } as Student));
+            setAllStudents(allStudentsData);
 
-    return () => {
-      unsubscribeClass();
-      unsubscribeAllStudents();
-      unsubscribeEnrolledStudents();
+            // Fetch the class document
+            const classDocRef = doc(db, 'classes', classId);
+            const classSnap = await getDoc(classDocRef);
+
+            if (classSnap.exists()) {
+                const data = classSnap.data() as ClassData;
+                setClassData(data);
+                
+                const studentIds = data.studentIds || [];
+                if (studentIds.length > 0) {
+                    const enrolledQuery = query(collection(db, 'users'), where(documentId(), 'in', studentIds));
+                    const enrolledSnap = await getDocs(enrolledQuery);
+                    const enrolledStudentsData = enrolledSnap.docs.map(doc => ({ id: doc.id, fullName: doc.data().fullName } as Student));
+                    setEnrolledStudents(enrolledStudentsData);
+                } else {
+                    setEnrolledStudents([]);
+                }
+            } else {
+                toast.error("Class not found.");
+                router.push('/admin/classes');
+            }
+        } catch (e) {
+            console.error("Error fetching class and student details:", e);
+            toast.error("Failed to load class details.");
+        }
     };
+    
+    fetchData();
+
   }, [db, classId, router]);
   
   const handleEnroll = async (student: Student) => {
@@ -95,6 +86,8 @@ export default function ManageStudentsPage() {
         await updateDoc(classDocRef, {
             studentIds: arrayUnion(student.id)
         });
+        // Manually update state to reflect change instantly
+        setEnrolledStudents(prev => [...prev, student]);
         toast.success(`${student.fullName} enrolled successfully.`);
     } catch (e) {
         console.error("Error enrolling student:", e);
@@ -123,6 +116,8 @@ export default function ManageStudentsPage() {
         await updateDoc(classDocRef, {
             studentIds: arrayRemove(studentToUnenroll.id)
         });
+        // Manually update state to reflect change instantly
+        setEnrolledStudents(prev => prev.filter(s => s.id !== studentToUnenroll.id));
         toast.success(`${studentToUnenroll.fullName} unenrolled successfully.`);
     } catch (e) {
         console.error("Error unenrolling student:", e);

@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuthGuard } from '@/hooks/useAuthGuard';
 import { useFirestore, useUser } from '@/firebase';
-import { collection, query, where, onSnapshot, addDoc, serverTimestamp, getDocs, doc, deleteDoc, orderBy, documentId } from 'firebase/firestore';
+import { collection, query, where, getDocs, addDoc, serverTimestamp, doc, deleteDoc, orderBy, documentId } from 'firebase/firestore';
 import { Calendar as CalendarIcon, FilePenLine, ChevronRight, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
@@ -57,34 +57,34 @@ export default function TeacherExamsPage() {
 
   // Fetch teacher's classes for the form dropdown
   useEffect(() => {
-    if (!isAuthorized || !user) return;
+    if (!isAuthorized || !user || !db) return;
     
-    setIsLoadingClasses(true);
-    const classesQuery = query(collection(db, 'classes'), where('teacherId', '==', user.uid));
-    const unsubscribe = onSnapshot(classesQuery, (snapshot) => {
+    const fetchClasses = async () => {
+      setIsLoadingClasses(true);
+      const classesQuery = query(collection(db, 'classes'), where('teacherId', '==', user.uid));
+      const snapshot = await getDocs(classesQuery);
       const classesData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as ClassData));
       setClasses(classesData);
       if (classesData.length > 0 && !selectedClassId) {
         setSelectedClassId(classesData[0].id);
       }
       setIsLoadingClasses(false);
-    }, () => setIsLoadingClasses(false));
-
-    return () => unsubscribe();
+    };
+    fetchClasses().catch(() => setIsLoadingClasses(false));
   }, [isAuthorized, user, db]);
 
   // Fetch created exams for the list
   useEffect(() => {
-    if(!isAuthorized || !user) return;
+    if(!isAuthorized || !user || !db) return;
 
-    setIsLoadingExams(true);
-    const examsQuery = query(collection(db, 'exams'), where('teacherId', '==', user.uid), orderBy('date', 'desc'));
-    const unsubscribe = onSnapshot(examsQuery, async (snapshot) => {
+    const fetchExams = async () => {
+        setIsLoadingExams(true);
+        const examsQuery = query(collection(db, 'exams'), where('teacherId', '==', user.uid), orderBy('date', 'desc'));
+        const snapshot = await getDocs(examsQuery);
         const examsData = snapshot.docs.map(doc => ({id: doc.id, ...doc.data() as Omit<ExamData, 'id'|'className'>}));
 
-        // Enrich with class names
-        const classIds = [...new Set(examsData.map(e => e.classId))];
-        if (classIds.length > 0) {
+        if (examsData.length > 0) {
+            const classIds = [...new Set(examsData.map(e => e.classId))];
             const classesQuery = query(collection(db, 'classes'), where(documentId(), 'in', classIds));
             const classesSnap = await getDocs(classesQuery);
             const classMap = new Map(classesSnap.docs.map(d => [d.id, d.data().name]));
@@ -95,9 +95,8 @@ export default function TeacherExamsPage() {
         
         setExams(examsData as ExamData[]);
         setIsLoadingExams(false);
-    }, () => setIsLoadingExams(false));
-
-    return () => unsubscribe();
+    };
+    fetchExams().catch(() => setIsLoadingExams(false));
   }, [isAuthorized, user, db, t]);
 
 
@@ -115,7 +114,7 @@ export default function TeacherExamsPage() {
     setIsSaving(true);
     
     try {
-      await addDoc(collection(db, 'exams'), {
+      const docRef = await addDoc(collection(db, 'exams'), {
         classId: selectedClassId,
         teacherId: user.uid,
         subject: subject.trim(),
@@ -124,6 +123,17 @@ export default function TeacherExamsPage() {
         date: format(date, 'yyyy-MM-dd'),
         createdAt: serverTimestamp(),
       });
+      // Add to local state for instant UI update
+      const newExam = {
+        id: docRef.id,
+        classId: selectedClassId,
+        subject: subject.trim(),
+        type: examType,
+        maxScore: score,
+        date: format(date, 'yyyy-MM-dd'),
+        className: classes.find(c => c.id === selectedClassId)?.name
+      }
+      setExams(prev => [newExam, ...prev]);
       toast.success(t('teacherExams.createSuccess'));
       setSubject(''); setMaxScore('100'); setExamType('monthly');
     } catch (error) {
@@ -138,7 +148,7 @@ export default function TeacherExamsPage() {
     setIsDeleting(true);
     try {
         await deleteDoc(doc(db, 'exams', examToDelete.id));
-        // Note: This does not delete associated grades. A more robust system might use a cloud function.
+        setExams(prev => prev.filter(e => e.id !== examToDelete.id));
         toast.success(t('teacherExams.deleteSuccess', { subject: examToDelete.subject }));
     } catch (e) {
         toast.error(t('teacherExams.deleteError'));

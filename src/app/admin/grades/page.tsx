@@ -4,7 +4,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useAuthGuard } from '@/hooks/useAuthGuard';
 import { useFirestore } from '@/firebase';
-import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestore';
+import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
 import { ClipboardCheck, Percent, TrendingUp, Users } from 'lucide-react';
 import PermissionDenied from '@/components/PermissionDenied';
 import { Skeleton } from '@/components/Skeleton';
@@ -51,18 +51,18 @@ export default function AdminGradesPage() {
   useEffect(() => {
     if (!isAuthorized || !db) return;
     
-    setIsLoadingClasses(true);
-    const classesQuery = query(collection(db, 'classes'), orderBy('name'));
-    const unsubscribe = onSnapshot(classesQuery, (snapshot) => {
-      const classesData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as ClassData));
-      setClasses(classesData);
-      if (classesData.length > 0 && !selectedClassId) {
-        setSelectedClassId(classesData[0].id);
-      }
-      setIsLoadingClasses(false);
-    }, () => setIsLoadingClasses(false));
-
-    return () => unsubscribe();
+    const fetchClasses = async () => {
+        setIsLoadingClasses(true);
+        const classesQuery = query(collection(db, 'classes'), orderBy('name'));
+        const snapshot = await getDocs(classesQuery);
+        const classesData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as ClassData));
+        setClasses(classesData);
+        if (classesData.length > 0 && !selectedClassId) {
+          setSelectedClassId(classesData[0].id);
+        }
+        setIsLoadingClasses(false);
+    };
+    fetchClasses().catch(() => setIsLoadingClasses(false));
   }, [isAuthorized, db]);
 
   // Fetch exams for the selected class
@@ -73,20 +73,20 @@ export default function AdminGradesPage() {
         return;
     };
     
-    setIsLoadingExams(true);
-    const examsQuery = query(collection(db, 'exams'), where('classId', '==', selectedClassId), orderBy('date', 'desc'));
-    const unsubscribe = onSnapshot(examsQuery, (snapshot) => {
-      const examsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as ExamData));
-      setExams(examsData);
-      if (examsData.length > 0) {
-        setSelectedExamId(examsData[0].id);
-      } else {
-        setSelectedExamId('');
-      }
-      setIsLoadingExams(false);
-    }, () => setIsLoadingExams(false));
-    
-    return () => unsubscribe();
+    const fetchExams = async () => {
+        setIsLoadingExams(true);
+        const examsQuery = query(collection(db, 'exams'), where('classId', '==', selectedClassId), orderBy('date', 'desc'));
+        const snapshot = await getDocs(examsQuery);
+        const examsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as ExamData));
+        setExams(examsData);
+        if (examsData.length > 0) {
+          setSelectedExamId(examsData[0].id);
+        } else {
+          setSelectedExamId('');
+        }
+        setIsLoadingExams(false);
+    };
+    fetchExams().catch(() => setIsLoadingExams(false));
   }, [selectedClassId, db]);
 
   // Fetch grades for the selected exam
@@ -96,15 +96,15 @@ export default function AdminGradesPage() {
         return;
     }
     
-    setIsLoadingGrades(true);
-    const gradesQuery = query(collection(db, 'examGrades'), where('examId', '==', selectedExamId), orderBy('score', 'desc'));
-    const unsubscribe = onSnapshot(gradesQuery, (snapshot) => {
-      const gradesData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as GradeData));
-      setGrades(gradesData);
-      setIsLoadingGrades(false);
-    }, () => setIsLoadingGrades(false));
-
-    return () => unsubscribe();
+    const fetchGrades = async () => {
+        setIsLoadingGrades(true);
+        const gradesQuery = query(collection(db, 'examGrades'), where('examId', '==', selectedExamId), orderBy('score', 'desc'));
+        const snapshot = await getDocs(gradesQuery);
+        const gradesData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as GradeData));
+        setGrades(gradesData);
+        setIsLoadingGrades(false);
+    };
+    fetchGrades().catch(() => setIsLoadingGrades(false));
   }, [selectedExamId, db]);
 
   // Calculate average score

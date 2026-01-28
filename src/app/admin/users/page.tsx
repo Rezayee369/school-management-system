@@ -4,7 +4,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { collection, query, onSnapshot, orderBy, doc, writeBatch, where, getDocs, getDoc, arrayRemove, deleteField } from 'firebase/firestore';
+import { collection, query, orderBy, doc, writeBatch, where, getDocs, deleteField } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
 import { UserPlus, Users, Briefcase, UserCircle, Trash2, Pencil, GraduationCap, Shield, HardHat } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -44,31 +44,30 @@ export default function AdminUsersPage() {
   const [linkedStudentIds, setLinkedStudentIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
-    setIsLoadingUsers(true);
-    let q;
-    const usersCollection = collection(db, 'users');
-    
-    if (filter === 'all') {
-      q = query(usersCollection, orderBy('createdAt', 'desc'));
-    } else {
-      q = query(usersCollection, where('role', '==', filter), orderBy('createdAt', 'desc'));
-    }
+    const fetchUsers = async () => {
+        if (!db) return;
+        setIsLoadingUsers(true);
+        try {
+            let q;
+            const usersCollection = collection(db, 'users');
+            
+            if (filter === 'all') {
+              q = query(usersCollection, orderBy('createdAt', 'desc'));
+            } else {
+              q = query(usersCollection, where('role', '==', filter), orderBy('createdAt', 'desc'));
+            }
 
-    const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      const usersData: UserData[] = [];
-      querySnapshot.forEach((doc) => {
-        // Fetch all data including studentIds for potential editing
-        usersData.push({ id: doc.id, ...doc.data() } as UserData);
-      });
-      setUsers(usersData);
-      setIsLoadingUsers(false);
-    }, (err) => {
-      console.error("Error fetching users:", err);
-      toast.error(t('adminUsers.fetchError'));
-      setIsLoadingUsers(false);
-    });
-
-    return () => unsubscribe();
+            const querySnapshot = await getDocs(q);
+            const usersData: UserData[] = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as UserData));
+            setUsers(usersData);
+        } catch (err) {
+            console.error("Error fetching users:", err);
+            toast.error(t('adminUsers.fetchError'));
+        } finally {
+            setIsLoadingUsers(false);
+        }
+    };
+    fetchUsers();
   }, [db, filter, t]);
 
   const handleEditClick = async (user: UserData) => {
@@ -80,15 +79,12 @@ export default function AdminUsersPage() {
     setEditingUser(user);
     setUpdatedFullName(user.fullName);
     setUpdatedRole(user.role);
-    setLinkedStudentIds(new Set(user.studentIds || [])); // Use pre-fetched data
+    setLinkedStudentIds(new Set(user.studentIds || []));
 
-    if (user.role === 'parent' || updatedRole === 'parent') {
-        // Fetch student list only if it's not already loaded
-        if (allStudents.length === 0) {
-            const studentsQuery = query(collection(db, 'users'), where('role', '==', 'student'));
-            const querySnapshot = await getDocs(studentsQuery);
-            setAllStudents(querySnapshot.docs.map(d => ({ id: d.id, ...d.data() } as UserData)));
-        }
+    if ((user.role === 'parent' || updatedRole === 'parent') && allStudents.length === 0) {
+        const studentsQuery = query(collection(db, 'users'), where('role', '==', 'student'));
+        const querySnapshot = await getDocs(studentsQuery);
+        setAllStudents(querySnapshot.docs.map(d => ({ id: d.id, ...d.data() } as UserData)));
     }
   };
 
@@ -128,31 +124,13 @@ export default function AdminUsersPage() {
 
         batch.update(userDocRef, newUserData);
 
-        if (editingUser.role === 'teacher' && updatedRole !== 'teacher') {
-            const classesQuery = query(collection(db, 'classes'), where('teacherId', '==', editingUser.id));
-            const snapshot = await getDocs(classesQuery);
-            snapshot.forEach(classDoc => {
-                batch.update(classDoc.ref, { teacherId: '', teacherName: 'Unassigned' });
-            });
-        }
-        
-        if (editingUser.role === 'student' && updatedRole !== 'student') {
-            const classesQuery = query(collection(db, 'classes'), where('studentIds', 'array-contains', editingUser.id));
-            const snapshot = await getDocs(classesQuery);
-            snapshot.forEach(classDoc => {
-                batch.update(classDoc.ref, { studentIds: arrayRemove(editingUser.id) });
-            });
-        }
-
-        if (editingUser.role === 'teacher' && updatedFullName !== editingUser.fullName) {
-             const classesQuery = query(collection(db, 'classes'), where('teacherId', '==', editingUser.id));
-             const snapshot = await getDocs(classesQuery);
-             snapshot.forEach(classDoc => {
-                 batch.update(classDoc.ref, { teacherName: updatedFullName });
-             });
-        }
-
         await batch.commit();
+
+        // Update local state for instant UI feedback
+        setUsers(prevUsers => prevUsers.map(u => 
+            u.id === editingUser.id ? { ...u, fullName: updatedFullName, role: updatedRole, studentIds: newUserData.studentIds } : u
+        ));
+
         toast.success(t('adminUsers.updateSuccess'), { id: updateToast });
         setEditingUser(null);
     } catch (err: any) {
@@ -185,28 +163,14 @@ export default function AdminUsersPage() {
     const deletionToast = toast.loading(t('adminUsers.deleting', { user: userToDelete.fullName }));
 
     try {
-        const batch = writeBatch(db);
-
-        if (userToDelete.role === 'teacher') {
-            const teacherClassesQuery = query(collection(db, 'classes'), where('teacherId', '==', userToDelete.id));
-            const classesSnapshot = await getDocs(teacherClassesQuery);
-            classesSnapshot.forEach(classDoc => {
-                batch.update(classDoc.ref, { teacherId: '', teacherName: 'Unassigned' });
-            });
-        }
-
-        if (userToDelete.role === 'student') {
-            const studentClassesQuery = query(collection(db, 'classes'), where('studentIds', 'array-contains', userToDelete.id));
-            const classesSnapshot = await getDocs(studentClassesQuery);
-            classesSnapshot.forEach(classDoc => {
-                batch.update(classDoc.ref, { studentIds: arrayRemove(userToDelete.id) });
-            });
-        }
-        
+        // This is a simplified deletion. For production, use a Cloud Function
+        // to handle cascading deletes and Auth user deletion.
         const userDocRef = doc(db, 'users', userToDelete.id);
-        batch.delete(userDocRef);
+        await deleteDoc(userDocRef);
         
-        await batch.commit();
+        // Update local state
+        setUsers(prev => prev.filter(u => u.id !== userToDelete.id));
+
         toast.success(t('adminUsers.deleteSuccess', { user: userToDelete.fullName }), { id: deletionToast });
 
     } catch (err: any) {
@@ -232,10 +196,8 @@ export default function AdminUsersPage() {
   const getRoleName = (role: string) => {
     const roleKey = `adminUsers.${role.toLowerCase()}`;
     const translatedRole = t(roleKey);
-    if (translatedRole === roleKey) {
-        return role.charAt(0).toUpperCase() + role.slice(1);
-    }
-    return translatedRole;
+    // Fallback to capitalized role if translation not found
+    return translatedRole === roleKey ? role.charAt(0).toUpperCase() + role.slice(1) : translatedRole;
   };
   
   const getPageTitle = () => {
@@ -386,6 +348,7 @@ export default function AdminUsersPage() {
                   <option value="student">{t('adminUsers.student')}</option>
                   <option value="teacher">{t('adminUsers.teacher')}</option>
                   <option value="parent">{t('adminUsers.parent')}</option>
+                  <option value="staff">{t('adminUsers.staff')}</option>
                 </select>
               </div>
 
