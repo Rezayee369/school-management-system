@@ -111,8 +111,10 @@ export default function ParentGradesPage() {
             return;
         }
 
-        const examIds = [...new Set(gradesData.map(g => g.examId))];
-        const classIds = [...new Set(gradesData.map(g => g.classId))];
+        const examIds = Array.from(new Set(gradesData.map(g => g.examId)));
+        const classIds = Array.from(new Set(gradesData.map(g => g.classId)));
+
+
 
         const [examsSnap, classesSnap] = await Promise.all([
             getDocs(query(collection(db, 'exams'), where(documentId(), 'in', examIds))),
