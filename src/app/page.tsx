@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useCallback, useRef, type KeyboardEvent } from 'react';
@@ -156,7 +155,7 @@ export default function HomePage() {
       }
       setIsLoading(false);
     }
-  }, [auth, db, selectedRole, handleLoginSuccess]);
+  }, [auth, db, selectedRole, handleLoginSuccess, t]);
 
   const handlePasswordReset = async () => {
     if (!resetEmail) {
