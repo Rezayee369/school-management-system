@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { collection, query, orderBy, doc, writeBatch, where, getDocs, deleteField, deleteDoc } from 'firebase/firestore';
@@ -29,7 +29,7 @@ export default function AdminUsersPage() {
   const searchParams = useSearchParams();
   const filter = searchParams.get('role') || 'all';
   
-  const [users, setUsers] = useState<UserData[]>([]);
+  const [allUsers, setAllUsers] = useState<UserData[]>([]);
   const [isLoadingUsers, setIsLoadingUsers] = useState(true);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
   
@@ -53,18 +53,11 @@ export default function AdminUsersPage() {
         if (!db) return;
         setIsLoadingUsers(true);
         try {
-            let q;
             const usersCollection = collection(db, 'users');
-            
-            if (filter === 'all') {
-              q = query(usersCollection, orderBy('createdAt', 'desc'));
-            } else {
-              q = query(usersCollection, where('role', '==', filter), orderBy('createdAt', 'desc'));
-            }
-
+            const q = query(usersCollection, orderBy('createdAt', 'desc'));
             const querySnapshot = await getDocs(q);
             const usersData: UserData[] = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as UserData));
-            setUsers(usersData);
+            setAllUsers(usersData);
         } catch (err) {
             console.error("Error fetching users:", err);
             toast.error(t('adminUsers.fetchError'));
@@ -73,7 +66,15 @@ export default function AdminUsersPage() {
         }
     };
     fetchUsers();
-  }, [db, filter, t]);
+  }, [db, t]);
+
+  const filteredUsers = useMemo(() => {
+    if (filter === 'all') {
+      return allUsers;
+    }
+    return allUsers.filter(user => user.role === filter);
+  }, [allUsers, filter]);
+
 
   const handleEditClick = useCallback(async (user: UserData) => {
     if (user.role === 'admin') {
@@ -141,7 +142,7 @@ export default function AdminUsersPage() {
         await batch.commit();
 
         // Update local state for instant UI feedback
-        setUsers(prevUsers => prevUsers.map(u => {
+        setAllUsers(prevUsers => prevUsers.map(u => {
             if (u.id !== editingUser.id) return u;
             const updatedUser: UserData = {
                 ...u,
@@ -201,7 +202,7 @@ export default function AdminUsersPage() {
         await deleteDoc(userDocRef);
         
         // Update local state
-        setUsers(prev => prev.filter(u => u.id !== userToDelete.id));
+        setAllUsers(prev => prev.filter(u => u.id !== userToDelete.id));
 
         toast.success(t('adminUsers.deleteSuccess', { user: userToDelete.fullName }), { id: deletionToast });
 
@@ -288,7 +289,7 @@ export default function AdminUsersPage() {
 
         <div className="p-6 bg-background/60 backdrop-blur-sm border border-border rounded-xl shadow-lg">
           <h2 className="text-2xl font-semibold text-foreground mb-4">
-            {filter === 'all' ? t('adminUsers.allUsers') : `${getRoleName(filter)}`} ({users.length})
+            {filter === 'all' ? t('adminUsers.allUsers') : `${getRoleName(filter)}`} ({filteredUsers.length})
           </h2>
           <div className="space-y-3">
             {isLoadingUsers ? (
@@ -297,8 +298,8 @@ export default function AdminUsersPage() {
                     <SkeletonListRow />
                     <SkeletonListRow />
                 </>
-            ) : users.length > 0 ? (
-              users.map((user) => (
+            ) : filteredUsers.length > 0 ? (
+              filteredUsers.map((user) => (
                 <div key={user.id} className="p-4 bg-background/50 border border-muted/20 rounded-lg transition-all hover:border-primary/50">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                         <div className="flex-1">
@@ -487,7 +488,3 @@ export default function AdminUsersPage() {
     </main>
   );
 }
-
-    
-
-    
