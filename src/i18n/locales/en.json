@@ -21,7 +21,14 @@
     "parent": "Parent Dashboard",
     "signedInAs": "Signed in as",
     "profile": "Profile",
-    "logout": "Logout"
+    "logout": "Logout",
+    "userAvatarAlt": "User avatar",
+    "roleAdmin": "Admin",
+    "roleTeacher": "Teacher",
+    "roleStudent": "Student",
+    "roleParent": "Parent",
+    "roleStaff": "Staff",
+    "roleUnknown": "Unknown Role"
   },
   "adminDashboard": {
     "studentsPresentToday": "Students Present Today",

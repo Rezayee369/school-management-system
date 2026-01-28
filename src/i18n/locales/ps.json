@@ -21,7 +21,14 @@
     "parent": "د والدینو ډشبورډ",
     "signedInAs": "تاسو په دې ګڼون ننوتی یاست",
     "profile": "پروفایل",
-    "logout": "وتل"
+    "logout": "وتل",
+    "userAvatarAlt": "د کارونکي اوتار",
+    "roleAdmin": "مدیر",
+    "roleTeacher": "ښوونکی",
+    "roleStudent": "زده‌کوونکی",
+    "roleParent": "والدین",
+    "roleStaff": "کارکوونکی",
+    "roleUnknown": "نامعلوم رول"
   },
   "adminDashboard": {
     "studentsPresentToday": "نن حاضر زده‌کوونکي",

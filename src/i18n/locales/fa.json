@@ -21,7 +21,14 @@
     "parent": "داشبورد والدین",
     "signedInAs": "شما با حساب زیر وارد شده اید",
     "profile": "پروفایل",
-    "logout": "خروج"
+    "logout": "خروج",
+    "userAvatarAlt": "آواتار کاربر",
+    "roleAdmin": "مدیر",
+    "roleTeacher": "استاد",
+    "roleStudent": "شاگرد",
+    "roleParent": "والدین",
+    "roleStaff": "کارمند",
+    "roleUnknown": "نقش نامشخص"
   },
   "adminDashboard": {
     "studentsPresentToday": "شاگردان حاضر امروز",
