@@ -301,7 +301,7 @@ export default function ParentDashboard() {
               <StatCard 
                 title={t('parentDashboard.currentMonthFee')}
                 value={feeStatus ? t(`parentDashboard.fee_status_${feeStatus.status}`) : 'N/A'}
-                subtext={feeStatus?.status === 'unpaid' ? `${t('parentDashboard.due')}: $${(feeStatus.amount - (feeStatus.discount || 0)).toFixed(2)}` : (feeStatus ? t('parentDashboard.cleared') : t('parentDashboard.noFeesPosted'))}
+                subtext={feeStatus?.status === 'unpaid' ? `${t('parentDashboard.due')}: ${(feeStatus.amount - (feeStatus.discount || 0)).toFixed(2)} افغانی` : (feeStatus ? t('parentDashboard.cleared') : t('parentDashboard.noFeesPosted'))}
                 icon={<Wallet className={`w-6 h-6 ${feeStatus?.status === 'paid' ? 'text-green-400' : feeStatus?.status === 'unpaid' ? 'text-red-400' : 'text-muted-foreground' }`} />}
               />
             </div>
@@ -369,11 +369,11 @@ export default function ParentDashboard() {
                                     <div key={fee.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-3 bg-background/30 border-b border-muted/20">
                                         <div className="flex-grow">
                                             <p className="font-medium text-foreground/90">{format(parse(fee.month, 'yyyy-MM', new Date()), 'MMMM yyyy')}</p>
-                                            <p className="text-xs text-muted-foreground">{t('parentDashboard.due')}: ${amountDue.toFixed(2)}</p>
+                                            <p className="text-xs text-muted-foreground">{t('parentDashboard.due')}: {amountDue.toFixed(2)} افغانی</p>
                                         </div>
                                         <div className="text-left sm:text-center text-muted-foreground">
-                                            <p className="text-xs">{t('parentDashboard.fee')}: ${fee.amount.toFixed(2)}</p>
-                                            {fee.discount && fee.discount > 0 ? <p className="text-xs">{t('parentDashboard.discount')}: ${fee.discount.toFixed(2)}</p> : null}
+                                            <p className="text-xs">{t('parentDashboard.fee')}: {fee.amount.toFixed(2)} افغانی</p>
+                                            {fee.discount && fee.discount > 0 ? <p className="text-xs">{t('parentDashboard.discount')}: {fee.discount.toFixed(2)} افغانی</p> : null}
                                         </div>
                                         <div className="self-start sm:self-center">
                                             <span className={`px-3 py-1 text-xs font-bold uppercase rounded-full border ${

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useFirestore } from '@/firebase';
 import { collection, query, where, getDocs, doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
-import { DollarSign, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import BackButton from '@/components/BackButton';
 import { useTranslation } from '@/i18n';
@@ -200,7 +200,7 @@ export default function AdminFeesPage() {
               disabled={isSaving || students.length === 0}
               className="w-full flex items-center justify-center gap-3 py-3 rounded-lg bg-gradient-to-r from-secondary to-primary text-primary-foreground font-bold tracking-wider uppercase hover:shadow-lg hover:shadow-primary/30 transition-all duration-300 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <DollarSign className="w-5 h-5" />}
+              {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : null}
               <span>{isSaving ? t('adminFees.saving') : t('adminFees.saveButton')}</span>
             </button>
           </div>

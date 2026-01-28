@@ -4,7 +4,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useFirestore } from '@/firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
-import { DollarSign, TrendingUp, TrendingDown, AlertCircle } from 'lucide-react';
+import { Wallet, TrendingUp, TrendingDown, AlertCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useTranslation } from '@/i18n';
 import { Skeleton } from '@/components/Skeleton';
@@ -132,21 +132,21 @@ export default function FinanceReportPage() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <StatCard 
                         title={t('financeReport.totalExpected')} 
-                        value={formatNumber(reportData?.totalExpected ?? 0)} 
-                        icon={<DollarSign className="w-6 h-6"/>} 
+                        value={`${formatNumber(reportData?.totalExpected ?? 0)} افغانی`} 
+                        icon={<Wallet className="w-6 h-6"/>} 
                         color="border-primary text-primary"
                         isLoading={isLoading}
                     />
                      <StatCard 
                         title={t('financeReport.totalCollected')}
-                        value={formatNumber(reportData?.totalCollected ?? 0)} 
+                        value={`${formatNumber(reportData?.totalCollected ?? 0)} افغانی`} 
                         icon={<TrendingUp className="w-6 h-6"/>} 
                         color="border-green-400 text-green-400"
                         isLoading={isLoading}
                     />
                      <StatCard 
                         title={t('financeReport.totalUnpaid')}
-                        value={formatNumber(reportData?.totalUnpaid ?? 0)} 
+                        value={`${formatNumber(reportData?.totalUnpaid ?? 0)} افغانی`} 
                         icon={<TrendingDown className="w-6 h-6"/>} 
                         color="border-destructive text-destructive"
                         isLoading={isLoading}

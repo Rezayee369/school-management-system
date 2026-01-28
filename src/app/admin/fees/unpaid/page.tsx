@@ -5,7 +5,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useAuthGuard } from '@/hooks/useAuthGuard';
 import { useFirestore } from '@/firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
-import { ListX, DollarSign, Filter, TrendingDown, Loader2 } from 'lucide-react';
+import { ListX, Filter, TrendingDown, Loader2 } from 'lucide-react';
 import PermissionDenied from '@/components/PermissionDenied';
 import { SkeletonListRow } from '@/components/Skeleton';
 import { Skeleton } from '@/components/Skeleton';
@@ -151,7 +151,7 @@ export default function UnpaidFeesPage() {
                         <Skeleton className="h-10 w-48 mt-2"/>
                      ) : (
                         <p className="text-4xl font-bold text-destructive mt-1">
-                            ${totalUnpaid.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            {totalUnpaid.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} افغانی
                         </p>
                      )}
                 </div>
@@ -201,12 +201,11 @@ export default function UnpaidFeesPage() {
                                         ) : className}
                                     </td>
                                     <td className="p-3 text-muted-foreground">{fee.month}</td>
-                                    <td className="p-3 text-right text-muted-foreground">${fee.amount.toFixed(2)}</td>
-                                    <td className="p-3 text-right text-muted-foreground">${fee.discount.toFixed(2)}</td>
+                                    <td className="p-3 text-right text-muted-foreground">{fee.amount.toFixed(2)} افغانی</td>
+                                    <td className="p-3 text-right text-muted-foreground">{fee.discount.toFixed(2)} افغانی</td>
                                     <td className="p-3 text-right font-semibold text-destructive">
                                         <div className='flex items-center justify-end gap-1.5'>
-                                          <DollarSign size={14} />
-                                          {amountDue.toFixed(2)}
+                                          {amountDue.toFixed(2)} افغانی
                                         </div>
                                     </td>
                                 </tr>
