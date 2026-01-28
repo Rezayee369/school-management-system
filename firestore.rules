@@ -45,9 +45,9 @@ service cloud.firestore {
 
     match /users/{userId} {
       // A user can always read their own document.
-      // A parent can read the documents of their linked children.
+      // A parent can read the documents of their linked children, provided the user is a student.
       // An admin can read any user document.
-      allow get: if isOwner(userId) || isParentOf(userId) || isAdmin();
+      allow get: if isOwner(userId) || (isParentOf(userId) && get(/databases/$(database)/documents/users/$(userId)).data.role == 'student') || isAdmin();
       
       // Admins can list the collection (for aggregation queries).
       allow list: if isAdmin();
