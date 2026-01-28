@@ -16,6 +16,7 @@ import { Mail, Lock, GraduationCap } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useTranslation } from '@/i18n';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="24px" height="24px" {...props}>
@@ -37,65 +38,35 @@ export default function HomePage() {
   const { t } = useTranslation();
   const user = useUser();
 
+  // This effect will run whenever the `user` object changes.
+  // It redirects already logged-in users to their respective dashboards.
   useEffect(() => {
-    if (user && user.role) {
-      const role = user.role;
-      switch (role) {
-        case 'admin':
-          router.replace('/admin');
-          break;
-        case 'teacher':
-          router.replace('/teacher');
-          break;
-        case 'student':
-          router.replace('/student');
-          break;
-        case 'parent':
-          router.replace('/parent');
-          break;
-        default:
-          signOut(auth);
-          break;
-      }
+    if (user) { // user is logged in
+        const role = user.role;
+        if (role) {
+            switch (role) {
+                case 'admin':   router.replace('/admin');   break;
+                case 'teacher': router.replace('/teacher'); break;
+                case 'student': router.replace('/student'); break;
+                case 'parent':  router.replace('/parent');  break;
+                default:
+                    // If role is invalid, log them out to be safe
+                    toast.error(t('login.roleInvalid', { role }));
+                    signOut(auth);
+                    break;
+            }
+        }
+        // If user is logged in but has no role, they stay on the login page
+        // until the role is assigned or an error is shown.
     }
-  }, [user, router, auth]);
+    // If user is `null` or `undefined`, do nothing, just show the login page.
+  }, [user, router, auth, t]);
+
 
   const handleSuccessfulLogin = async (loggedInUser: User) => {
-    try {
-      const userDocRef = doc(db, 'users', loggedInUser.uid);
-      const userDoc = await getDoc(userDocRef);
-
-      if (userDoc.exists()) {
-        const userData = userDoc.data();
-        const role = userData.role;
-
-        switch (role) {
-          case 'admin':
-            router.replace('/admin');
-            break;
-          case 'teacher':
-            router.replace('/teacher');
-            break;
-          case 'student':
-            router.replace('/student');
-            break;
-          case 'parent':
-            router.replace('/parent');
-            break;
-          default:
-            toast.error(t('login.roleInvalid', { role: role || 'not set'}));
-            await signOut(auth);
-            break;
-        }
-      } else {
-        toast.error(t('login.noProfile'));
-        await signOut(auth);
-      }
-    } catch (error: any) {
-      console.error("Error fetching user data after login:", error);
-      toast.error(t('login.postLoginError', { message: error.message }));
-      await signOut(auth);
-    }
+    // The useEffect hook above will handle the redirection.
+    // This function can be kept for any additional post-login logic if needed in the future.
+    // For now, it's implicitly handled.
   };
 
   const handleEmailLogin = async (e: React.FormEvent) => {
@@ -110,13 +81,13 @@ export default function HomePage() {
 
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      await handleSuccessfulLogin(userCredential.user);
+      // Let the useEffect hook handle redirection
     } catch (error: any) {
       console.error("Login process failed:", error);
       toast.error(`Error: ${error.code} - ${error.message}`);
-    } finally {
-      setIsLoading(false);
-    }
+      setIsLoading(false); // Only set loading to false on error
+    } 
+    // On success, loading remains true while redirection happens
   };
 
   const handleGoogleLogin = async () => {
@@ -133,27 +104,26 @@ export default function HomePage() {
         await setDoc(userDocRef, {
           fullName: user.displayName,
           email: user.email,
-          role: 'student',
+          role: 'student', // Default role for new Google sign-ups
           createdAt: serverTimestamp(),
           photoURL: user.photoURL
         });
       }
-      
-      await handleSuccessfulLogin(user);
-
+      // Let the useEffect hook handle redirection
     } catch (error: any) {
       if (error.code !== 'auth/popup-closed-by-user') {
         console.error("Google Sign-In Error: ", error);
         toast.error(`${error.code}: ${error.message}` || 'An error occurred during Google Sign-In.');
       }
-    } finally {
-      setIsLoading(false);
+      setIsLoading(false); // Only set loading to false on error
     }
+    // On success, loading remains true while redirection happens
   };
 
   return (
-    <main className="flex min-h-screen w-full items-center justify-center p-4 bg-transparent">
+    <main className="flex min-h-screen w-full items-center justify-center p-4">
       <div className="absolute top-4 end-4 z-20 flex items-center gap-2">
+          <ThemeToggle />
           <LanguageSwitcher />
       </div>
       
@@ -162,7 +132,7 @@ export default function HomePage() {
 
           <div className="flex flex-col items-center mb-6">
             <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center mb-4">
-              <GraduationCap className="text-white w-8 h-8" />
+              <GraduationCap className="text-primary-foreground w-8 h-8" />
             </div>
             <h1 className="text-center text-3xl font-bold text-foreground tracking-wider">
               {t('login.title')}
@@ -208,10 +178,10 @@ export default function HomePage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-3 rounded-lg bg-gradient-to-r from-primary to-secondary text-white font-bold tracking-wider uppercase flex items-center justify-center gap-3 hover:shadow-lg hover:shadow-primary/30 transition-all duration-300 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">
+              className="w-full py-3 rounded-lg bg-gradient-to-r from-primary to-secondary text-primary-foreground font-bold tracking-wider uppercase flex items-center justify-center gap-3 hover:shadow-lg hover:shadow-primary/30 transition-all duration-300 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">
               {isLoading ? (
                   <>
-                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      <div className="w-5 h-5 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin"></div>
                       <span>{t('login.authenticating')}</span>
                   </>
               ) : t('login.signIn')}
@@ -228,7 +198,7 @@ export default function HomePage() {
             type="button"
             onClick={handleGoogleLogin}
             disabled={isLoading}
-            className="w-full flex items-center justify-center gap-3 rounded-lg bg-transparent py-3 font-semibold text-foreground transition duration-300 ease-in-out border border-input hover:bg-accent active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full flex items-center justify-center gap-3 rounded-lg bg-transparent py-3 font-semibold text-foreground transition duration-300 ease-in-out border border-input hover:bg-muted/30 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading ? (
                 <>

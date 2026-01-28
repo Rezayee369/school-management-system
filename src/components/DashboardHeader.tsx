@@ -8,6 +8,7 @@ import { useAuth, useUser } from '@/firebase';
 import { LogOut, User as UserIcon, Settings } from 'lucide-react';
 import { useTranslation } from '@/i18n';
 import LanguageSwitcher from './LanguageSwitcher';
+import { ThemeToggle } from './ThemeToggle';
 
 interface DashboardHeaderProps {
   userRole: string;
@@ -72,6 +73,7 @@ export default function DashboardHeader({ userRole }: DashboardHeaderProps) {
       </div>
 
       <div className="flex items-center gap-2">
+        <ThemeToggle />
         <LanguageSwitcher />
         
         <div className="relative">
@@ -93,7 +95,7 @@ export default function DashboardHeader({ userRole }: DashboardHeaderProps) {
 
           <div
             ref={dropdownRef}
-            className={`absolute end-0 mt-2 w-56 origin-top-right rounded-xl bg-background/80 backdrop-blur-lg border border-border shadow-2xl shadow-primary/10 ring-1 ring-black ring-opacity-5 z-10 transition-all duration-150 ease-out
+            className={`absolute end-0 mt-2 w-56 origin-top-right rounded-xl bg-popover text-popover-foreground border border-border shadow-2xl shadow-primary/10 ring-1 ring-black ring-opacity-5 z-10 transition-all duration-150 ease-out
               ${isDropdownOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'}`}
           >
             <div className="py-1">

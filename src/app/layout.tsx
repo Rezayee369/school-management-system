@@ -5,6 +5,7 @@ import "./globals.css";
 import { FirebaseClientProvider } from "@/firebase";
 import { Toaster } from 'react-hot-toast';
 import { LanguageProvider } from "@/i18n";
+import { ThemeProvider } from "@/components/theme-provider";
 
 const ptSans = PT_Sans({
   subsets: ['latin'],
@@ -23,35 +24,42 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="fa" dir="rtl" className={`${ptSans.variable}`}>
+    <html lang="fa" dir="rtl" className={`${ptSans.variable}`} suppressHydrationWarning>
       <body>
-        <LanguageProvider>
-          <FirebaseClientProvider>
-            {children}
-            <Toaster 
-              position="top-right"
-              toastOptions={{
-                style: {
-                  background: 'hsl(var(--background))',
-                  color: 'hsl(var(--foreground))',
-                  border: '1px solid hsl(var(--border))',
-                },
-                success: {
-                  iconTheme: {
-                    primary: 'hsl(var(--primary))',
-                    secondary: 'hsl(var(--background))',
+        <ThemeProvider
+            attribute="class"
+            defaultTheme="dark"
+            enableSystem
+            disableTransitionOnChange
+        >
+          <LanguageProvider>
+            <FirebaseClientProvider>
+              {children}
+              <Toaster 
+                position="top-right"
+                toastOptions={{
+                  style: {
+                    background: 'hsl(var(--background))',
+                    color: 'hsl(var(--foreground))',
+                    border: '1px solid hsl(var(--border))',
                   },
-                },
-                error: {
-                  iconTheme: {
-                    primary: 'hsl(var(--destructive))',
-                    secondary: 'hsl(var(--foreground))',
+                  success: {
+                    iconTheme: {
+                      primary: 'hsl(var(--primary))',
+                      secondary: 'hsl(var(--background))',
+                    },
                   },
-                },
-              }}
-            />
-            </FirebaseClientProvider>
-        </LanguageProvider>
+                  error: {
+                    iconTheme: {
+                      primary: 'hsl(var(--destructive))',
+                      secondary: 'hsl(var(--foreground))',
+                    },
+                  },
+                }}
+              />
+              </FirebaseClientProvider>
+          </LanguageProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
