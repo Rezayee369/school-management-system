@@ -4,7 +4,7 @@
 import { useAuthGuard } from '@/hooks/useAuthGuard';
 import DashboardHeader from '@/components/DashboardHeader';
 import { useUser, useFirestore } from '@/firebase';
-import { collection, query, where, getDocs, doc, setDoc, arrayUnion, Timestamp, orderBy } from 'firebase/firestore';
+import { collection, query, where, getDoc, getDocs, doc, setDoc, arrayUnion, Timestamp, orderBy } from 'firebase/firestore';
 import { useState, useEffect, useMemo } from 'react';
 import { BookOpen, CheckCircle, XCircle, MinusCircle, ClipboardCheck, Megaphone, MessageSquare } from 'lucide-react';
 import PermissionDenied from '@/components/PermissionDenied';
