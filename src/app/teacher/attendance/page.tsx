@@ -4,7 +4,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuthGuard } from '@/hooks/useAuthGuard';
 import { useFirestore, useUser } from '@/firebase';
-import { collection, query, where, getDoc, getDocs, doc, documentId } from 'firebase/firestore';
+import { collection, query, where, getDoc, getDocs, doc, documentId, onSnapshot, setDoc, serverTimestamp } from 'firebase/firestore';
 import { Calendar as CalendarIcon, Check, X, Minus } from 'lucide-react';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
@@ -280,5 +280,7 @@ export default function TeacherAttendancePage() {
     </main>
   );
 }
+
+    
 
     
