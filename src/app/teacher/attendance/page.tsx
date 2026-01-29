@@ -4,7 +4,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuthGuard } from '@/hooks/useAuthGuard';
 import { useFirestore, useUser } from '@/firebase';
-import { collection, query, where, onSnapshot, getDocs, setDoc, doc, serverTimestamp, documentId } from 'firebase/firestore';
+import { collection, query, where, getDoc, getDocs, doc } from 'firebase/firestore';
 import { Calendar as CalendarIcon, Check, X, Minus } from 'lucide-react';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
