@@ -4,9 +4,9 @@
 import { createContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 
-import en from './locales/en.json';
-import fa from './locales/fa.json';
-import ps from './locales/ps.json';
+import en from './en.json';
+import fa from './fa.json';
+import ps from './ps.json';
 
 export type Language = 'en' | 'fa' | 'ps';
 
