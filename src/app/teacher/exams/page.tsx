@@ -93,7 +93,7 @@ export default function TeacherExamsPage() {
       setIsLoadingClasses(false);
     };
     fetchClasses().catch(() => setIsLoadingClasses(false));
-  }, [isAuthorized, user, db]);
+  }, [isAuthorized, user, db, selectedClassId]);
 
   // Fetch created exams for the list
   useEffect(() => {
@@ -106,7 +106,7 @@ export default function TeacherExamsPage() {
         const examsData = snapshot.docs.map(doc => ({id: doc.id, ...doc.data() as Omit<ExamData, 'id'|'className'>}));
 
         if (examsData.length > 0) {
-            const classIds = [...new Set(examsData.map(e => e.classId))];
+            const classIds = Array.from(new Set(examsData.map(e => e.classId)));
             const classesQuery = query(collection(db, 'classes'), where(documentId(), 'in', classIds));
             const classesSnap = await getDocs(classesQuery);
             const classMap = new Map(classesSnap.docs.map(d => [d.id, d.data().name]));
